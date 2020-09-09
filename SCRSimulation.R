@@ -14,8 +14,6 @@ set.seed(2018)
 Sys.setenv(PATH = paste("C:/Rtools/bin", Sys.getenv("PATH"), sep=";"))
 Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 
-# MCMC settings
-nc <- 3; nAdapt=500; nb <- 1000; ni <- 5000+nb; nt <- 1
 
 ## Define study area grid (random example currently)
 locs <- as.matrix(secr::make.grid(nx = 10, ny = 10, spacex = 8, spacey = 8))
@@ -30,7 +28,7 @@ J <- nrow(X)
 
 ## Define state-space of point process. (i.e., where animals live).
 ## "delta" just adds a fixed buffer to the outer extent of the traps.
-delta <- 20  ## will need to play with this
+delta <- 10  ## will need to play with this
 Xl<-min(locs[,1]) - delta
 Xu<-max(locs[,1]) + delta
 Yl<-min(locs[,2]) - delta
@@ -126,6 +124,9 @@ for(iter in 1:nsim){
     D <- N/A
   })#code
   
+  
+  # MCMC settings
+  nc <- 3; nAdapt=1000; nb <- 2000; ni <- 10000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (y=y)
