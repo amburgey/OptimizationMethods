@@ -105,7 +105,7 @@ for(iter in 1:nsim){
   ## NIMBLE model is nearly identical to BUGS
   code <- nimbleCode({
     lam0~dunif(0,5)
-    sigma~dunif(0,50) #dgamma(274.69,7.27) when informative
+    sigma~dunif(0,100) #dgamma(274.69,7.27) when informative
     psi~dunif(0,1)
     
     for(i in 1:M){
