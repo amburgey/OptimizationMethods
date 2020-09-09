@@ -28,7 +28,7 @@ J <- nrow(X)
 
 ## Define state-space of point process. (i.e., where animals live).
 ## "delta" just adds a fixed buffer to the outer extent of the traps.
-delta <- 10  ## will need to play with this
+delta <- 5  ## will need to play with this
 Xl<-min(locs[,1]) - delta
 Xu<-max(locs[,1]) + delta
 Yl<-min(locs[,2]) - delta
@@ -126,7 +126,7 @@ for(iter in 1:nsim){
   
   
   # MCMC settings
-  nc <- 3; nAdapt=1000; nb <- 2000; ni <- 10000+nb; nt <- 1
+  nc <- 3; nAdapt=1000; nb <- 5000; ni <- 20000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (y=y)
@@ -157,9 +157,10 @@ for(iter in 1:nsim){
   summaryList<-summary(samplesList)
   outSummary<-cbind(summaryList$statistics[,c("Mean","SD")],summaryList$quantiles[,c("2.5%","50%", "97.5%")],gelman.diag(samplesList,multivariate=FALSE)$psrf[,1],effectiveSize(samplesList))
   colnames(outSummary)[6:7]<-c("Rhat","n.eff")
-  round(outSummary,2)
+  round(outSummary,4)
   
   #plot results
   plot(samplesList[,"sigma"])
+  plot(samplesList[,"N"])
   
 }
