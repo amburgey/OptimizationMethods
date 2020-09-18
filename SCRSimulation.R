@@ -17,18 +17,17 @@ Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 
 ## Define study area grid (random example currently)
 locs <- as.matrix(secr::make.grid(nx = 10, ny = 10, spacex = 8, spacey = 8))
+ntraps <- nrow(locs)
 
 ## Which parts of grid have traps
 set.seed(922020)
-a=sample(100, 15)
+a=sample(100, 15)   ## remember, have to change this if changing trapping grid above
 X=locs[a,]
 J <- nrow(X)
-# Yscr <- locs
-# ntraps <- nrow(locs)
 
 ## Define state-space of point process. (i.e., where animals live).
 ## "delta" just adds a fixed buffer to the outer extent of the traps.
-delta <- 5  ## will need to play with this
+delta <- 20  ## will need to play with this
 Xl<-min(locs[,1]) - delta
 Xu<-max(locs[,1]) + delta
 Yl<-min(locs[,2]) - delta
@@ -37,10 +36,10 @@ Yu<-max(locs[,2]) + delta
 A <- (Xu-Xl)*(Yu-Yl)
 
 ## Establish parameters for detection
-lam0<- 0.07  # Christy et al. (2010) mean detection prob (but could reach 0.18 under ideal situations)
-sigma<- 37.8  # Based on Amburgey et al. (in review) and Gardner SSP analysis
+lam0 <- 0.07  # Christy et al. (2010) mean detection prob (but could reach 0.18 under ideal situations)
+sigma <- 37.8  # Based on Amburgey et al. (in review) and similar to Gardner SSP analysis
 
-## Number of snakes based on probable density on Guam
+## Number of snakes based on probable density in Guam (Rodda, Christy, etc.)
 ## 23 snakes/ha -> 0.0023 snakes/m2 (see notes at beginning)
 N <- round(A*0.0023)
 
@@ -58,6 +57,21 @@ for(iter in 1:nsim){
   sy<-runif(N,Yl,Yu)
   S<-cbind(sx,sy) 
   
+  ## Take a moment to plot everything to make sure it makes sense
+  library(sp)
+  border <- as.data.frame(matrix(c(Xl,Xl,Xu,Xu,Yl,Yu,Yl,Yu), nrow = 4, ncol = 2))  ## study area
+  test <- as.data.frame(locs)  ## trapping grid
+  test2 <- as.data.frame(S)  ## activity centers
+  test3 <- as.data.frame(X)  ## active traps
+  coordinates(border) =~ V1 + V2
+  coordinates(test) =~ x+y
+  coordinates(test2) =~ sx+sy
+  coordinates(test3) =~ x+y
+  plot(border)
+  plot(test, add=TRUE, pch=21, col="blue", cex=0.5)
+  plot(test2, add=TRUE, pch=22, col="red", cex=0.7)
+  plot(test3, add=TRUE, pch=1, cex=2)
+    
   ## Distance between each individual AC and each each trap
   ## Function to calculate distance between two sets of (x,y) locations
   e2dist <- function(A, B)  {
@@ -67,32 +81,30 @@ for(iter in 1:nsim){
   }
   
   ####### Modify this section for each monitoring method to generate observations #######
-  D <- e2dist(S,X)
+  D <- e2dist(S,locs)
   muy <- lam0*exp(-(D*D)/(2*sigma^2))
   
   ## Simulate observations of individuals by trap
-  Y<-matrix(NA,nrow=N,ncol=J)
+  Y<-matrix(NA,nrow=N,ncol=ntraps)
   for(i in 1:nrow(Y)){
-    Y[i,]<-rpois(J,K*muy[i,])
+    Y[i,]<-rpois(ntraps,K*muy[i,])
   }
   
-  ##########
-  
-  # ## If needing other dimension later on
-  # Y<-array(NA,dim=c(N,ntraps,K))
-  # for(i in 1:nrow(Y)){
-  #   for(j in 1:ntraps){
-  #     Y[i,j,1:K]<-rpois(K,1,K*muy[i,j])  ## will require expanding muy[i,j] and then will need to also sum after this
-  #   }
-  # }
+  ## NOTE NOTE NOTE NOTE
+  ## Y is a matrix of encounter frequencies of EACH individual in EACH trap
+  ## As simulated here it includes the "all 0" observations.  We want
+  ## to delete those to mimic real data.
+  Yscr=Y[,a]
+  totalcaps<-apply(Yscr,1,sum)
+  Yscr<-Yscr[totalcaps>0,]
   
   datnam<-paste('/SimDat/Dat_', iter, '.R', sep='')
   dput(Y, datnam)
   
   ## Data augmentation for when N is unknown
   M <- round(N+(N*0.5))
-  y <- rbind(Y,matrix(0,nrow=M-N,ncol=ncol(Y)))
-  z <- c(rep(1,N),rep(0,M-N))
+  y=matrix(0, M,dim(X)[1])
+  y[1:dim(Yscr)[1],]<-Yscr
   
   ## Initial values for s
   set.seed(932020)
@@ -105,7 +117,8 @@ for(iter in 1:nsim){
   ## NIMBLE model is nearly identical to BUGS
   code <- nimbleCode({
     lam0~dunif(0,5)
-    sigma~dunif(0,100) #dgamma(274.69,7.27) when informative
+    #sigma~dgamma(274.69,7.27) #really bad results when using this
+    sigma~dunif(0,100) #dgamma(274.69,7.27) based on 2015 SCR study
     psi~dunif(0,1)
     
     for(i in 1:M){
@@ -126,7 +139,7 @@ for(iter in 1:nsim){
   
   
   # MCMC settings
-  nc <- 3; nAdapt=1000; nb <- 5000; ni <- 20000+nb; nt <- 1
+  nc <- 3; nAdapt=5000; nb <- 10000; ni <- 40000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (y=y)
@@ -157,7 +170,7 @@ for(iter in 1:nsim){
   summaryList<-summary(samplesList)
   outSummary<-cbind(summaryList$statistics[,c("Mean","SD")],summaryList$quantiles[,c("2.5%","50%", "97.5%")],gelman.diag(samplesList,multivariate=FALSE)$psrf[,1],effectiveSize(samplesList))
   colnames(outSummary)[6:7]<-c("Rhat","n.eff")
-  round(outSummary,4)
+  round(outSummary,8)
   
   #plot results
   plot(samplesList[,"sigma"])
