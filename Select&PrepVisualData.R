@@ -523,8 +523,13 @@ ToCheck[(ToCheck$SITE == "NCRI" | ToCheck$SITE == "NCRR") & ToCheck$PROJECTCODE 
 ## Only KMZ or KML files show only the TRAP stations but this area uses a standard grid of 13 x 27 cells
 NWFNtrpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/CP TRAP STATIONS.kml","Waypoints", require_geomType = "wkbPoint")
 
+first <- rbind(cbind(c(0,2,seq(18,210,16),212,214),rep(0,17)),
+               cbind(c(2,4,seq(20,212,16),214,216),rep(2,17)))
+
+
 locs <- as.matrix(secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)) # 13 x 27 for interior grid but 0 and 14 starting points of each transect and there are also 2 one-sided edge transects (NEE, SWE) and also perimeter detections
 ### THIS MAY CHANGE AS RESULTS IN NOT EXACT AREA (50,176 m2 rather than 50,000 m2)
+
 
 nwfnVISHL12 <- subset(subcap, SITE == "NWFN" & (PROJECTCODE == "NWFN VIS HL 1" | PROJECTCODE == "NWFN VIS HL 2"))[,c("TRANSECT","LOCATION","COMMENT","Point")]
 
