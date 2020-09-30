@@ -36,7 +36,7 @@ Yu<-max(locs[,2]) + delta
 A <- (Xu-Xl)*(Yu-Yl)
 
 ## Establish parameters for detection
-lam0 <- 0.07  # Christy et al. (2010) mean detection prob (but could reach 0.18 under ideal situations)
+lam0 <- 0.07  # Christy et al. (2010) mean detection prob (but could reach 0.18 under ideal situations), hand captures
 sigma <- 12 #37.8  # Based on Amburgey et al. (in review) and similar to Gardner SSP analysis
 
 ## Number of snakes based on probable density in Guam (Rodda, Christy, etc.)

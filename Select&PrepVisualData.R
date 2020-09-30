@@ -180,22 +180,16 @@ coordinates(hmuEdge)=~CAPLON+CAPLAT
 proj4string(hmuEdge) <- CRS("+proj=longlat +datum=WGS84")
 ## Convert points to UTM
 hmuEdge <- as.data.frame(spTransform(hmuEdge, CRS("+proj=utm +zone=55")))
-# hmuEdge <- as.data.frame(hmuEdge)
 hmuEdge$utmE <- as.vector(apply(as.data.frame(hmuEdge[,3]), 2, function(x) x-mean(x)))
 hmuEdge$utmN <- as.vector(apply(as.data.frame(hmuEdge[,4]), 2, function(x) x-mean(x)))
 colnames(hmuEdge) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-# colnames(hmuEdge) <- c("TRANSECT","LOCATION","LON","LAT")
 
 HMUREEbe <- as.data.frame(spTransform(HMUREEpts, CRS("+proj=utm +zone=55")))
-# HMUREEbe <- as.data.frame(HMUREEpts)
 HMUREEbe <- cbind(c(rep(c("HE01be"),2),rep(c("HE02be"),2),rep(c("HE03be"),2),rep(c("HE04be"),2),rep(c("HE05be"),2),rep(c("HE06be"),2),rep(c("HE07be"),2),rep(c("HE08be"),2),rep(c("HE09be"),2)),c(1),HMUREEbe[,3:4],c(NA),c(NA))
 colnames(HMUREEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-# colnames(HMUREEbe) <- c("TRANSECT","LOCATION","LON","LAT")
 HMUIEEbe <- as.data.frame(spTransform(HMUIEEpts, CRS("+proj=utm +zone=55")))
-# HMUIEEbe <- as.data.frame(HMUIEEpts)
 HMUIEEbe <- cbind(c("HP01b","HP02b","HP03b","HP04b","HP05b","HP06b","HP07b","HP08b","HP09b"),c(1),HMUIEEbe[10:18,3:4],c(NA),c(NA))
 colnames(HMUIEEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-# colnames(HMUIEEbe) <- c("TRANSECT","LOCATION","LON","LAT")
 
 hmuEdgeAll <- rbind(hmuEdge,HMUREEbe,HMUIEEbe)
 
@@ -203,62 +197,7 @@ hmuEdgeAll <- rbind(hmuEdge,HMUREEbe,HMUIEEbe)
 p1 <- ggplot(hmuEdgeAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) +
   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-## raster of 1 = study area and 0 = outside fence
-hmuSpace <- raster("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/Reclass_hmu_71.tif")
-hmuSpace <- projectRaster(hmuSpace, crs="+proj=utm +zone=55 +units=m +datum=WGS84")
-coordinates(hmuEdgeAll)=~UTME+UTMN
-proj4string(hmuEdgeAll) <- CRS("+proj=utm +zone=55 +units=m +datum=WGS84")
 
-## function from http://rstudio-pubs-static.s3.amazonaws.com/273756_4230265fc8484963903aaea122f933f7.html
-cellnumbers <- function(x, query, ...) {
-  if (inherits(query, "sf")) query <- sf::as(query, "Spatial")
-  if (is.na(projection(x)) || is.na(projection(query)) || projection(x) != projection(query)) {
-    warning(sprintf("projections not the same \n    x: %s\nquery: %s", projection(x), projection(query)))
-  }
-  if (inherits(query, "SpatialPolygons")) {
-    a <- cellFromPolygon(x, query, ...)
-  }
-  if (inherits(query, "SpatialLines")) {
-    a <- cellFromLine(x, query, ...)
-  }
-  if (is.matrix(query) | inherits(query, "SpatialPoints")) {
-    a <- cellFromXY(x, query)
-  }
-  d <- dplyr::bind_rows(lapply(a, mat2d_f), .id = "object_")
-  if (ncol(d) == 2L) names(d) <- c("object_", "cell_")
-  if (ncol(d) == 3L) names(d) <- c("object_", "cell_", "weight_")
-  d
-  
-}
-
-#' @importFrom tibble as_tibble
-mat2d_f <- function(x) {
-  
-  if (is.null(x)) {
-    return(NULL)
-  }
-  tibble::as_tibble(x)
-}
-
-tt <- cellnumbers(hmuSpace, hmuEdgeAll[,3:4]) ## get cell identities for each capture location on raster
-HMUhabmat <- as.matrix(hmuSpace)
-HMUhabmat <- ifelse(HMUhabmat > 0, 1, 0)  ## simplifies pixels that are not fully in state space to 0 or 1
-## Find locations of captures (and currently beginning and end of transects) in pixels vs. lat/lon
-locsHMUEE <- matrix(NA, nrow=nrow(hmuEdgeAll), ncol=2)
-for(i in 1:nrow(tt)){
-  locsHMUEE[i,1] <- as.numeric(floor(tt[i,2]/ncol(hmuSpace))) + 1
-  locsHMUEE[i,2] <- as.numeric(tt[i,2]) - (as.numeric(floor(tt[i,2]/ncol(hmuSpace)))*ncol(hmuSpace))
-}
-
-
-hmuEEdelta <- 0  ## will need to play with this
-XlhmuEE<-min(hmuEdge[,3]) - hmuEEdelta
-XuhmuEE<-max(hmuEdge[,3]) + hmuEEdelta
-YlhmuEE<-min(hmuEdge[,4]) - hmuEEdelta
-YuhmuEE<-max(hmuEdge[,4]) + hmuEEdelta
-AhmuEE <- (XuhmuEE-XlhmuEE)*(YuhmuEE-YlhmuEE)
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE == "EDGE EFFECT VIS" & is.na(ToCheck$checked),"checked"] <- 1
 
@@ -305,15 +244,6 @@ hmuLDAll <- rbind(hmuLD,HMURLDbe,HMUILDbe)
 p1 <- ggplot(hmuLDAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-hmuLDdelta <- 5  ## will need to play with this
-XlhmuLD<-min(hmuLD[,3]) - hmuLDdelta
-XuhmuLD<-max(hmuLD[,3]) + hmuLDdelta
-YlhmuLD<-min(hmuLD[,4]) - hmuLDdelta
-YuhmuLD<-max(hmuLD[,4]) + hmuLDdelta
-AhmuLD <- (XuhmuLD-XlhmuLD)*(YuhmuLD-YlhmuLD)
-
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE == "LOWDENS VIS" | ToCheck$PROJECTCODE == "LOWDENS SUPPVIS") & is.na(ToCheck$checked),"checked"] <- 1
 
@@ -347,15 +277,6 @@ hmuTD12All <- rbind(hmuTD12,HMUREEbe,HMUIEEbe)
 p1 <- ggplot(hmuTD12All, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-hmuTD12delta <- 5  ## will need to play with this
-XlhmuTD12<-min(hmuTD12[,3]) - hmuTD12delta
-XuhmuTD12<-max(hmuTD12[,3]) + hmuTD12delta
-YlhmuTD12<-min(hmuTD12[,4]) - hmuTD12delta
-YuhmuTD12<-max(hmuTD12[,4]) + hmuTD12delta
-AhmuTD12 <- (XuhmuTD12-XlhmuTD12)*(YuhmuTD12-YlhmuTD12)
-
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE == "TOX DROP VIS 1" | ToCheck$PROJECTCODE == "TOX DROP VIS 2") & is.na(ToCheck$checked),"checked"] <- 1
 
@@ -381,16 +302,6 @@ hmuTD3All <- rbind(hmuTD3,HMURLDbe,HMUILDbe)
 ## Plot to check
 p1 <- ggplot(hmuTD3All, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
-
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-hmuTD3delta <- 5  ## will need to play with this
-XlhmuTD3<-min(hmuTD3[,3]) - hmuTD3delta
-XuhmuTD3<-max(hmuTD3[,3]) + hmuTD3delta
-YlhmuTD3<-min(hmuTD3[,4]) - hmuTD3delta
-YuhmuTD3<-max(hmuTD3[,4]) + hmuTD3delta
-AhmuTD3 <- (XuhmuTD3-XlhmuTD3)*(YuhmuTD3-YlhmuTD3)
-
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE == "TOX DROP VIS 3" & is.na(ToCheck$checked),"checked"] <- 1
 
@@ -504,16 +415,6 @@ ncrEEAll <- rbind(ncrEE,NCRREEbe,NCRIEEbe)
 p1 <- ggplot(ncrEEAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black","blue","black","red","black","orange","black","green",'black',"purple","black","yellow","black"))
 
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-ncrEEdelta <- 5  ## will need to play with this
-XlncrEE<-min(ncrEE[,3]) - ncrEEdelta
-XuncrEE<-max(ncrEE[,3]) + ncrEEdelta
-YlncrEE<-min(ncrEE[,4]) - ncrEEdelta
-YuncrEE<-max(ncrEE[,4]) + ncrEEdelta
-AncrEE <- (XuncrEE-XlncrEE)*(YuncrEE-YlncrEE)
-
-
 ToCheck[(ToCheck$SITE == "NCRI" | ToCheck$SITE == "NCRR") & ToCheck$PROJECTCODE == "EDGE EFFECT VIS" & is.na(ToCheck$checked),"checked"] <- 1
 
 
@@ -522,14 +423,6 @@ ToCheck[(ToCheck$SITE == "NCRI" | ToCheck$SITE == "NCRR") & ToCheck$PROJECTCODE 
 ## NWFN NWFN HL 1 and 2
 ## Only KMZ or KML files show only the TRAP stations but this area uses a standard grid of 13 x 27 cells
 NWFNtrpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/CP TRAP STATIONS.kml","Waypoints", require_geomType = "wkbPoint")
-
-first <- rbind(cbind(c(0,2,seq(18,210,16),212,214),rep(0,17)),
-               cbind(c(2,4,seq(20,212,16),214,216),rep(2,17)))
-
-
-locs <- as.matrix(secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)) # 13 x 27 for interior grid but 0 and 14 starting points of each transect and there are also 2 one-sided edge transects (NEE, SWE) and also perimeter detections
-### THIS MAY CHANGE AS RESULTS IN NOT EXACT AREA (50,176 m2 rather than 50,000 m2)
-
 
 nwfnVISHL12 <- subset(subcap, SITE == "NWFN" & (PROJECTCODE == "NWFN VIS HL 1" | PROJECTCODE == "NWFN VIS HL 2"))[,c("TRANSECT","LOCATION","COMMENT","Point")]
 
