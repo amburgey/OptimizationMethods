@@ -37,7 +37,7 @@ A <- (Xu-Xl)*(Yu-Yl)
 
 ## Establish parameters for detection
 lam0 <- 0.07  # Christy et al. (2010) mean detection prob (but could reach 0.18 under ideal situations)
-sigma <- 37.8  # Based on Amburgey et al. (in review) and similar to Gardner SSP analysis
+sigma <- 12 #37.8  # Based on Amburgey et al. (in review) and similar to Gardner SSP analysis
 
 ## Number of snakes based on probable density in Guam (Rodda, Christy, etc.)
 ## 23 snakes/ha -> 0.0023 snakes/m2 (see notes at beginning)
@@ -99,10 +99,10 @@ for(iter in 1:nsim){
   Yscr<-Yscr[totalcaps>0,]
   
   datnam<-paste('/SimDat/Dat_', iter, '.R', sep='')
-  dput(Y, datnam)
+  dput(Yscr, datnam)
   
   ## Data augmentation for when N is unknown
-  M <- round(N+(N*0.5))
+  M <- round(N+(N*1))
   y=matrix(0, M,dim(X)[1])
   y[1:dim(Yscr)[1],]<-Yscr
   
@@ -139,7 +139,7 @@ for(iter in 1:nsim){
   
   
   # MCMC settings
-  nc <- 3; nAdapt=5000; nb <- 10000; ni <- 40000+nb; nt <- 1
+  nc <- 3; nAdapt=5000; nb <- 20000; ni <- 80000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (y=y)
