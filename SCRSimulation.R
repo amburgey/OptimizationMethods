@@ -119,8 +119,7 @@ for(iter in 1:nsim){
   ## NIMBLE model is nearly identical to BUGS
   code <- nimbleCode({
     lam0~dunif(0,5)
-    #sigma~dgamma(274.69,7.27) #really bad results when using this
-    sigma~dunif(0,100) #dgamma(274.69,7.27) based on 2015 SCR study
+    sigma~dunif(0,100) #dgamma(274.69,7.27) based on 2015 SCR study, really bad results when using this
     psi~dunif(0,1)
     
     for(i in 1:M){
@@ -135,7 +134,7 @@ for(iter in 1:nsim){
         y[i,j] ~ dpois(p[i,j]*K)
       }#j
     }#i
-    N <- sum(z[1:M]) #Must specify dimensions in NIMBLE
+    N <- sum(z[1:M])
     D <- N/A
   })#code
   
@@ -150,7 +149,7 @@ for(iter in 1:nsim){
   # Initial values (same as BUGS)
   inits <- function(){
     list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma=runif(1,1,50), lam0=runif(1,0.002,0.009), s=sst)
-  } # runif(1,.5,1.5)
+  } # lam0=runif(1,0.5,1.5)
 
   # Parameters (same as BUGS)
   parameters <- c("sigma","lam0","N","D")
