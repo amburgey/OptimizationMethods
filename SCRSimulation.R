@@ -21,7 +21,7 @@ ntraps <- nrow(locs)
 
 ## Which parts of grid have traps
 set.seed(922020)
-# a=sample(100, 15)   ## remember, have to change this if changing trapping grid above
+# a=sample(100, 15)   ## remember, have to change this if changing dimensions of trapping grid above
 a <- c(1:100)
 X=locs[a,]
 J <- nrow(X)
@@ -48,11 +48,11 @@ N <- round(A*0.0023)
 ## Number of nights trapping
 K <- 20
 
-nsim <- 1
-
-
-for(iter in 1:nsim){
-  print(iter)
+# nsim <- 1
+# 
+# 
+# for(iter in 1:nsim){
+#   print(iter)
 
   ## Simulate activity centers
   sx<-runif(N,Xl,Xu)
@@ -100,11 +100,11 @@ for(iter in 1:nsim){
   totalcaps<-apply(Yscr,1,sum)
   Yscr<-Yscr[totalcaps>0,]
   
-  datnam<-paste('/SimDat/Dat_', iter, '.R', sep='')
-  dput(Yscr, datnam)
+  # datnam<-paste('/SimDat/Dat_', iter, '.R', sep='')
+  # dput(Yscr, datnam)
   
   ## Data augmentation for when N is unknown
-  M <- round(N+(N*4))
+  M <- round(N+(N*4))  ## seems like a large amount of augmentation is needed based on traceplots
   y=matrix(0, M,dim(X)[1])
   y[1:dim(Yscr)[1],]<-Yscr
   
@@ -119,7 +119,7 @@ for(iter in 1:nsim){
   ## NIMBLE model is nearly identical to BUGS
   code <- nimbleCode({
     lam0~dunif(0,5)
-    sigma~dunif(0,100) #dgamma(274.69,7.27) based on 2015 SCR study, really bad results when using this
+    sigma~dunif(0,100) # informative prior = dgamma(274.69,7.27) based on 2015 SCR study, really bad results when using this
     psi~dunif(0,1)
     
     for(i in 1:M){
@@ -177,4 +177,4 @@ for(iter in 1:nsim){
   plot(samplesList[,"sigma"])
   plot(samplesList[,"N"])
   
-}
+# }
