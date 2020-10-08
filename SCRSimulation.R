@@ -21,7 +21,8 @@ ntraps <- nrow(locs)
 
 ## Which parts of grid have traps
 set.seed(922020)
-a=sample(100, 15)   ## remember, have to change this if changing trapping grid above
+# a=sample(100, 15)   ## remember, have to change this if changing trapping grid above
+a <- c(1:100)
 X=locs[a,]
 J <- nrow(X)
 
@@ -36,8 +37,9 @@ Yu<-max(locs[,2]) + delta
 A <- (Xu-Xl)*(Yu-Yl)
 
 ## Establish parameters for detection
-lam0 <- 0.07  # Christy et al. (2010) mean detection prob (but could reach 0.18 under ideal situations), hand captures
-sigma <- 12 #37.8  # Based on Amburgey et al. (in review) and similar to Gardner SSP analysis
+## Based on Amburgey et al. (in review) SCR (not the USCR; lam0 = 0.0036, sigma = 37.88), Gardner SSP analysis (lam0 = 0.008/0.007, sigma = ~ 38), and VIS lure/no lure analysis (lam0 = 0.0028/0.0034, sigma = 37.62)
+lam0 <- 0.005
+sigma <- 37.8 #, 20, 30
 
 ## Number of snakes based on probable density in Guam (Rodda, Christy, etc.)
 ## 23 snakes/ha -> 0.0023 snakes/m2 (see notes at beginning)
@@ -102,7 +104,7 @@ for(iter in 1:nsim){
   dput(Yscr, datnam)
   
   ## Data augmentation for when N is unknown
-  M <- round(N+(N*1))
+  M <- round(N+(N*4))
   y=matrix(0, M,dim(X)[1])
   y[1:dim(Yscr)[1],]<-Yscr
   
@@ -147,8 +149,8 @@ for(iter in 1:nsim){
   
   # Initial values (same as BUGS)
   inits <- function(){
-    list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma=runif(1,1,50), lam0=runif(1,.5,1.5), s=sst)
-  }
+    list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma=runif(1,1,50), lam0=runif(1,0.002,0.009), s=sst)
+  } # runif(1,.5,1.5)
 
   # Parameters (same as BUGS)
   parameters <- c("sigma","lam0","N","D")
