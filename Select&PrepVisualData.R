@@ -39,12 +39,27 @@ subsurv[subsurv$SITE == "NWFN" & subsurv$TRANSECT == "OPR", "TRANSECT"] <- "0PR"
 ## Rename typo
 subsurv[subsurv$SITE == "NWFN" & subsurv$TRANSECT == "NEW", "TRANSECT"] <- "NWE"
 
-## For right now, remove surveys on NWFN perimeter fence (PR,0PR,1PR), edge transects (NEE, SWE). Incidentals (INCID, NSP, NSV) are removed by time check lower down. Random transects (e.g., 0) are also removed.
-subsurv <- subsurv[!(subsurv$SITE=="NWFN" & (subsurv$TRANSECT=="1PR" | subsurv$TRANSECT=="0PR" | subsurv$TRANSECT=="PR" | subsurv$TRANSECT=="2PR" | subsurv$TRANSECT=="SWE" | subsurv$TRANSECT=="NEE" | subsurv$TRANSECT=="NWE" | subsurv$TRANSECT=="0")),]
+## Include surveys on NWFN perimeter fence (except 0PR as that seems like an error or training survey) and edge transects (NEE, SWE). Incidentals (INCID, NSP, NSV, PR) are removed by time check lower down. Random transects (e.g., 0) are also removed.
+subsurv <- subsurv[!(subsurv$SITE=="NWFN" & (subsurv$TRANSECT=="NWE" | subsurv$TRANSECT=="0" | subsurv$TRANSECT=="0PR")),]
+# subsurv$TRANSECT=="1PR" | subsurv$TRANSECT=="PR" | subsurv$TRANSECT=="2PR" | subsurv$TRANSECT=="SWE" | subsurv$TRANSECT=="NEE" |
+
+## Rename 1PR and 2PR to just PR > 1 means a perimeter search at the beginning of the evening, 2 means at the end
+subsurv[subsurv$TRANSECT == "2PR" | subsurv$TRANSECT == "1PR", "TRANSECT"] <- "PR"
 
 ## Specify date and separate year
 subsurv$Date <- dmy(subsurv$Date)
 subsurv$Year <- year(subsurv$Date)
+
+## Subset to not include NWFN VIS 1 as it's missing survey info
+subsurv <- subset(subsurv, PROJECTCODE != "NWFN VIS 1")
+
+## RENAME NWFN PERIMETER SITES TO MATCH GRID ESTABLISHED
+## Not a perfect match to CP but the dimensions and general guidelines are followed when splitting sections into grid cells
+## Split into multiple ifelse statements as was exceeding stack memory
+subsurv$STARTNUMBER <- as.numeric(as.character(subsurv$STARTNUMBER))
+subsurv$STARTNUMBERnew <- NA
+
+subsurv$STARTNUMBERnew <- gridrenam(subsurv)
 
 
 
@@ -56,7 +71,7 @@ allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim M
 subcap <- subset(allcap, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
 
 ## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
-subcap <- subset(subcap, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN TOXDROP VIS","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+subcap <- subset(subcap, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN TOXDROP VIS","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
 
 ## Remove random NWFN survey that seems incorrect and mistmatched for NWFN VIS 1
 subcap <- subcap[!(subcap$TRANSID=="13788" & subcap$EFFORTID==45),]
@@ -80,8 +95,12 @@ check <- cbind(c("4034","4721","4342","4412","4474","4765","4566","4647","4648",
 # test <- subset(subcap, EFFORTID %in% check[,1] & TRANSID %in% check[,2])
 subcap[subcap$EFFORTID %in% check & subcap$TRANSID %in% check & subcap$TRANSECT == "UNKN","TRANSECT"] <- "2PR"
 
-## For right now, remove animals detected on NWFN perimeter fence (PR,0PR,1PR), edge transects (NEE, SWE). Incidentals (INCID, NSP, NSV) are removed by time check lower down. Random transects (e.g., 0) are also removed.
-subcap <- subcap[!(subcap$SITE=="NWFN" & (subcap$TRANSECT=="1PR" | subcap$TRANSECT=="0PR" | subcap$TRANSECT=="PR" | subcap$TRANSECT=="2PR" | subcap$TRANSECT=="SWE" | subcap$TRANSECT=="NEE" | subcap$TRANSECT=="NWE" | subcap$TRANSECT=="0"| subcap$TRANSECT=="6")),]
+## Keep animals detected on NWFN perimeter fence (except 0PR, shouldn't exist but is an error in survey data) and edge transects (NEE, SWE). Incidentals (INCID, NSP, NSV) are removed by time check lower down. Random transects (e.g., 0) are also removed.
+subcap <- subcap[!(subcap$SITE=="NWFN" & (subcap$TRANSECT=="0"| subcap$TRANSECT=="6" | subcap$TRANSECT=="0PR")),]
+# subcap$TRANSECT=="1PR" | subcap$TRANSECT=="PR" | subcap$TRANSECT=="2PR" | subcap$TRANSECT=="SWE" | subcap$TRANSECT=="NEE" | subcap$TRANSECT=="NWE" | 
+
+## Rename 1PR and 2PR to just PR > 1 means a perimeter search at the beginning of the evening, 2 means at the end
+subcap[subcap$TRANSECT == "2PR" | subcap$TRANSECT == "1PR", "TRANSECT"] <- "PR"
 
 ## Specify date and separate year
 subcap$Date <- dmy(subcap$Date)
@@ -108,12 +127,12 @@ subsurv <- subsurv[!(subsurv$SITE == "HMUR" & subsurv$TRANSID == "55518" & subsu
 
 ## remove surveys that are incidental (same beginning and end time); removes many of the blank transect entries but also others with transect identified, some incidental surveys are listed as TRANSECT == INCID but get removed here as well using this criterion
 remov <- subset(subsurv, BEGIN==END)  ## keep record of what was removed
-surveys <- subsurv %>% anti_join(remov)  ## remove from surveys
-surveys <- droplevels(surveys)
+subsurv <- subsurv %>% anti_join(remov)  ## remove from surveys
+subsurv <- droplevels(subsurv)
 
 ## Cast into dataframes showing elapsed time and distance by survey
-efftime <- dcast(surveys, PROJECTCODE + SITE + Date + EFFORTID + SEARCHER ~ TRANSECT, mean, value.var = "ELAPSED", na.rm = TRUE)
-effdist <- dcast(surveys, PROJECTCODE + SITE + Date + EFFORTID + SEARCHER ~ TRANSECT, mean, value.var = "DISTANCE", na.rm = TRUE)
+efftime <- dcast(subsurv, PROJECTCODE + SITE + Date + EFFORTID + SEARCHER ~ TRANSECT, mean, value.var = "ELAPSED", na.rm = TRUE)
+effdist <- dcast(subsurv, PROJECTCODE + SITE + Date + EFFORTID + SEARCHER ~ TRANSECT, mean, value.var = "DISTANCE", na.rm = TRUE)
 
 efftime <- efftime[with(efftime, order(SITE, PROJECTCODE, Date)),]
 effdist <- effdist[with(effdist, order(SITE, PROJECTCODE, Date)),]
@@ -426,16 +445,70 @@ NWFNtrpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnake
 
 nwfnVISHL12 <- subset(subcap, SITE == "NWFN" & (PROJECTCODE == "NWFN VIS HL 1" | PROJECTCODE == "NWFN VIS HL 2"))[,c("TRANSECT","LOCATION","COMMENT","Point")]
 
+## Check that all captures have locations
+if(nrow(subset(nwfnVISHL12, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "")) > 0){
+  stop('info missing for grid capture location or transect')
+}
+
+ToCheck[ToCheck$SITE == "NWFN" & (ToCheck$PROJECTCODE == "NWFN VIS HL 1" | ToCheck$PROJECTCODE == "NWFN VIS HL 2") & is.na(ToCheck$checked),"checked"] <- 1
 
 
-## For troubleshooting
-x <- subset(ncrEE, TRANSECT == "RE01" )# & LOCATION == "2") #  "RE01"
-coordinates(x) =~ CAPLON + CAPLAT
-proj4string(x) <- CRS("+proj=longlat +datum=WGS84")
-coordinates(ncrEE) =~ CAPLON + CAPLAT
-proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
-plot(ncrEE, pch=21, cex=0.5)
-plot(x, add=TRUE, pch=21, cex=1, col="red")
+
+
+## NWFN VIS 1 and 2; survey is missing from all VIS 1 so removed for now
+## Same KMZ file showing only the TRAP stations
+nwfnVIS12 <- subset(subcap, SITE == "NWFN" & PROJECTCODE == "NWFN VIS 2")[,c("TRANSECT","LOCATION","COMMENT","Point")]
+
+## One survey has a blank LOCATION (TRANSECT F, EFFORTID == 4089 & TRANSID == 688) but no details to figure out the location, remove capture
+nwfnVIS12 <- nwfnVIS12[!(nwfnVIS12$TRANSECT == "F" & nwfnVIS12$LOCATION == ""),]
+## One survey has a blank LOCATION (TRANSECT U, EFFORTID == 4235 & TRANSID == 1506) but no details to figure out the location, remove capture
+nwfnVIS12 <- nwfnVIS12[!(nwfnVIS12$TRANSECT == "U" & nwfnVIS12$LOCATION == ""),]
+
+## Check that all captures have locations
+if(nrow(subset(nwfnVIS12, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
+  stop('info missing for grid capture location or transect')
+}
+
+ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN VIS 2" & is.na(ToCheck$checked),"checked"] <- 1
+
+
+
+
+## NWFN PRE BT2 VIS
+## Same KMZ file showing only the TRAP stations
+nwfnPREKB <- subset(subcap, SITE == "NWFN" & PROJECTCODE == "PRE BT2 VIS")[,c("TRANSECT","LOCATION","COMMENT","Point")]
+
+## Check that all captures have locations
+if(nrow(subset(nwfnVIS12, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
+  stop('info missing for grid capture location or transect')
+}
+
+ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "PRE BT2 VIS" & is.na(ToCheck$checked),"checked"] <- 1
+
+
+
+
+## NWFN POST BT2 VIS
+## Same KMZ file showing only the TRAP stations
+nwfnPOSTKB <- subset(subcap, SITE == "NWFN" & PROJECTCODE == "POST BT2 VIS")[,c("TRANSECT","LOCATION","COMMENT","Point")]
+
+## Check that all captures have locations
+if(nrow(subset(nwfnVIS12, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
+  stop('info missing for grid capture location or transect')
+}
+
+ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "PRE BT2 VIS" & is.na(ToCheck$checked),"checked"] <- 1
+
+
+
+# ## For troubleshooting
+# x <- subset(ncrEE, TRANSECT == "RE01" )# & LOCATION == "2") #  "RE01"
+# coordinates(x) =~ CAPLON + CAPLAT
+# proj4string(x) <- CRS("+proj=longlat +datum=WGS84")
+# coordinates(ncrEE) =~ CAPLON + CAPLAT
+# proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
+# plot(ncrEE, pch=21, cex=0.5)
+# plot(x, add=TRUE, pch=21, cex=1, col="red")
 
 
 
@@ -452,30 +525,6 @@ hmu15TD2 <- subset(subcap, (SITE == "HMUI1" | SITE == "HMUI2" | SITE == "HMUI3" 
 
 
 
-
-
-
-## NWFN
-## Define study area grid (random example currently)
-locs <- as.matrix(secr::make.grid(nx = 10, ny = 10, spacex = 8, spacey = 8))
-
-## Which parts of grid have traps
-set.seed(922020)
-a=sample(100, 15)
-X=locs[a,]
-J <- nrow(X)
-# Yscr <- locs
-# ntraps <- nrow(locs)
-
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-delta <- 5  ## will need to play with this
-Xl<-min(locs[,1]) - delta
-Xu<-max(locs[,1]) + delta
-Yl<-min(locs[,2]) - delta
-Yu<-max(locs[,2]) + delta
-## Check area: 
-A <- (Xu-Xl)*(Yu-Yl)
 
 
 

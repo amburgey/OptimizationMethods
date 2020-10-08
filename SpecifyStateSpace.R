@@ -77,42 +77,45 @@ AncrEE <- (XuncrEE-XlncrEE)*(YuncrEE-YlncrEE)
 
 #### NWFN ####
 
-cols <- c(0,3.202,seq(12,204,16),214,217.202)
-CPlocs <- rbind.data.frame(cbind(cols,rep(0,17),paste("PR",seq(1:17),sep="")),
-                           cbind(cols,rep(3.202,17),c("PR91",paste("NEE",seq(0:14),sep=""),"PR17")),
-                           cbind(cols,rep(11,17),c("PR90",paste("A",seq(0:14),sep=""),"PR18")),
-                           cbind(cols,rep(19,17),c("PR89",paste("B",seq(0:14),sep=""),"PR19")),
-                           cbind(cols,rep(27,17),c("PR88",paste("C",seq(0:14),sep=""),"PR20")),
-                           cbind(cols,rep(35,17),c("PR87",paste("D",seq(0:14),sep=""),"PR21")),
-                           cbind(cols,rep(43,17),c("PR86",paste("E",seq(0:14),sep=''),"PR22")),
-                           cbind(cols,rep(51,17),c("PR85",paste("F",seq(0:14),sep=""),"PR23")),
-                           cbind(cols,rep(59,17),c("PR84",paste("G",seq(0:14),sep=""),"PR24")),
-                           cbind(cols,rep(67,17),c("PR83",paste("H",seq(0:14),sep=""),"PR25")),
-                           cbind(cols,rep(75,17),c("PR82",paste("I",seq(0:14),sep=""),"PR26")),
-                           cbind(cols,rep(83,17),c("PR81",paste("J",seq(0:14),sep=""),"PR27")),
-                           cbind(cols,rep(91,17),c("PR80",paste("K",seq(0:14),sep=""),"PR28")),
-                           cbind(cols,rep(99,17),c("PR79",paste("L",seq(0:14),sep=""),"PR29")),
-                           cbind(cols,rep(107,17),c("PR78",paste("M",seq(0:14),sep=""),"PR30")),
-                           cbind(cols,rep(115,17),c("PR77",paste("N",seq(0:14),sep=""),"PR31")),
-                           cbind(cols,rep(123,17),c("PR76",paste("O",seq(0:14),sep=""),"PR32")),
-                           cbind(cols,rep(131,17),c("PR75",paste("P",seq(0:14),sep=""),"PR33")),
-                           cbind(cols,rep(139,17),c("PR74",paste("Q",seq(0:14),sep=""),"PR34")),
-                           cbind(cols,rep(147,17),c("PR73",paste("R",seq(0:14),sep=""),"PR35")),
-                           cbind(cols,rep(155,17),c("PR72",paste("S",seq(0:14),sep=""),"PR36")),
-                           cbind(cols,rep(163,17),c("PR71",paste("T",seq(0:14),sep=""),"PR37")),
-                           cbind(cols,rep(171,17),c("PR70",paste("U",seq(0:14),sep=""),"PR38")),
-                           cbind(cols,rep(179,17),c("PR69",paste("V",seq(0:14),sep=""),"PR39")),
-                           cbind(cols,rep(187,17),c("PR68",paste("W",seq(0:14),sep=""),"PR40")),
-                           cbind(cols,rep(195,17),c("PR67",paste("X",seq(0:14),sep=""),"PR41")),
-                           cbind(cols,rep(203,17),c("PR66",paste("Y",seq(0:14),sep=""),"PR42")),
-                           cbind(cols,rep(211,17),c("PR65",paste("Z",seq(0:14),sep=""),"PR43")),
-                           cbind(cols,rep(219,17),c("PR64",paste("AA",seq(0:14),sep=""),"PR44")),
-                           cbind(cols,rep(227,17),c("PR63",paste("SWE",seq(0:14),sep=""),"PR45")),
-                           cbind(cols,rep(230.202,17),c(paste("PR",c(62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46),sep=""))))
+cols <- c(0,7.608,seq(15.608,207.608,16),215.608,223.215)
+CPlocs <- rbind.data.frame(cbind(cols,rep(0,17),c(paste("PR",c(62,61,60,59,58,57,56,55,54,53,52,51,50,49,48,47,46),sep=""))),
+                           cbind(cols,rep(4,17),c("PR63",paste("SWE",0:14,sep=""),"PR45")),
+                           cbind(cols,rep(10,17),c("PR64",paste("AA",0:14,sep=""),"PR44")),
+                           cbind(cols,rep(18,17),c("PR65",paste("Z",0:14,sep=""),"PR43")),
+                           cbind(cols,rep(26,17),c("PR66",paste("Y",0:14,sep=""),"PR42")),
+                           cbind(cols,rep(32,17),c("PR67",paste("X",0:14,sep=""),"PR41")),
+                           cbind(cols,rep(40,17),c("PR68",paste("W",0:14,sep=""),"PR40")),
+                           cbind(cols,rep(47,17),c("PR69",paste("V",0:14,sep=""),"PR39")),
+                           cbind(cols,rep(55,17),c("PR70",paste("U",0:14,sep=""),"PR38")),
+                           cbind(cols,rep(63,17),c("PR71",paste("T",0:14,sep=""),"PR37")),
+                           cbind(cols,rep(71,17),c("PR72",paste("S",0:14,sep=""),"PR36")),
+                           cbind(cols,rep(79,17),c("PR73",paste("R",0:14,sep=""),"PR35")),
+                           cbind(cols,rep(87,17),c("PR74",paste("Q",0:14,sep=""),"PR34")),
+                           cbind(cols,rep(95,17),c("PR75",paste("P",0:14,sep=""),"PR33")),
+                           cbind(cols,rep(103,17),c("PR76",paste("O",0:14,sep=""),"PR32")),
+                           cbind(cols,rep(110,17),c("PR77",paste("N",0:14,sep=""),"PR31")),
+                           cbind(cols,rep(119,17),c("PR78",paste("M",0:14,sep=""),"PR30")),
+                           cbind(cols,rep(127,17),c("PR79",paste("L",0:14,sep=""),"PR29")),
+                           cbind(cols,rep(135,17),c("PR80",paste("K",0:14,sep=""),"PR28")),
+                           cbind(cols,rep(143,17),c("PR81",paste("J",0:14,sep=""),"PR27")),
+                           cbind(cols,rep(151,17),c("PR82",paste("I",0:14,sep=""),"PR26")),
+                           cbind(cols,rep(159,17),c("PR83",paste("H",0:14,sep=""),"PR25")),
+                           cbind(cols,rep(167,17),c("PR84",paste("G",0:14,sep=""),"PR24")),
+                           cbind(cols,rep(175,17),c("PR85",paste("F",0:14,sep=""),"PR23")),
+                           cbind(cols,rep(183,17),c("PR86",paste("E",0:14,sep=''),"PR22")),
+                           cbind(cols,rep(191,17),c("PR87",paste("D",0:14,sep=""),"PR21")),
+                           cbind(cols,rep(199,17),c("PR88",paste("C",0:14,sep=""),"PR20")),
+                           cbind(cols,rep(207,17),c("PR89",paste("B",0:14,sep=""),"PR19")),
+                           cbind(cols,rep(215,17),c("PR90",paste("A",0:14,sep=""),"PR18")),
+                           cbind(cols,rep(220,17),c("PR91",paste("NEE",0:14,sep=""),"PR17")),
+                           cbind(cols,rep(224,17),paste("PR",0:16,sep="")))
+
 
 colnames(CPlocs) <- c("x","y","Location")
 CPlocs$x <- as.numeric(as.character(CPlocs$x))
 CPlocs$y <- as.numeric(as.character(CPlocs$y))
+plot(CPlocs[,1:2])
+text(CPlocs[,1:2], labels=CPlocs[,3], cex=0.5, font=2)
 
 
 ## Define state-space of point process. (i.e., where animals live).
@@ -122,4 +125,4 @@ Xlcp<-min(CPlocs[,1]) - cpdelta
 Xucp<-max(CPlocs[,1]) + cpdelta
 Ylcp<-min(CPlocs[,2]) - cpdelta
 Yucp<-max(CPlocs[,2]) + cpdelta
-Acp <- (Xucp-Xlcp)*(Yucp-Ylcp)
+Acp <- (Xucp-Xlcp)*(Yucp-Ylcp)  ## 0.16 m over = close enough for me
