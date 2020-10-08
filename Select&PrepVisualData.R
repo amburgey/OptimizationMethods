@@ -7,6 +7,8 @@ rm(list=ls())
 
 library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf)
 
+source("RenamingGrid.R")
+
 
 ###### SURVEY DATA ######
 allsurv <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VISinfo.csv")[,-c(21:62)]
@@ -56,10 +58,8 @@ subsurv <- subset(subsurv, PROJECTCODE != "NWFN VIS 1")
 ## RENAME NWFN PERIMETER SITES TO MATCH GRID ESTABLISHED
 ## Not a perfect match to CP but the dimensions and general guidelines are followed when splitting sections into grid cells
 ## Split into multiple ifelse statements as was exceeding stack memory
-subsurv$STARTNUMBER <- as.numeric(as.character(subsurv$STARTNUMBER))
-subsurv$STARTNUMBERnew <- NA
-
-subsurv$STARTNUMBERnew <- gridrenam(subsurv)
+subsurv$STARTNUMBER <- as.numeric(as.character(subsurv$STARTNUMBER))  ## ignore warning, one blank entry becomes NA
+subsurv$STARTNUMBER <- gridrenam(subsurv)
 
 
 
