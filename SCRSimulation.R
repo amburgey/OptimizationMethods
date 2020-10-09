@@ -16,13 +16,13 @@ Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 
 
 ## Define study area grid (random example currently)
-locs <- as.matrix(secr::make.grid(nx = 10, ny = 10, spacex = 8, spacey = 8))
+locs <- as.matrix(secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8))
 ntraps <- nrow(locs)
 
 ## Which parts of grid have traps
 set.seed(922020)
-# a=sample(100, 15)   ## remember, have to change this if changing dimensions of trapping grid above
-a <- c(1:100)
+# a=sample(351, 15)   ## remember, have to change this if changing dimensions of trapping grid above
+a <- c(1:351)
 X=locs[a,]
 J <- nrow(X)
 
@@ -140,7 +140,7 @@ K <- 20
   
   
   # MCMC settings
-  nc <- 3; nAdapt=5000; nb <- 20000; ni <- 80000+nb; nt <- 1
+  nc <- 3; nAdapt=3000; nb <- 10000; ni <- 50000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (y=y)
