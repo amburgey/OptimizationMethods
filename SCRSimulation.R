@@ -14,15 +14,18 @@ set.seed(2018)
 Sys.setenv(PATH = paste("C:/Rtools/bin", Sys.getenv("PATH"), sep=";"))
 Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 
+# Sys.setenv(PATH = paste("C:/rtools40/mingw64/bin", Sys.getenv("PATH"), sep=";"))
+# Sys.setenv(BINPREF = "C:/rtools40/mingw64/bin/")
+
 
 ## Define study area grid (random example currently)
-locs <- as.matrix(secr::make.grid(nx = 10, ny = 10, spacex = 8, spacey = 8))
+locs <- as.matrix(secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8))
 ntraps <- nrow(locs)
 
 ## Which parts of grid have traps
 set.seed(922020)
-# a=sample(100, 15)   ## remember, have to change this if changing dimensions of trapping grid above
-a <- c(1:100)
+a=sample(351, 15)   ## remember, have to change this if changing dimensions of trapping grid above
+# a <- c(1:351)
 X=locs[a,]
 J <- nrow(X)
 
@@ -140,7 +143,7 @@ K <- 20
   
   
   # MCMC settings
-  nc <- 3; nAdapt=5000; nb <- 20000; ni <- 80000+nb; nt <- 1
+  nc <- 3; nAdapt=3000; nb <- 10000; ni <- 50000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (y=y)
@@ -156,7 +159,7 @@ K <- 20
   
   
   ## Nimble steps
-  start.time <- Sys.time()  
+  start.time <- Sys.time()
   Rmodel <- nimbleModel(code=code, constants=constants, data=nim.data)
   conf <- configureMCMC(Rmodel,monitors=parameters,control = list(adaptInterval = nAdapt))
   Rmcmc <- buildMCMC(conf)  #produces an uncompiled R mcmc function
@@ -177,4 +180,9 @@ K <- 20
   plot(samplesList[,"sigma"])
   plot(samplesList[,"N"])
   
+  tosave <- as.matrix(samplesList)
+  
+  save(tosave, file=paste("OptimSim_15traps",iter,".csv",sep=""))
+  
 # }
+  
