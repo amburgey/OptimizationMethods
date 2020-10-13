@@ -109,6 +109,12 @@ subcap$Year <- year(subcap$Date)
 ## Transect + location = Point
 subcap$Point <- paste(subcap$TRANSECT, subcap$LOCATION, sep = "")
 
+## RENAME NWFN PERIMETER LOCATIONS TO MATCH GRID ESTABLISHED
+## Not a perfect match to CP but the dimensions and general guidelines are followed when splitting sections into grid cells
+## Split into multiple ifelse statements as was exceeding stack memory
+subcap$STARTNUMBER <- as.numeric(as.character(subcap$STARTNUMBER))  ## ignore warning, one blank entry becomes NA
+subsurv$STARTNUMBERnew <- gridrenam(subcap)
+
 
 
 
