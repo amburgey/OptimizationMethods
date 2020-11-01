@@ -3,7 +3,7 @@
 
 rm(list=ls())
 
-library(abind); library(nimble)
+library(abind); library(nimble); library(coda)
 
 Sys.setenv(PATH = paste("C:/Rtools/bin", Sys.getenv("PATH"), sep=";"))
 Sys.setenv(BINPREF = "C:/Rtools/mingw_64/bin/")
@@ -55,7 +55,8 @@ caps <- subcap[,c(1:2,5,6,15:16,23:24)]
 eff <- merge(survs,caps, by = c("TRANSECT","TRANID","Date2"), all = TRUE)
 ## TRANID by Date matrix of effort (when traps were active)
 eff2 <- reshape2::dcast(eff, TRANID ~ Date2, fun.aggregate = length, value.var = "Active")
-eff2 <- eff2[order(match(eff2$TRANID, ord)), ]
+eff2 <- eff2[order(match(eff2$TRANID, ord)), ]  ## convert from count of snakes to 1/0
+eff2[eff2=="2"] <- 1
 ## PITTAG by Date matrix of captures
 snks <- reshape2::dcast(data = eff, formula = PITTAG ~ TRANID, fun.aggregate = length, value.var = "LOCATION")[-(length(unique(subcap$PITTAG))+1),]  # adds an extra row
 snks <- snks[ord]
@@ -120,7 +121,6 @@ code <- nimbleCode({
     for(j in 1:J){
       d2[i,j] <- pow(s[i,1]-X[j,1],2) + pow(s[i,2]-X[j,2],2)
       p[i,j] <- z[i]*lam0*exp(-(d2[i,j])/(2*sigma*sigma))
-      
       y[i,j] ~ dpois(p[i,j]*K[i])
     }#j
   }#i
@@ -130,7 +130,7 @@ code <- nimbleCode({
 
 
 # MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1000; ni <- 3000+nb; nt <- 1
+nc <- 3; nAdapt=5000; nb <- 10000; ni <- 100000+nb; nt <- 1
 
 # Separate data and constants (constants appear only on right-hand side of formulas)
 nim.data <- list (y=y)
@@ -138,7 +138,7 @@ constants <- list (X=X, K=K, M=M, J=J, Xl=Xl, Xu=Xu, Yl=Yl, Yu=Yu, A=A)
 
 # Initial values (same as BUGS)
 inits <- function(){
-  list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma=runif(1,1,50), lam0=runif(1,0.002,0.009), s=sst)
+  list (z=c(rep(1, nind), rep(0,M-nind)), psi=runif(1), sigma=runif(1,30,60), lam0=runif(1,0.001,0.005), s=sst)
 } # lam0=runif(1,0.5,1.5)
 
 # Parameters (same as BUGS)
@@ -169,5 +169,5 @@ plot(samplesList[,"N"])
 
 tosave <- as.matrix(samplesList)
 
-save(tosave, file=paste("OptimSim_15traps",iter,".csv",sep=""))
+save(tosave, file=paste("TestTime",iter,".csv",sep=""))
 
