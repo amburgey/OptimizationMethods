@@ -17,4 +17,17 @@ subsurv <- subset(allsurv, SITE %in% c("ASOI","NWFN","NWFO","HMUI","HMUR","HMU",
 ## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
 subsurv <- subset(subsurv, PROJECTCODE %in% c("HMU TOX DROP 2 TRAP", "TOX DROP TRAP","KB TRAP","POST KB TRAP 1","POST KB TRAP 2", "NWFN TRAP 1","NWFN TRAP 2 LINVIS","NWFN TRAP 3","NWFN TRAP 4 LCM","NWFN VISTRAP TRAP","PRE BT1 TRAP","POST BT2 TRAP","NWFO TRAP 1","NWFO TRAP 2","NWFO TRAP 3","NWFO TRAP 4","GNWR SSP MOUSE/BIRD"))
 
-## 
+#### CLEAN SURVEY DATA ####
+## Check for trap failure using comments in subsurv or in NF tab in database
+
+
+
+###### CAPTURE DATA ######
+allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/TRAPcaptures.csv")
+
+## Study Areas deemed suitable
+subcap <- subset(allcap, SITE %in% c("ASOI","NWFN","NWFO","HMUI","HMUR","HMU","RTSI"))
+
+## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
+subcap <- subset(subcap, PROJECTCODE %in% c("HMU TOX DROP 2 TRAP", "TOX DROP TRAP","KB TRAP","POST KB TRAP 1","POST KB TRAP 2", "NWFN TRAP 1","NWFN TRAP 2 LINVIS","NWFN TRAP 3","NWFN TRAP 4 LCM","NWFN VISTRAP TRAP","PRE BT1 TRAP","POST BT2 TRAP","NWFO TRAP 1","NWFO TRAP 2","NWFO TRAP 3","NWFO TRAP 4","GNWR SSP MOUSE/BIRD"))
+
