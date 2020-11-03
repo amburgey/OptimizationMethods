@@ -339,7 +339,7 @@ ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE 
 ## HMUI/R 1-5 HMU TOX DROP 2 VIS
 ## KMZ file - missing
 ## KML file - missing
-# hmu15TD2 <- subset(subcap, (SITE == "HMUI1" | SITE == "HMUI2" | SITE == "HMUI3" | SITE == "HMUI4" | SITE == "HMUI5") & PROJECTCODE == "HMU TOX DROP 2 VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
+# hmu15TD2 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR" |  SITE == "HMUI1" | SITE == "HMUI2" | SITE == "HMUI3" | SITE == "HMUI4" | SITE == "HMUI5") & PROJECTCODE == "HMU TOX DROP 2 VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 
 # ## For troubleshooting
