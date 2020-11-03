@@ -169,5 +169,5 @@ plot(samplesList[,"N"])
 
 tosave <- as.matrix(samplesList)
 
-save(tosave, file=paste("TestTime",iter,".csv",sep=""))
+save(tosave, file="TestTimeFull.csv")
 
