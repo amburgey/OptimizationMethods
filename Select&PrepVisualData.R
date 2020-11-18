@@ -604,6 +604,8 @@ ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN TOXDROP VIS" & is.
 #### SUMMARIZE INFO (project length, captures, recaptures) ABOUT VARIOUS STUDIES ####
 
 ## Days each project was conducted and date range
+subsurv <- subsurv[subsurv$PROJECTCODE != "HMU TOX DROP 2 VIS",]
+
 times <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) length(unique(x)))
 times$min <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) min(x))[,2]
 times$max <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) max(x))[,2]

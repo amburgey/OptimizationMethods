@@ -126,3 +126,56 @@ Xucp<-max(CPlocs[,1]) + cpdelta
 Ylcp<-min(CPlocs[,2]) - cpdelta
 Yucp<-max(CPlocs[,2]) + cpdelta
 Acp <- (Xucp-Xlcp)*(Yucp-Ylcp)  ## 0.16 m over = close enough for me
+
+
+
+
+#### ASOI ####
+
+#### Add coordinates in for captures for ASOI and RTSI
+asoi <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/To Beth_ASOI/TrapRingWeb_coords.csv")
+
+## Define state-space of point process. (i.e., where animals live).
+## "delta" just adds a fixed buffer to the outer extent of the traps.
+asdelta <- 10 
+Xlas<-min(asoi[,6]) - asdelta
+Xuas<-max(asoi[,6]) + asdelta
+Ylas<-min(asoi[,7]) - asdelta
+Yuas<-max(asoi[,7]) + asdelta
+Aas <- (Xuas-Xlas)*(Yuas-Ylas)
+
+
+
+
+#### RTSI ####
+## Similar to HMU, GNWR has a one-way barrier surrounding the perimeter (allowing snakes out but not in)
+## Unlike HMU (where a grid was used to define when snakes are in the study area or not), the transects are far enough away from the perimeter fence that we will just use a buffer
+bird <- readGPX("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/To Beth_SSP/SSP Bird Trap Locations.gpx") #AB-EF, 1-16
+mouse <- readGPX("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/To Beth_SSP/SSP Mouse Trap Locations.gpx") #A-F, 1-18 transects
+
+rtsi <- rbind(as.data.frame(mouse$waypoints[1:3]), as.data.frame(bird$waypoints[1:3]))
+colnames(rtsi) <- c("Lon","Lat","LOCATION")
+coordinates(rtsi) =~ Lon + Lat
+proj4string(rtsi) <- CRS("+proj=longlat +datum=WGS84")
+rallUTM <- spTransform(rtsi, CRS("+proj=utm +zone=55 +ellps=WGS84"))
+rall <- as.data.frame(rallUTM)
+
+## Define state-space of point process. (i.e., where animals live).
+## "delta" just adds a fixed buffer to the outer extent of the traps.
+rtdelta <- 10 
+Xlrt<-min(rall[,3]) - rtdelta
+Xurt<-max(rall[,3]) + rtdelta
+Ylrt<-min(rall[,2]) - rtdelta
+Yurt<-max(rall[,2]) + rtdelta
+Art <- (Xurt-Xlrt)*(Yurt-Ylrt)
+
+
+
+
+#### NWFO ####
+## Using a standard grid for now as this set of transects seems to be set up like CP (just outside fence)
+## 16 m between 13 traps in a transect, 8 m (???) between transects
+CPOlocs <- secr::make.grid(nx = 13, ny = 6, spacex = 16, spacey = 8)
+rownames(CPOlocs) <- paste(rep(c("BB","CC","DD","EE","FF","GG"), each=13), c(1:13), sep = "")
+
+
