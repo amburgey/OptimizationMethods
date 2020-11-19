@@ -8,57 +8,53 @@
 ## raster of 1 = study area and 0 = outside fence
 hmuSpace <- raster("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/Reclass_hmu_71.tif")
 hmuSpace <- projectRaster(hmuSpace, crs="+proj=utm +zone=55 +units=m +datum=WGS84")
-coordinates(hmuEdgeAll)=~UTME+UTMN
-proj4string(hmuEdgeAll) <- CRS("+proj=utm +zone=55 +units=m +datum=WGS84")
-
-## function from http://rstudio-pubs-static.s3.amazonaws.com/273756_4230265fc8484963903aaea122f933f7.html
-cellnumbers <- function(x, query, ...) {
-  if (inherits(query, "sf")) query <- sf::as(query, "Spatial")
-  if (is.na(projection(x)) || is.na(projection(query)) || projection(x) != projection(query)) {
-    warning(sprintf("projections not the same \n    x: %s\nquery: %s", projection(x), projection(query)))
-  }
-  if (inherits(query, "SpatialPolygons")) {
-    a <- cellFromPolygon(x, query, ...)
-  }
-  if (inherits(query, "SpatialLines")) {
-    a <- cellFromLine(x, query, ...)
-  }
-  if (is.matrix(query) | inherits(query, "SpatialPoints")) {
-    a <- cellFromXY(x, query)
-  }
-  d <- dplyr::bind_rows(lapply(a, mat2d_f), .id = "object_")
-  if (ncol(d) == 2L) names(d) <- c("object_", "cell_")
-  if (ncol(d) == 3L) names(d) <- c("object_", "cell_", "weight_")
-  d
-  
-}
-
-#' @importFrom tibble as_tibble
-mat2d_f <- function(x) {
-  
-  if (is.null(x)) {
-    return(NULL)
-  }
-  tibble::as_tibble(x)
-}
-
-tt <- cellnumbers(hmuSpace, hmuEdgeAll[,3:4]) ## get cell identities for each capture location on raster
+res(hmuSpace)
+#' coordinates(hmuEdgeAll)=~UTME+UTMN
+#' proj4string(hmuEdgeAll) <- CRS("+proj=utm +zone=55 +units=m +datum=WGS84")
+#' 
+#' ## function from http://rstudio-pubs-static.s3.amazonaws.com/273756_4230265fc8484963903aaea122f933f7.html
+#' cellnumbers <- function(x, query, ...) {
+#'   if (inherits(query, "sf")) query <- sf::as(query, "Spatial")
+#'   if (is.na(projection(x)) || is.na(projection(query)) || projection(x) != projection(query)) {
+#'     warning(sprintf("projections not the same \n    x: %s\nquery: %s", projection(x), projection(query)))
+#'   }
+#'   if (inherits(query, "SpatialPolygons")) {
+#'     a <- cellFromPolygon(x, query, ...)
+#'   }
+#'   if (inherits(query, "SpatialLines")) {
+#'     a <- cellFromLine(x, query, ...)
+#'   }
+#'   if (is.matrix(query) | inherits(query, "SpatialPoints")) {
+#'     a <- cellFromXY(x, query)
+#'   }
+#'   d <- dplyr::bind_rows(lapply(a, mat2d_f), .id = "object_")
+#'   if (ncol(d) == 2L) names(d) <- c("object_", "cell_")
+#'   if (ncol(d) == 3L) names(d) <- c("object_", "cell_", "weight_")
+#'   d
+#'   
+#' }
+#' 
+#' #' @importFrom tibble as_tibble
+#' mat2d_f <- function(x) {
+#'   
+#'   if (is.null(x)) {
+#'     return(NULL)
+#'   }
+#'   tibble::as_tibble(x)
+#' }
+#' 
+#' tt <- cellnumbers(hmuSpace, hmuEdgeAll[,3:4]) ## get cell identities for each capture location on raster
 HMUhabmat <- as.matrix(hmuSpace)
 HMUhabmat <- ifelse(HMUhabmat > 0, 1, 0)  ## simplifies pixels that are not fully in state space to 0 or 1
 ## Find locations of captures (and currently beginning and end of transects) in pixels vs. lat/lon
-locsHMUEE <- matrix(NA, nrow=nrow(hmuEdgeAll), ncol=2)
-for(i in 1:nrow(tt)){
-  locsHMUEE[i,1] <- as.numeric(floor(tt[i,2]/ncol(hmuSpace))) + 1
-  locsHMUEE[i,2] <- as.numeric(tt[i,2]) - (as.numeric(floor(tt[i,2]/ncol(hmuSpace)))*ncol(hmuSpace))
-}
+# locsHMUEE <- matrix(NA, nrow=nrow(hmuEdgeAll), ncol=2)
+# for(i in 1:nrow(tt)){
+#   locsHMUEE[i,1] <- as.numeric(floor(tt[i,2]/ncol(hmuSpace))) + 1
+#   locsHMUEE[i,2] <- as.numeric(tt[i,2]) - (as.numeric(floor(tt[i,2]/ncol(hmuSpace)))*ncol(hmuSpace))
+# }
 
-
-hmuEEdelta <- 0  ## will need to play with this
-XlhmuEE<-min(hmuEdge[,3]) - hmuEEdelta
-XuhmuEE<-max(hmuEdge[,3]) + hmuEEdelta
-YlhmuEE<-min(hmuEdge[,4]) - hmuEEdelta
-YuhmuEE<-max(hmuEdge[,4]) + hmuEEdelta
-AhmuEE <- (XuhmuEE-XlhmuEE)*(YuhmuEE-YlhmuEE)
+## known 55 ha -> 550,000m2
+AhmuEE <- 550000
 
 
 
@@ -178,4 +174,12 @@ Art <- (Xurt-Xlrt)*(Yurt-Ylrt)
 CPOlocs <- secr::make.grid(nx = 13, ny = 6, spacex = 16, spacey = 8)
 rownames(CPOlocs) <- paste(rep(c("BB","CC","DD","EE","FF","GG"), each=13), c(1:13), sep = "")
 
+## Define state-space of point process. (i.e., where animals live).
+## "delta" just adds a fixed buffer to the outer extent of the traps.
+cpodelta <- 10 
+Xlcpo<-min(CPOlocs[,1]) - cpodelta
+Xucpo<-max(CPOlocs[,1]) + cpodelta
+Ylcpo<-min(CPOlocs[,2]) - cpodelta
+Yucpo<-max(CPOlocs[,2]) + cpodelta
+Acpo <- (Xucpo-Xlcpo)*(Yucpo-Ylcpo)
 

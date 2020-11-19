@@ -5,7 +5,7 @@
 
 rm(list=ls())
 
-library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf); library(tidyverse); library(plyr)
+library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf); library(tidyverse); library(plyr); library(plotKML)
 
 source("RenamingGrid.R")
 
@@ -29,6 +29,10 @@ subsurv <- subsurv[!(subsurv$TRANSID=="13788" & subsurv$EFFORTID=="45"),]
 subsurv <- subsurv[!(subsurv$TRANSID=="80081" & subsurv$EFFORTID=="15761"),]
 ## Remove random NWFN record where TRANSECT is missing (is 6 in capture file) and LOCATION is 440
 subsurv <- subsurv[!(subsurv$TRANSID=="38317" & subsurv$EFFORTID=="8101"),]
+## Remove survey done in HMU that has no start point defined and no capture can be found for the animal that was caught
+subsurv <- subsurv[!(subsurv$TRANSID=="51871" & subsurv$EFFORTID=="9832"),]
+## Remove one survey that is shorter than all others and doesn't record end time plus elapsed time seems suspect > doesn't match walking pace for all other surveys in this project
+subsurv <- subsurv[!(subsurv$SITE == "HMUI" & subsurv$TRANSID=="45703" & subsurv$EFFORTID=="9572"),]
 ## Change one record that has SITE specified as NWFN when it should be HMUI
 subsurv[subsurv$SITE == "NWFN" & subsurv$PROJECTCODE == "HMU TOX DROP 2 VIS", "SITE"] <- "HMUI"
 ## Rename typo
@@ -179,10 +183,10 @@ ToCheck$checked <- NA
 ## HMU EDGE EFFECT VIS
 ## KMZ file - HMUI EDGE EFFECTS VIS or EDGE EFFECTS PEK -> HMU VIS EDGE and HMU VIS INTERIOR
 ## KML HMU VIS EDGE/INTERIOR
-HMUREEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS EDGE.kml","HMU VIS EDGE", require_geomType = "wkbLineString")
-HMUREEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS EDGE.kml","HMU VIS EDGE", require_geomType = "wkbPoint")
-HMUIEEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS INTERIOR.kml","HMUI EDGE EFFECT VIS", require_geomType = "wkbLineString")
-HMUIEEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS INTERIOR.kml","HMUI EDGE EFFECT VIS", require_geomType = "wkbPoint")
+# HMUREEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS EDGE.kml","HMU VIS EDGE", require_geomType = "wkbLineString")
+# HMUREEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS EDGE.kml","HMU VIS EDGE", require_geomType = "wkbPoint")
+# HMUIEEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS INTERIOR.kml","HMUI EDGE EFFECT VIS", require_geomType = "wkbLineString")
+# HMUIEEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMU VIS INTERIOR.kml","HMUI EDGE EFFECT VIS", require_geomType = "wkbPoint")
 
 ## several odd points in coordinates; coordinates are fairly imprecise at times
 ## HE04 location 1 (13.59550, 144.8643)
@@ -202,26 +206,26 @@ subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HE0
 hmuEdge <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & PROJECTCODE == "EDGE EFFECT VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
-coordinates(hmuEdge)=~CAPLON+CAPLAT
-proj4string(hmuEdge) <- CRS("+proj=longlat +datum=WGS84")
-## Convert points to UTM
-hmuEdge <- as.data.frame(spTransform(hmuEdge, CRS("+proj=utm +zone=55")))
-hmuEdge$utmE <- as.vector(apply(as.data.frame(hmuEdge[,3]), 2, function(x) x-mean(x)))
-hmuEdge$utmN <- as.vector(apply(as.data.frame(hmuEdge[,4]), 2, function(x) x-mean(x)))
-colnames(hmuEdge) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# coordinates(hmuEdge)=~CAPLON+CAPLAT
+# proj4string(hmuEdge) <- CRS("+proj=longlat +datum=WGS84")
+# ## Convert points to UTM
+# hmuEdge <- as.data.frame(spTransform(hmuEdge, CRS("+proj=utm +zone=55")))
+# hmuEdge$utmE <- as.vector(apply(as.data.frame(hmuEdge[,3]), 2, function(x) x-mean(x)))
+# hmuEdge$utmN <- as.vector(apply(as.data.frame(hmuEdge[,4]), 2, function(x) x-mean(x)))
+# colnames(hmuEdge) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# HMUREEbe <- as.data.frame(spTransform(HMUREEpts, CRS("+proj=utm +zone=55")))
+# HMUREEbe <- cbind(c(rep(c("HE01be"),2),rep(c("HE02be"),2),rep(c("HE03be"),2),rep(c("HE04be"),2),rep(c("HE05be"),2),rep(c("HE06be"),2),rep(c("HE07be"),2),rep(c("HE08be"),2),rep(c("HE09be"),2)),c(1),HMUREEbe[,3:4],c(NA),c(NA))
+# colnames(HMUREEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# HMUIEEbe <- as.data.frame(spTransform(HMUIEEpts, CRS("+proj=utm +zone=55")))
+# HMUIEEbe <- cbind(c("HP01b","HP02b","HP03b","HP04b","HP05b","HP06b","HP07b","HP08b","HP09b"),c(1),HMUIEEbe[10:18,3:4],c(NA),c(NA))
+# colnames(HMUIEEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# hmuEdgeAll <- rbind(hmuEdge,HMUREEbe,HMUIEEbe)
 
-HMUREEbe <- as.data.frame(spTransform(HMUREEpts, CRS("+proj=utm +zone=55")))
-HMUREEbe <- cbind(c(rep(c("HE01be"),2),rep(c("HE02be"),2),rep(c("HE03be"),2),rep(c("HE04be"),2),rep(c("HE05be"),2),rep(c("HE06be"),2),rep(c("HE07be"),2),rep(c("HE08be"),2),rep(c("HE09be"),2)),c(1),HMUREEbe[,3:4],c(NA),c(NA))
-colnames(HMUREEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-HMUIEEbe <- as.data.frame(spTransform(HMUIEEpts, CRS("+proj=utm +zone=55")))
-HMUIEEbe <- cbind(c("HP01b","HP02b","HP03b","HP04b","HP05b","HP06b","HP07b","HP08b","HP09b"),c(1),HMUIEEbe[10:18,3:4],c(NA),c(NA))
-colnames(HMUIEEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-hmuEdgeAll <- rbind(hmuEdge,HMUREEbe,HMUIEEbe)
-
-## Plot to check
-p1 <- ggplot(hmuEdgeAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) +
-  scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
+# ## Plot to check
+# p1 <- ggplot(hmuEdgeAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) +
+#   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
 
 
@@ -231,10 +235,10 @@ ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE 
 ## HMU LOWDENS/SUPP VIS
 ## KMZ file - HMUI EDGE EFFECTS VIS or EDGE EFFECTS PEK -> HMU VIS EDGE and HMU VIS INTERIOR
 ## KML HMUI/HMUR LOW DENS
-HMURLDline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUR_transects LOW DENS.kml","HMUR", require_geomType = "wkbLineString")
-HMURLDpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUR_transects LOW DENS.kml","HMUR", require_geomType = "wkbPoint")
-HMUILDline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUI_transects LOW DENS.kml","HMUI_transects", require_geomType = "wkbLineString")
-HMUILDpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUI_transects LOW DENS.kml","HMUI_transects", require_geomType = "wkbPoint")
+# HMURLDline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUR_transects LOW DENS.kml","HMUR", require_geomType = "wkbLineString")
+# HMURLDpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUR_transects LOW DENS.kml","HMUR", require_geomType = "wkbPoint")
+# HMUILDline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUI_transects LOW DENS.kml","HMUI_transects", require_geomType = "wkbLineString")
+# HMUILDpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/HMUI_transects LOW DENS.kml","HMUI_transects", require_geomType = "wkbPoint")
 
 ## Several odd points in coordinates
 ## Missing latitude for HMUI, HM TRANSECT and STARTNUMBER of 85 on 2015-06-15; the longitude that is there looks off as well
@@ -249,26 +253,26 @@ subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HM"
 hmuLD <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & (PROJECTCODE == "LOWDENS VIS" | PROJECTCODE == "LOWDENS SUPPVIS"))[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
-coordinates(hmuLD)=~CAPLON+CAPLAT
-proj4string(hmuLD) <- CRS("+proj=longlat +datum=WGS84")
-## Convert points to UTM
-hmuLD <- as.data.frame(spTransform(hmuLD, CRS("+proj=utm +zone=55")))
-hmuLD$utmE <- as.vector(apply(as.data.frame(hmuLD[,3]), 2, function(x) x-mean(x)))
-hmuLD$utmN <- as.vector(apply(as.data.frame(hmuLD[,4]), 2, function(x) x-mean(x)))
-colnames(hmuLD) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-HMURLDbe <- as.data.frame(spTransform(HMURLDpts, CRS("+proj=utm +zone=55")))
-HMURLDbe <- cbind(c(rep(c("H1be"),2),rep(c("H2be"),2),rep(c("H3be"),2),rep(c("H4be"),2),rep(c("H5be"),2),rep(c("H6be"),2),rep(c("H7be"),2),rep(c("H8be"),2)),c(1),HMURLDbe[,3:4],c(NA),c(NA))
-colnames(HMURLDbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-HMUILDbe <- as.data.frame(spTransform(HMUILDpts, CRS("+proj=utm +zone=55")))
-HMUILDbe <- cbind(c(rep(c("HKbe"),2),rep(c("HLbe"),2),rep(c("HMbe"),2),rep(c("HNbe"),2),rep(c("HObe"),2),rep(c("HPbe"),2),rep(c("HQbe"),2),rep(c("HRbe"),2),rep(c("HSbe"),2),rep(c("HTbe"),2)),c(1),HMUILDbe[,3:4],c(NA),c(NA))
-colnames(HMUILDbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-hmuLDAll <- rbind(hmuLD,HMURLDbe,HMUILDbe)
-
-## Plot to check
-p1 <- ggplot(hmuLDAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
-  scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
+# coordinates(hmuLD)=~CAPLON+CAPLAT
+# proj4string(hmuLD) <- CRS("+proj=longlat +datum=WGS84")
+# ## Convert points to UTM
+# hmuLD <- as.data.frame(spTransform(hmuLD, CRS("+proj=utm +zone=55")))
+# hmuLD$utmE <- as.vector(apply(as.data.frame(hmuLD[,3]), 2, function(x) x-mean(x)))
+# hmuLD$utmN <- as.vector(apply(as.data.frame(hmuLD[,4]), 2, function(x) x-mean(x)))
+# colnames(hmuLD) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# HMURLDbe <- as.data.frame(spTransform(HMURLDpts, CRS("+proj=utm +zone=55")))
+# HMURLDbe <- cbind(c(rep(c("H1be"),2),rep(c("H2be"),2),rep(c("H3be"),2),rep(c("H4be"),2),rep(c("H5be"),2),rep(c("H6be"),2),rep(c("H7be"),2),rep(c("H8be"),2)),c(1),HMURLDbe[,3:4],c(NA),c(NA))
+# colnames(HMURLDbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# HMUILDbe <- as.data.frame(spTransform(HMUILDpts, CRS("+proj=utm +zone=55")))
+# HMUILDbe <- cbind(c(rep(c("HKbe"),2),rep(c("HLbe"),2),rep(c("HMbe"),2),rep(c("HNbe"),2),rep(c("HObe"),2),rep(c("HPbe"),2),rep(c("HQbe"),2),rep(c("HRbe"),2),rep(c("HSbe"),2),rep(c("HTbe"),2)),c(1),HMUILDbe[,3:4],c(NA),c(NA))
+# colnames(HMUILDbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# hmuLDAll <- rbind(hmuLD,HMURLDbe,HMUILDbe)
+# 
+# ## Plot to check
+# p1 <- ggplot(hmuLDAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
+#   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE == "LOWDENS VIS" | ToCheck$PROJECTCODE == "LOWDENS SUPPVIS") & is.na(ToCheck$checked),"checked"] <- 1
@@ -290,19 +294,19 @@ subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP0
 hmuTD12 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & (PROJECTCODE == "TOX DROP VIS 1" | PROJECTCODE == "TOX DROP VIS 2"))[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
-coordinates(hmuTD12)=~CAPLON+CAPLAT
-proj4string(hmuTD12) <- CRS("+proj=longlat +datum=WGS84")
-## Convert points to UTM
-hmuTD12 <- as.data.frame(spTransform(hmuTD12, CRS("+proj=utm +zone=55")))
-hmuTD12$utmE <- as.vector(apply(as.data.frame(hmuTD12[,3]), 2, function(x) x-mean(x)))
-hmuTD12$utmN <- as.vector(apply(as.data.frame(hmuTD12[,4]), 2, function(x) x-mean(x)))
-colnames(hmuTD12) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-hmuTD12All <- rbind(hmuTD12,HMUREEbe,HMUIEEbe)
-
-## Plot to check
-p1 <- ggplot(hmuTD12All, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
-  scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
+# coordinates(hmuTD12)=~CAPLON+CAPLAT
+# proj4string(hmuTD12) <- CRS("+proj=longlat +datum=WGS84")
+# ## Convert points to UTM
+# hmuTD12 <- as.data.frame(spTransform(hmuTD12, CRS("+proj=utm +zone=55")))
+# hmuTD12$utmE <- as.vector(apply(as.data.frame(hmuTD12[,3]), 2, function(x) x-mean(x)))
+# hmuTD12$utmN <- as.vector(apply(as.data.frame(hmuTD12[,4]), 2, function(x) x-mean(x)))
+# colnames(hmuTD12) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# hmuTD12All <- rbind(hmuTD12,HMUREEbe,HMUIEEbe)
+# 
+# ## Plot to check
+# p1 <- ggplot(hmuTD12All, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
+#   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE == "TOX DROP VIS 1" | ToCheck$PROJECTCODE == "TOX DROP VIS 2") & is.na(ToCheck$checked),"checked"] <- 1
@@ -316,19 +320,19 @@ ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE
 hmuTD3 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & PROJECTCODE == "TOX DROP VIS 3")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 ## No coordinate issue (remember, point on H6 looks incorrect but actually the fence does go at an angle around a utility building)
 ## Convert to UTM for easier handling in SCR
-coordinates(hmuTD3)=~CAPLON+CAPLAT
-proj4string(hmuTD3) <- CRS("+proj=longlat +datum=WGS84")
-## Convert points to UTM
-hmuTD3 <- as.data.frame(spTransform(hmuTD3, CRS("+proj=utm +zone=55")))
-hmuTD3$utmE <- as.vector(apply(as.data.frame(hmuTD3[,3]), 2, function(x) x-mean(x)))
-hmuTD3$utmN <- as.vector(apply(as.data.frame(hmuTD3[,4]), 2, function(x) x-mean(x)))
-colnames(hmuTD3) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-hmuTD3All <- rbind(hmuTD3,HMURLDbe,HMUILDbe)
-
-## Plot to check
-p1 <- ggplot(hmuTD3All, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
-  scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
+# coordinates(hmuTD3)=~CAPLON+CAPLAT
+# proj4string(hmuTD3) <- CRS("+proj=longlat +datum=WGS84")
+# ## Convert points to UTM
+# hmuTD3 <- as.data.frame(spTransform(hmuTD3, CRS("+proj=utm +zone=55")))
+# hmuTD3$utmE <- as.vector(apply(as.data.frame(hmuTD3[,3]), 2, function(x) x-mean(x)))
+# hmuTD3$utmN <- as.vector(apply(as.data.frame(hmuTD3[,4]), 2, function(x) x-mean(x)))
+# colnames(hmuTD3) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# hmuTD3All <- rbind(hmuTD3,HMURLDbe,HMUILDbe)
+# 
+# ## Plot to check
+# p1 <- ggplot(hmuTD3All, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
+#   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
 ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE == "TOX DROP VIS 3" & is.na(ToCheck$checked),"checked"] <- 1
 
@@ -356,10 +360,10 @@ ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE 
 
 ## NCRI/R EDGE EFFECT VIS
 ## Uses kmz and kml NCRI EDGE EFFECTS VIS
-NCRREEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
-NCRREEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbPoint")
-NCRIEEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbLineString")
-NCRIEEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbPoint")
+# NCRREEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
+# NCRREEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbPoint")
+# NCRIEEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbLineString")
+# NCRIEEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbPoint")
 
 ## Several odd points in coordinates
 ## First, where is the line and pts info for RP10-14?
@@ -441,26 +445,26 @@ subcap[(subcap$SITE == "NCRI" | subcap$SITE == "NCRR") & subcap$TRANSECT == "RE0
 ncrEE <- subset(subcap, (SITE == "NCRI" | SITE == "NCRR") & PROJECTCODE == "EDGE EFFECT VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
-coordinates(ncrEE)=~CAPLON+CAPLAT
-proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
-## Convert points to UTM
-ncrEE <- as.data.frame(spTransform(ncrEE, CRS("+proj=utm +zone=55")))
-ncrEE$utmE <- as.vector(apply(as.data.frame(ncrEE[,3]), 2, function(x) x-mean(x)))
-ncrEE$utmN <- as.vector(apply(as.data.frame(ncrEE[,4]), 2, function(x) x-mean(x)))
-colnames(ncrEE) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-NCRREEbe <- as.data.frame(spTransform(NCRREEpts, CRS("+proj=utm +zone=55")))
-NCRREEbe <- cbind(c(rep(c("RE01be"),2),rep(c("RE02be"),2),rep(c("RE03be"),2),rep(c("RE04be"),2),rep(c("RE05be"),2),rep(c("RE06be"),2),rep(c("RE07be"),2),rep(c("RE08be"),2),rep(c("RE09be"),2)),c(1),NCRREEbe[,3:4],c(NA),c(NA))
-colnames(NCRREEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-NCRIEEbe <- as.data.frame(spTransform(NCRIEEpts, CRS("+proj=utm +zone=55")))[10:18,]
-NCRIEEbe <- cbind(c(rep(c("RP01be"),2),rep(c("RP02be"),2),rep(c("RP03be"),2),rep(c("RP04be"),2),rep(c("RP05be"),2),rep(c("RP06be"),2),rep(c("RP07be"),2),rep(c("RP08be"),2),rep(c("RP09be"),2)),c(1),NCRIEEbe[,3:4],c(NA),c(NA))
-colnames(NCRIEEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
-
-ncrEEAll <- rbind(ncrEE,NCRREEbe,NCRIEEbe)
-
-## Plot to check
-p1 <- ggplot(ncrEEAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
-  scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black","blue","black","red","black","orange","black","green",'black',"purple","black","yellow","black"))
+# coordinates(ncrEE)=~CAPLON+CAPLAT
+# proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
+# ## Convert points to UTM
+# ncrEE <- as.data.frame(spTransform(ncrEE, CRS("+proj=utm +zone=55")))
+# ncrEE$utmE <- as.vector(apply(as.data.frame(ncrEE[,3]), 2, function(x) x-mean(x)))
+# ncrEE$utmN <- as.vector(apply(as.data.frame(ncrEE[,4]), 2, function(x) x-mean(x)))
+# colnames(ncrEE) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# NCRREEbe <- as.data.frame(spTransform(NCRREEpts, CRS("+proj=utm +zone=55")))
+# NCRREEbe <- cbind(c(rep(c("RE01be"),2),rep(c("RE02be"),2),rep(c("RE03be"),2),rep(c("RE04be"),2),rep(c("RE05be"),2),rep(c("RE06be"),2),rep(c("RE07be"),2),rep(c("RE08be"),2),rep(c("RE09be"),2)),c(1),NCRREEbe[,3:4],c(NA),c(NA))
+# colnames(NCRREEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# NCRIEEbe <- as.data.frame(spTransform(NCRIEEpts, CRS("+proj=utm +zone=55")))[10:18,]
+# NCRIEEbe <- cbind(c(rep(c("RP01be"),2),rep(c("RP02be"),2),rep(c("RP03be"),2),rep(c("RP04be"),2),rep(c("RP05be"),2),rep(c("RP06be"),2),rep(c("RP07be"),2),rep(c("RP08be"),2),rep(c("RP09be"),2)),c(1),NCRIEEbe[,3:4],c(NA),c(NA))
+# colnames(NCRIEEbe) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
+# 
+# ncrEEAll <- rbind(ncrEE,NCRREEbe,NCRIEEbe)
+# 
+# ## Plot to check
+# p1 <- ggplot(ncrEEAll, aes(x=UTME, y=UTMN,fill=TRANSECT)) + geom_point(pch=21) + 
+#   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black","blue","black","red","black","orange","black","green",'black',"purple","black","yellow","black"))
 
 ToCheck[(ToCheck$SITE == "NCRI" | ToCheck$SITE == "NCRR") & ToCheck$PROJECTCODE == "EDGE EFFECT VIS" & is.na(ToCheck$checked),"checked"] <- 1
 
@@ -469,7 +473,7 @@ ToCheck[(ToCheck$SITE == "NCRI" | ToCheck$SITE == "NCRR") & ToCheck$PROJECTCODE 
 
 ## NWFN NWFN HL 1 and 2
 ## Only KMZ or KML files show only the TRAP stations but this area uses a standard grid of 13 x 27 cells
-NWFNtrpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/CP TRAP STATIONS.kml","Waypoints", require_geomType = "wkbPoint")
+# NWFNtrpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/CP TRAP STATIONS.kml","Waypoints", require_geomType = "wkbPoint")
 
 nwfnVISHL12 <- subset(subcap, SITE == "NWFN" & (PROJECTCODE == "NWFN VIS HL 1" | PROJECTCODE == "NWFN VIS HL 2"))[,c("TRANSECT","LOCATION","COMMENT","Point")]
 
@@ -603,68 +607,68 @@ ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN TOXDROP VIS" & is.
 
 #### SUMMARIZE INFO (project length, captures, recaptures) ABOUT VARIOUS STUDIES ####
 
-## Days each project was conducted and date range
-subsurv <- subsurv[subsurv$PROJECTCODE != "HMU TOX DROP 2 VIS",]
-
-times <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) length(unique(x)))
-times$min <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) min(x))[,2]
-times$max <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) max(x))[,2]
-
-tplot <- ggplot(times, aes(x=Date, y=PROJECTCODE)) + geom_bar(stat = "identity") + xlim(0,425) +
-  xlab("Days Surveyed") +
-  annotate(geom="text", x=(times$Date[1]+100), y=times$PROJECTCODE[1], label=paste(times$min[1]," to ",times$max[1],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[2]+100), y=times$PROJECTCODE[2], label=paste(times$min[2]," to ",times$max[2],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[3]+100), y=times$PROJECTCODE[3], label=paste(times$min[3]," to ",times$max[3],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[4]+100), y=times$PROJECTCODE[4], label=paste(times$min[4]," to ",times$max[4],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[5]+100), y=times$PROJECTCODE[5], label=paste(times$min[5]," to ",times$max[5],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[6]+100), y=times$PROJECTCODE[6], label=paste(times$min[6]," to ",times$max[6],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[7]+100), y=times$PROJECTCODE[7], label=paste(times$min[7]," to ",times$max[7],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[8]+100), y=times$PROJECTCODE[8], label=paste(times$min[8]," to ",times$max[8],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[9]+100), y=times$PROJECTCODE[9], label=paste(times$min[9]," to ",times$max[9],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[10]+100), y=times$PROJECTCODE[10], label=paste(times$min[10]," to ",times$max[10],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[11]+100), y=times$PROJECTCODE[11], label=paste(times$min[11]," to ",times$max[11],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[12]+100), y=times$PROJECTCODE[12], label=paste(times$min[12]," to ",times$max[12],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[13]+100), y=times$PROJECTCODE[13], label=paste(times$min[13]," to ",times$max[13],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[14]+100), y=times$PROJECTCODE[14], label=paste(times$min[14]," to ",times$max[14],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[15]+100), y=times$PROJECTCODE[15], label=paste(times$min[15]," to ",times$max[15],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[16]+100), y=times$PROJECTCODE[16], label=paste(times$min[16]," to ",times$max[16],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[17]+100), y=times$PROJECTCODE[17], label=paste(times$min[17]," to ",times$max[17],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[18]+100), y=times$PROJECTCODE[18], label=paste(times$min[18]," to ",times$max[18],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[19]+100), y=times$PROJECTCODE[19], label=paste(times$min[19]," to ",times$max[19],sep=""), color="red", size=3.5)
-
-
-## The count of previously marked and new snakes per project
-caps <- subcap
-caps[caps$NEW == "NEW","NEW"] <- 1
-caps[caps$NEW == "OLD","NEW"] <- 0
-caps2 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
-caps2$TYPE <- c("NEW")
-caps <- subcap
-caps[caps$NEW == "NEW","NEW"] <- 0
-caps[caps$NEW == "OLD","NEW"] <- 1
-caps3 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
-caps3$TYPE <- c("OLD")
-caps <- rbind(caps2,caps3)
-colnames(caps) <- c("PROJECTCODE","COUNT","TYPE")
-
-cplot <- ggplot(caps, aes(x=COUNT, y=PROJECTCODE, fill=factor(TYPE))) + geom_bar(stat = "identity", position="dodge")
-
-
-## The number of unique individuals per project
-snks <- aggregate(data=subcap, PITTAG ~ PROJECTCODE, function(x) length(unique(x)))
-
-## The projects under which each snake was caught
-proj <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) length(unique(x)))  ## snakes caught in 1.6 projects on av.
-proj2 <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) unique(x))  ## list of projects each caught in
-projsn <- proj2 %>% unnest(PROJECTCODE) %>% group_by(PITTAG) %>% mutate(col=seq_along(PROJECTCODE)) %>% spread(key=unique(PROJECTCODE), value=PROJECTCODE)
-
-## Number of times each individual was caught per project
-csnk <- count(subcap, c("PITTAG","PROJECTCODE"))  ## snakes caught about 3 times per project (though some projects will be grouped so increase captures)
-
-splot <- ggplot(subset(subcap, (SITE == "HMUR" | SITE == "HMUI") & PROJECTCODE == "EDGE EFFECT VIS"), aes(x=PITTAG)) +
-  geom_histogram(stat="count") + theme(axis.text.x = element_text(angle=90))
-
-## Number of times each individual was caught over all projects
-asnk <- count(subcap, c("PITTAG"))  ## snakes caught about 5 times
+# ## Days each project was conducted and date range
+# subsurv <- subsurv[subsurv$PROJECTCODE != "HMU TOX DROP 2 VIS",]
+# 
+# times <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) length(unique(x)))
+# times$min <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) min(x))[,2]
+# times$max <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) max(x))[,2]
+# 
+# tplot <- ggplot(times, aes(x=Date, y=PROJECTCODE)) + geom_bar(stat = "identity") + xlim(0,425) +
+#   xlab("Days Surveyed") +
+#   annotate(geom="text", x=(times$Date[1]+100), y=times$PROJECTCODE[1], label=paste(times$min[1]," to ",times$max[1],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[2]+100), y=times$PROJECTCODE[2], label=paste(times$min[2]," to ",times$max[2],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[3]+100), y=times$PROJECTCODE[3], label=paste(times$min[3]," to ",times$max[3],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[4]+100), y=times$PROJECTCODE[4], label=paste(times$min[4]," to ",times$max[4],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[5]+100), y=times$PROJECTCODE[5], label=paste(times$min[5]," to ",times$max[5],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[6]+100), y=times$PROJECTCODE[6], label=paste(times$min[6]," to ",times$max[6],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[7]+100), y=times$PROJECTCODE[7], label=paste(times$min[7]," to ",times$max[7],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[8]+100), y=times$PROJECTCODE[8], label=paste(times$min[8]," to ",times$max[8],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[9]+100), y=times$PROJECTCODE[9], label=paste(times$min[9]," to ",times$max[9],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[10]+100), y=times$PROJECTCODE[10], label=paste(times$min[10]," to ",times$max[10],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[11]+100), y=times$PROJECTCODE[11], label=paste(times$min[11]," to ",times$max[11],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[12]+100), y=times$PROJECTCODE[12], label=paste(times$min[12]," to ",times$max[12],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[13]+100), y=times$PROJECTCODE[13], label=paste(times$min[13]," to ",times$max[13],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[14]+100), y=times$PROJECTCODE[14], label=paste(times$min[14]," to ",times$max[14],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[15]+100), y=times$PROJECTCODE[15], label=paste(times$min[15]," to ",times$max[15],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[16]+100), y=times$PROJECTCODE[16], label=paste(times$min[16]," to ",times$max[16],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[17]+100), y=times$PROJECTCODE[17], label=paste(times$min[17]," to ",times$max[17],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[18]+100), y=times$PROJECTCODE[18], label=paste(times$min[18]," to ",times$max[18],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[19]+100), y=times$PROJECTCODE[19], label=paste(times$min[19]," to ",times$max[19],sep=""), color="red", size=3.5)
+# 
+# 
+# ## The count of previously marked and new snakes per project
+# caps <- subcap
+# caps[caps$NEW == "NEW","NEW"] <- 1
+# caps[caps$NEW == "OLD","NEW"] <- 0
+# caps2 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
+# caps2$TYPE <- c("NEW")
+# caps <- subcap
+# caps[caps$NEW == "NEW","NEW"] <- 0
+# caps[caps$NEW == "OLD","NEW"] <- 1
+# caps3 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
+# caps3$TYPE <- c("OLD")
+# caps <- rbind(caps2,caps3)
+# colnames(caps) <- c("PROJECTCODE","COUNT","TYPE")
+# 
+# cplot <- ggplot(caps, aes(x=COUNT, y=PROJECTCODE, fill=factor(TYPE))) + geom_bar(stat = "identity", position="dodge")
+# 
+# 
+# ## The number of unique individuals per project
+# snks <- aggregate(data=subcap, PITTAG ~ PROJECTCODE, function(x) length(unique(x)))
+# 
+# ## The projects under which each snake was caught
+# proj <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) length(unique(x)))  ## snakes caught in 1.6 projects on av.
+# proj2 <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) unique(x))  ## list of projects each caught in
+# projsn <- proj2 %>% unnest(PROJECTCODE) %>% group_by(PITTAG) %>% mutate(col=seq_along(PROJECTCODE)) %>% spread(key=unique(PROJECTCODE), value=PROJECTCODE)
+# 
+# ## Number of times each individual was caught per project
+# csnk <- count(subcap, c("PITTAG","PROJECTCODE"))  ## snakes caught about 3 times per project (though some projects will be grouped so increase captures)
+# 
+# splot <- ggplot(subset(subcap, (SITE == "HMUR" | SITE == "HMUI") & PROJECTCODE == "EDGE EFFECT VIS"), aes(x=PITTAG)) +
+#   geom_histogram(stat="count") + theme(axis.text.x = element_text(angle=90))
+# 
+# ## Number of times each individual was caught over all projects
+# asnk <- count(subcap, c("PITTAG"))  ## snakes caught about 5 times
 
 
