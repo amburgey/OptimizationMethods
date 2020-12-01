@@ -150,12 +150,10 @@ K <- 20
   ## NIMBLE model is nearly identical to BUGS
   code <- nimbleCode({
     
-    for(l in 1:2){
-      lam0[l]~dunif(0,5)  ## have lam0 for 1 = trap, 2 = vis
-    }
-    for(s in 1:2){
-      sigma~dunif(0,100) ## have sigma for 1 = trap, 2 = vis
-    }
+    lam1~dunif(0,5)  ## trapping
+    lam2~dunif(0,5)  ## searching
+    sigma1~dunif(0,100) ## trapping
+    sigma2~dunif(0,100)  ## searching
     psi~dunif(0,1)
     
     for(i in 1:M){
@@ -165,13 +163,13 @@ K <- 20
       
       for(j in 1:Jt){  ## traps
         d2tr[i,j] <- pow(s[i,1]-Xt[j,1],2) + pow(s[i,2]-Xt[j,2],2)
-        ptr[i,j] <- z[i]*lam0[1]*exp(-(d2tr[i,j])/(2*sigma[1]*sigma[1]))
+        ptr[i,j] <- z[i]*lam1*exp(-(d2tr[i,j])/(2*sigma1*sigma1))
         ytrap[i,j] ~ dpois(ptr[i,j]*K)
       }#j
       
       for(v in 1:Jv){  ## visual searches
         d2v[i,v] <- pow(s[i,1]-Xv[v,1],2) + pow(s[i,2]-Xv[v,2],2)
-        pv[i,v] <- z[i]*lam0[2]*exp(-(d2v[i,v])/(2*sigma[2]*sigma[2]))
+        pv[i,v] <- z[i]*lam2*exp(-(d2v[i,v])/(2*sigma2*sigma2))
         yvis[i,v] ~ dpois(pv[i,v]*K)
       }#j
     }#i
@@ -189,18 +187,18 @@ K <- 20
   
   # Initial values (same as BUGS)
   inits <- function(){
-    list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma=runif(2,1,50), lam0=runif(2,0.002,0.009), s=sst)
+    list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma1=runif(1,1,50), sigma2=runif(1,1,50), lam1=runif(1,0.002,0.009), lam2=runif(1,0.002,0.009), s=sst)
   } # lam0=runif(1,0.5,1.5)
 
   # Parameters (same as BUGS)
-  parameters <- c("sigma","lam0","N","D")
+  parameters <- c("sigma1","sigma2","lam1","lam2","N","D")
   
   
   ## Nimble steps
   start.time <- Sys.time()
   Rmodel <- nimbleModel(code=code, constants=constants, data=nim.data)
   conf <- configureMCMC(Rmodel,monitors=parameters,control = list(adaptInterval = nAdapt))
-  Rmcmc <- buildMCMC(conf)  #produces an uncompiled R mcmc function
+  Rmcmc <- buildMCMC(conf)
   Cmodel <- compileNimble(Rmodel, showCompilerOutput = TRUE)
   Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
   samplesList <- runMCMC(Cmcmc, niter = ni, nburnin = nb, nchains = nc, inits=inits,
@@ -215,12 +213,12 @@ K <- 20
   round(outSummary,8)
   
   #plot results
-  plot(samplesList[,"sigma"])
+  plot(samplesList[,"sigma1"])
   plot(samplesList[,"N"])
   
   tosave <- as.matrix(samplesList)
   
-  save(tosave, file=paste("OptimSim_15traps",iter,".csv",sep=""))
+  save(tosave, file=paste("OptimSim_trapsvisINPROG",iter,".csv",sep=""))
   
 # }
   
