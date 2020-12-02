@@ -22,14 +22,14 @@ Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 locs <- as.matrix(secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8))
 
 set.seed(922020)
-a=sample(351, 30, replace=TRUE)   ## remember, have to change this if changing dimensions of trapping grid above
+a=sample(351, 60, replace=TRUE)   ## remember, have to change this if changing dimensions of trapping grid above
 ## Which parts of grid have traps
-Xt=locs[a[1:15],]
+Xt=locs[a[1:30],]
 Jt <- nrow(Xt)
 ntraps <- nrow(Xt)
 
 ## Which parts of grid have visual surveys
-Xv=locs[a[16:30],]
+Xv=locs[a[31:60],]
 Jv <- nrow(Xv)
 nvis <- nrow(Xv)
 
