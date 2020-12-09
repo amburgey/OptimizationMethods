@@ -22,14 +22,14 @@ Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 locs <- as.matrix(secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8))
 
 set.seed(922020)
-a=sample(351, 60, replace=TRUE)   ## remember, have to change this if changing dimensions of trapping grid above
+a=sample(351, 120, replace=TRUE)   ## remember, have to change this if changing dimensions of trapping grid above
 ## Which parts of grid have traps
-Xt=locs[a[1:30],]
+Xt=locs[a[1:60],]
 Jt <- nrow(Xt)
 ntraps <- nrow(Xt)
 
 ## Which parts of grid have visual surveys
-Xv=locs[a[31:60],]
+Xv=locs[a[61:120],]
 Jv <- nrow(Xv)
 nvis <- nrow(Xv)
 
@@ -50,8 +50,8 @@ tlam0 <- 0.005
 tsigma <- 37.8 #, 20, 30
 
 ## Visual searching
-vlam0 <- 0.005
-vsigma <- 37.8 #, 20, 30
+vlam0 <- 0.005 #0.005, 0.008
+vsigma <- 37.8 #37.8 #, 20, 30
 
 ## Number of snakes based on probable density in Guam (Rodda, Christy, etc.)
 ## 23 snakes/ha -> 0.0023 snakes/m2 (see notes at beginning)
@@ -60,11 +60,11 @@ N <- round(A*0.0023)
 ## Number of nights trapping (currently have same number trapping and visual searching)
 K <- 20
 
-# nsim <- 1
-# 
-# 
-# for(iter in 1:nsim){
-#   print(iter)
+nsim <- 5
+
+
+for(iter in 1:nsim){
+  print(iter)
 
   ## Simulate snake activity centers
   sx<-runif(N,Xl,Xu)
@@ -130,8 +130,8 @@ K <- 20
   totalvis<-apply(Yvis,1,sum)
   Yvis<-Yvis[totalvis>0,]
   
-  # datnam<-paste('/SimDat/Dat_', iter, '.R', sep='')
-  # dput(Yscr, datnam)
+  datnam<-paste('/Users/Staci Amburgey/Documents/Optimization/SimDat/Dat_', iter, '.R', sep='')
+  dput(rbind(Ytrap, Yvis), datnam)
   
   ## Data augmentation for when N is unknown
   M <- round(N+(N*4))  ## seems like a large amount of augmentation is needed based on traceplots
@@ -152,8 +152,8 @@ K <- 20
     
     lam1~dunif(0,5)  ## trapping
     lam2~dunif(0,5)  ## searching
-    sigma1~dunif(0,100) ## trapping
-    sigma2~dunif(0,100)  ## searching
+    sigma1~dgamma(274.69,7.27) #dunif(0,100) ## trapping
+    sigma2~dunif(0,100) #dunif(0,100), dgamma(274.69,7.27)  ## searching
     psi~dunif(0,1)
     
     for(i in 1:M){
@@ -179,7 +179,7 @@ K <- 20
   
   
   # MCMC settings
-  nc <- 3; nAdapt=3000; nb <- 10000; ni <- 50000+nb; nt <- 1
+  nc <- 3; nAdapt=3000; nb <- 10000; ni <- 70000+nb; nt <- 1
   
   # Separate data and constants (constants appear only on right-hand side of formulas)
   nim.data <- list (ytrap=ytrap, yvis=yvis)
@@ -187,8 +187,8 @@ K <- 20
   
   # Initial values (same as BUGS)
   inits <- function(){
-    list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma1=runif(1,1,50), sigma2=runif(1,1,50), lam1=runif(1,0.002,0.009), lam2=runif(1,0.002,0.009), s=sst)
-  } # lam0=runif(1,0.5,1.5)
+    list (z=c(rep(1, N), rep(0,M-N)), psi=runif(1), sigma1=runif(1,20,50), sigma2=runif(1,20,50), lam1=runif(1,0.002,0.009), lam2=runif(1,0.002,0.009), s=sst)
+  }
 
   # Parameters (same as BUGS)
   parameters <- c("sigma1","sigma2","lam1","lam2","N","D")
@@ -206,19 +206,19 @@ K <- 20
   end.time <- Sys.time()
   SCR0time<-end.time - start.time
   
-  #summarize
-  summaryList<-summary(samplesList)
-  outSummary<-cbind(summaryList$statistics[,c("Mean","SD")],summaryList$quantiles[,c("2.5%","50%", "97.5%")],gelman.diag(samplesList,multivariate=FALSE)$psrf[,1],effectiveSize(samplesList))
-  colnames(outSummary)[6:7]<-c("Rhat","n.eff")
-  round(outSummary,8)
-  
-  #plot results
-  plot(samplesList[,"sigma1"])
-  plot(samplesList[,"N"])
+  # #summarize
+  # summaryList<-summary(samplesList)
+  # outSummary<-cbind(summaryList$statistics[,c("Mean","SD")],summaryList$quantiles[,c("2.5%","50%", "97.5%")],gelman.diag(samplesList,multivariate=FALSE)$psrf[,1],effectiveSize(samplesList))
+  # colnames(outSummary)[6:7]<-c("Rhat","n.eff")
+  # round(outSummary,8)
+  # 
+  # #plot results
+  # plot(samplesList[,"sigma1"])
+  # plot(samplesList[,"N"])
   
   tosave <- as.matrix(samplesList)
   
-  save(tosave, file=paste("OptimSim_trapsvisINPROG",iter,".csv",sep=""))
+  save(tosave, file=paste("OptimSim_trapsvisINPROGinfsigmaprior",iter,".csv",sep=""))
   
-# }
+}
   
