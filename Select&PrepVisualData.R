@@ -3,8 +3,6 @@
 ## Select what projects to use
 ## Format for SCR analysis
 
-rm(list=ls())
-
 library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf); library(tidyverse); library(plyr); library(plotKML)
 
 source("RenamingGrid.R")
@@ -203,7 +201,7 @@ subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HE0
 subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HE01" & subcap$CAPLAT == 13.59913,"CAPLAT"] <- 13.60048
 subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HE01" & subcap$CAPLON == 144.86247,"CAPLON"] <-  144.86485
 
-hmuEdge <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & PROJECTCODE == "EDGE EFFECT VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
+hmuEdge <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & PROJECTCODE == "EDGE EFFECT VIS")[,c("PITTAG","Date","TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
 # coordinates(hmuEdge)=~CAPLON+CAPLAT

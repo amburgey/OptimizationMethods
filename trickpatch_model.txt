@@ -1,0 +1,25 @@
+
+model {
+  lam0 ~ dunif(0,5)
+  sigma ~ dunif(0,50)
+  psi ~ dunif(0,1)
+     
+  for (i in 1:M){           # loop through the augmented population
+    z[i] ~ dbern(psi)       # state of individual i (real or imaginary)
+    SX[i] ~ dunif(0,xu)     # priors for the activity centers for each individual
+    SY[i] ~ dunif(0,yu)     # lower x coordinate = 0, xu is the upper x value
+    pOK[i] <- habmat[trunc(SX[i]+1), trunc(SY[i]+1)]      # habitat check
+    OK[i] ~ dbern(pOK[i])   # OK[i] = 1, the ones trick
+    
+    for(j in 1:J) {         # loop through the J camera trap locations
+      d[i,j] <- pow(SX[i]-locs[j,1], 2) + pow(SY[i]-locs[j,2],2)
+      p[i,j] <- z[i]*lam0*exp(-(d[i,j])/(2*sigma*sigma))
+      y[i,j] ~ dpois(p[i,j]*K[j])
+    } ## J
+    
+  } ## M
+  
+  N <- sum(z[1:M])   # derive number (check that N << M)
+  D <- N / A         # derive density
+
+}

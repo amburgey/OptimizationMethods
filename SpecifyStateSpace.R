@@ -46,6 +46,8 @@ res(hmuSpace)
 #' tt <- cellnumbers(hmuSpace, hmuEdgeAll[,3:4]) ## get cell identities for each capture location on raster
 HMUhabmat <- as.matrix(hmuSpace)
 HMUhabmat <- ifelse(HMUhabmat > 0, 1, 0)  ## simplifies pixels that are not fully in state space to 0 or 1
+HMUhabmat[is.na(HMUhabmat)] <- 0
+
 ## Find locations of captures (and currently beginning and end of transects) in pixels vs. lat/lon
 # locsHMUEE <- matrix(NA, nrow=nrow(hmuEdgeAll), ncol=2)
 # for(i in 1:nrow(tt)){
