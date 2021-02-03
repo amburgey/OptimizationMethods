@@ -32,7 +32,7 @@ for(i in 1:nrow(CPdata)){
   CPdata[i,14] <- paste(CPdata[i,1],".",CPdata[i,2],sep="")
 }
 
-CPdata$SVL[is.na(CPdata$SVL)]<-0
+CPdata$SVL[is.na(CPdata$TRAPTYPE)]<-0
 
 pulsNWFN <- ggplot(CPdata, aes(x=Time2, y=SVL, color=factor(Month), shape=Group)) + 
   geom_point() +

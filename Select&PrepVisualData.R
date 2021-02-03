@@ -15,7 +15,8 @@ allsurv <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim 
 subsurv <- subset(allsurv, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
 
 ## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
-subsurv <- subset(subsurv, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN TOXDROP VIS","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+subsurv <- subset(subsurv, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+## removed "NWFN TOXDROP VIS" as need permission specifically from Melia to use
 
 #### CLEAN SURVEY DATA ####
 ## Rename two sites to correct
@@ -23,6 +24,8 @@ subsurv$SITE[subsurv$SITE == "HMUI2B"] <- "HMUI2"
 subsurv$SITE[subsurv$SITE == "HMUI5B"] <- "HMUI5"
 ## Remove random NWFN survey that seems incorrect and mistmatched for NWFN VIS 1
 subsurv <- subsurv[!(subsurv$TRANSID=="13788" & subsurv$EFFORTID=="45"),]
+## Remove random NWFN survey that seems incorrect for NWFN VIS 2
+subsurv <- subsurv[!(subsurv$TRANSID=="29700" & subsurv$EFFORTID=="4160"),]
 ## Remove random HMUI and NWFN TOXDROP VIS record
 subsurv <- subsurv[!(subsurv$TRANSID=="80081" & subsurv$EFFORTID=="15761"),]
 ## Remove random NWFN record where TRANSECT is missing (is 6 in capture file) and LOCATION is 440
@@ -59,8 +62,8 @@ subsurv[subsurv$TRANSECT == "2PR" | subsurv$TRANSECT == "1PR", "TRANSECT"] <- "P
 subsurv$Date <- dmy(subsurv$Date)
 subsurv$Year <- year(subsurv$Date)
 
-## remove surveys that are incidental (same beginning and end time); removes many of the blank transect entries but also others with transect identified, some incidental surveys are listed as TRANSECT == INCID but get removed here as well using this criterion
-remov <- subset(subsurv, BEGIN==END)  ## keep record of what was removed
+## remove surveys that are incidental (same beginning and end time OR NA begin and end and elapsed of 0 or NA); removes many of the blank transect entries but also others with transect identified, some incidental surveys are listed as TRANSECT == INCID but get removed here as well using this criterion
+remov <- subset(subsurv, BEGIN==END | (is.na(BEGIN) & is.na(END)))  ## keep record of what was removed
 subsurv <- subsurv %>% anti_join(remov)  ## remove from surveys
 subsurv <- droplevels(subsurv)
 rownames(subsurv) <- 1:nrow(subsurv)
@@ -81,7 +84,8 @@ allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim M
 subcap <- subset(allcap, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
 
 ## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
-subcap <- subset(subcap, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN TOXDROP VIS","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+subcap <- subset(subcap, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+## Remove "NWFN TOXDROP VIS" as need specific permission from Melia to use
 
 #### CLEAN CAPTURE DATA ####
 ## Subset to not include NWFN VIS 1 as it's missing survey info
@@ -96,6 +100,8 @@ subcap[subcap$SITE == "NCRR" & subcap$TRANSECT == "HE07","TRANSECT"] <- "RE07"
 ## NE08 records matches a survey of RE08
 subcap[subcap$SITE == "NCRR" & subcap$TRANSECT == "NE08","TRANSECT"] <- "RE08"
 ## Mis-named NWFN records
+## NWFN VIS 2 record listed as N13.5, making N13
+subcap[subcap$SITE == "NWFN" & subcap$CAPID == "4012","LOCATION"] <- "13"
 ## NWFN record matches a survey of SWE and another recorded listed as AA7 (but likely should be SWE)
 subcap[subcap$EFFORTID == "14901" & subcap$TRANSID == "76172" & subcap$TRANSECT == "UNKN","TRANSECT"] <- "SWE"
 subcap[subcap$EFFORTID == "14901" & subcap$TRANSID == "76172" & subcap$TRANSECT == "AA","TRANSECT"] <- "SWE"
@@ -591,14 +597,14 @@ ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN SCENT VIS TRAIL" &
 
 ## NWFN TOXDROP VIS
 ## Same KMZ file showing only the TRAP stations
-nwfnTOX <- subset(subcap, SITE == "NWFN" & PROJECTCODE == "NWFN TOXDROP VIS")[,c("TRANSECT","LOCATION","COMMENT","Point")]
-
-## Check that all captures have locations
-if(nrow(subset(nwfnTOX, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
-  stop('info missing for grid capture location or transect')
-}
-
-ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN TOXDROP VIS" & is.na(ToCheck$checked),"checked"] <- 1
+# nwfnTOX <- subset(subcap, SITE == "NWFN" & PROJECTCODE == "NWFN TOXDROP VIS")[,c("TRANSECT","LOCATION","COMMENT","Point")]
+# 
+# ## Check that all captures have locations
+# if(nrow(subset(nwfnTOX, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
+#   stop('info missing for grid capture location or transect')
+# }
+# 
+# ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN TOXDROP VIS" & is.na(ToCheck$checked),"checked"] <- 1
 
 
 ### SUM INFO BY EACH STUDY ###
