@@ -68,6 +68,7 @@ model {
     SY[i] ~ dunif(0,yu)     # lower x coordinate = 0, xu is the upper x value
     pOK[i] <- habmat[trunc(SX[i]+1), trunc(SY[i]+1)]      # habitat check
     OK[i] ~ dbern(pOK[i])   # OK[i] = 1, the ones trick
+    ## https://mmeredith.net/blog/1309_SECR_in_JAGS_patchy_habitat.htm
     
     for(j in 1:J) {         # loop through the J camera trap locations
       d[i,j] <- pow(SX[i]-locs[j,1], 2) + pow(SY[i]-locs[j,2],2)

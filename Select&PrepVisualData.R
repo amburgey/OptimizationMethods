@@ -15,7 +15,7 @@ allsurv <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim 
 subsurv <- subset(allsurv, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
 
 ## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
-subsurv <- subset(subsurv, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+subsurv <- subset(subsurv, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 3"))
 ## removed "NWFN TOXDROP VIS" as need permission specifically from Melia to use
 
 #### CLEAN SURVEY DATA ####
@@ -34,8 +34,10 @@ subsurv <- subsurv[!(subsurv$TRANSID=="38317" & subsurv$EFFORTID=="8101"),]
 subsurv <- subsurv[!(subsurv$TRANSID=="51871" & subsurv$EFFORTID=="9832"),]
 ## Remove one survey that is shorter than all others and doesn't record end time plus elapsed time seems suspect > doesn't match walking pace for all other surveys in this project
 subsurv <- subsurv[!(subsurv$SITE == "HMUI" & subsurv$TRANSID=="45703" & subsurv$EFFORTID=="9572"),]
+## Remove survey with odd date, doesn't match any data in Guam log so likely a mistake or a test entry
+subsurv <- subsurv[!(subsurv$SITE == "NWFN" & subsurv$EFFORTID=="15778" & subsurv$Date=="2019-03-20"),]
 ## Change one record that has SITE specified as NWFN when it should be HMUI
-subsurv[subsurv$SITE == "NWFN" & subsurv$PROJECTCODE == "HMU TOX DROP 2 VIS", "SITE"] <- "HMUI"
+# subsurv[subsurv$SITE == "NWFN" & subsurv$PROJECTCODE == "HMU TOX DROP 2 VIS", "SITE"] <- "HMUI"
 ## Rename typo
 subsurv[subsurv$SITE == "NWFN" & subsurv$TRANSECT == "OPR", "TRANSECT"] <- "0PR"
 ## Rename typo
@@ -84,7 +86,7 @@ allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim M
 subcap <- subset(allcap, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
 
 ## Projects deemed suitable (marked snakes, enough recaptures, closed period of time, spatial information, etc.)
-subcap <- subset(subcap, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","POST KB VIS 3 EXTRA","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 1","TOX DROP VIS 2","TOX DROP VIS 3","HMU TOX DROP 2 VIS"))
+subcap <- subset(subcap, PROJECTCODE %in% c("NWFN SCENT VIS TRAIL","NWFN VIS 1","NWFN VIS 2","NWFN VIS HL 1","NWFN VIS HL 2","NWFN VISPACE", "NWFN VISTRAP VIS","PRE BT2 VIS","POST BT2 VIS","POST KB VIS 1","POST KB VIS 2", "POST KB VIS 3","EDGE EFFECT VIS","LOWDENS SUPPVIS","LOWDENS VIS","TOX DROP VIS 3"))
 ## Remove "NWFN TOXDROP VIS" as need specific permission from Melia to use
 
 #### CLEAN CAPTURE DATA ####
@@ -172,7 +174,7 @@ subcap$Point <- paste(subcap$TRANSECT, subcap$LOCATION, sep = "")
 efftime <- dcast(subsurv, PROJECTCODE + SITE + Date + EFFORTID + SEARCHER ~ TRANSECT, mean, value.var = "ELAPSED", na.rm = TRUE)
 effdist <- dcast(subsurv, PROJECTCODE + SITE + Date + EFFORTID + SEARCHER ~ TRANSECT, mean, value.var = "DISTANCE", na.rm = TRUE)
 
-efftime <- efftime[with(efftime, order(SITE, PROJECTCODE, Date)),] ## -9999 will be dropped when HMU TOX DROP 2 VIS and POST BT2 VIS fixed
+efftime <- efftime[with(efftime, order(SITE, PROJECTCODE, Date)),] ## -9999 will be dropped when POST BT2 VIS fixed
 effdist <- effdist[with(effdist, order(SITE, PROJECTCODE, Date)),]
 
 
@@ -284,18 +286,18 @@ ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE
 
 
 
-## HMUI/R TOX DROP VIS 1 & 2
+## HMUI/R TOX DROP VIS 1 & 2 > DROPPING
 ## Uses same transects as EDGE (HE01-HE09, HP01-HP09)
 ## Use kml file from above; HMUREEline, HMUREEpts, HMUIEEline, HMUIEEpts
 ## Several odd points in coordinates
 ## The end points of HP03 are outside HMU (location 25; 13.59730, 144.8588) and nearly to other edge (72.5; 13.60032, 144.8638)
 ## Used Google Earth to map other points on HP03 and then measure out distance for these two points
-subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLAT == 13.59730,"CAPLAT"] <- 13.598772
-subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLON == 144.85876,"CAPLON"] <- 144.861086
-subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLAT == 13.60032,"CAPLAT"] <- 13.599015
-subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLON == 144.86384,"CAPLON"] <- 144.861619
-
-hmuTD12 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & (PROJECTCODE == "TOX DROP VIS 1" | PROJECTCODE == "TOX DROP VIS 2"))[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
+# subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLAT == 13.59730,"CAPLAT"] <- 13.598772
+# subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLON == 144.85876,"CAPLON"] <- 144.861086
+# subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLAT == 13.60032,"CAPLAT"] <- 13.599015
+# subcap[(subcap$SITE == "HMUI" | subcap$SITE == "HMUR") & subcap$TRANSECT == "HP03" & subcap$CAPLON == 144.86384,"CAPLON"] <- 144.861619
+# 
+# hmuTD12 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & (PROJECTCODE == "TOX DROP VIS 1" | PROJECTCODE == "TOX DROP VIS 2"))[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
 # coordinates(hmuTD12)=~CAPLON+CAPLAT
@@ -313,7 +315,7 @@ hmuTD12 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & (PROJECTCODE == "T
 #   scale_fill_manual(values = c("#A3E4D7","black","#16A085","black","#58D68D","black","#82E0AA","black","#1E5C50","black","#19987F","black","#06FECC","black","#A6EADD","black","#E0EFEC","black","#D35400","black","#F5B041","black","#AA6030","black","#F5A06A","black","#F2D5C3","black","#E8C080","black","#996F2C","black","#DD8A05","black","#933C02","black"))
 
 
-ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE == "TOX DROP VIS 1" | ToCheck$PROJECTCODE == "TOX DROP VIS 2") & is.na(ToCheck$checked),"checked"] <- 1
+# ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & (ToCheck$PROJECTCODE == "TOX DROP VIS 1" | ToCheck$PROJECTCODE == "TOX DROP VIS 2") & is.na(ToCheck$checked),"checked"] <- 1
 
 
 
@@ -342,35 +344,26 @@ ToCheck[(ToCheck$SITE == "HMUI" | ToCheck$SITE == "HMUR") & ToCheck$PROJECTCODE 
 
 
 
-
-##### NEED TO DECIDE IF ADDING OR NOT #####
-## HMUI/R 1-5 HMU TOX DROP 2 VIS
-## KMZ file - missing
-## KML file - missing
-# hmu15TD2 <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR" |  SITE == "HMUI1" | SITE == "HMUI2" | SITE == "HMUI3" | SITE == "HMUI4" | SITE == "HMUI5") & PROJECTCODE == "HMU TOX DROP 2 VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
-
-
-# ## For troubleshooting
-# x <- subset(ncrEE, TRANSECT == "RE01" )# & LOCATION == "2") #  "RE01"
-# coordinates(x) =~ CAPLON + CAPLAT
-# proj4string(x) <- CRS("+proj=longlat +datum=WGS84")
-# coordinates(ncrEE) =~ CAPLON + CAPLAT
-# proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
-# plot(ncrEE, pch=21, cex=0.5)
-# plot(x, add=TRUE, pch=21, cex=1, col="red")
-
-
-
-
 ## NCRI/R EDGE EFFECT VIS
 ## Uses kmz and kml NCRI EDGE EFFECTS VIS
 # NCRREEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
 # NCRREEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbPoint")
 # NCRIEEline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbLineString")
 # NCRIEEpts <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbPoint")
+# NCRImissing <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/NCRI_missing.csv")
+# coordinates(NCRImissing) =~ Lon + Lat
+# proj4string(NCRImissing) <- CRS("+proj=longlat +datum=WGS84")
+# ## Convert points to UTM
+# ncriM <- as.data.frame(spTransform(NCRImissing, CRS("+proj=utm +zone=55")))
+# miss <- list()
+# miss[[1]] <- SpatialLines(list(Lines(Line(cbind(c(ncriM[1,3],ncriM[2,3]),c(ncriM[1,4],ncriM[2,4]))), ID = "RP10")), proj4string = CRS("+proj=utm +zone=55"))
+# miss[[2]] <- SpatialLines(list(Lines(Line(cbind(c(ncriM[3,3],ncriM[4,3]),c(ncriM[3,4],ncriM[4,4]))), ID = "RP11")), proj4string = CRS("+proj=utm +zone=55"))
+# miss[[3]] <- SpatialLines(list(Lines(Line(cbind(c(ncriM[5,3],ncriM[6,3]),c(ncriM[5,4],ncriM[6,4]))), ID = "RP12")), proj4string = CRS("+proj=utm +zone=55"))
+# miss[[4]] <- SpatialLines(list(Lines(Line(cbind(c(ncriM[7,3],ncriM[8,3]),c(ncriM[7,4],ncriM[8,4]))), ID = "RP13")), proj4string = CRS("+proj=utm +zone=55"))
+# miss[[5]] <- SpatialLines(list(Lines(Line(cbind(c(ncriM[9,3],ncriM[10,3]),c(ncriM[9,4],ncriM[10,4]))), ID = "RP14")), proj4string = CRS("+proj=utm +zone=55"))
 
 ## Several odd points in coordinates
-## First, where is the line and pts info for RP10-14?
+## First, where is the line and pts info for RP10-14? > added file for them above
 ## RP14 and Location 121
 ## RP14 and Location 170
 ## HE07, NCRR, and NE08 transect seems incorrect or unclear > fixed above so reflected in effort matrix
@@ -449,10 +442,10 @@ subcap[(subcap$SITE == "NCRI" | subcap$SITE == "NCRR") & subcap$TRANSECT == "RE0
 ncrEE <- subset(subcap, (SITE == "NCRI" | SITE == "NCRR") & PROJECTCODE == "EDGE EFFECT VIS")[,c("TRANSECT","LOCATION","CAPLAT","CAPLON")]
 
 ## Convert to UTM for easier handling in SCR
-# coordinates(ncrEE)=~CAPLON+CAPLAT
-# proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
-# ## Convert points to UTM
-# ncrEE <- as.data.frame(spTransform(ncrEE, CRS("+proj=utm +zone=55")))
+coordinates(ncrEE)=~CAPLON+CAPLAT
+proj4string(ncrEE) <- CRS("+proj=longlat +datum=WGS84")
+## Convert points to UTM
+ncrEE <- as.data.frame(spTransform(ncrEE, CRS("+proj=utm +zone=55")))
 # ncrEE$utmE <- as.vector(apply(as.data.frame(ncrEE[,3]), 2, function(x) x-mean(x)))
 # ncrEE$utmN <- as.vector(apply(as.data.frame(ncrEE[,4]), 2, function(x) x-mean(x)))
 # colnames(ncrEE) <- c("TRANSECT","LOCATION","UTME","UTMN","utmE","utmN")
@@ -473,6 +466,15 @@ ncrEE <- subset(subcap, (SITE == "NCRI" | SITE == "NCRR") & PROJECTCODE == "EDGE
 ToCheck[(ToCheck$SITE == "NCRI" | ToCheck$SITE == "NCRR") & ToCheck$PROJECTCODE == "EDGE EFFECT VIS" & is.na(ToCheck$checked),"checked"] <- 1
 
 
+
+# ## For troubleshooting
+# x <- subset(ncrEE, TRANSECT == "RP14" )# & LOCATION == "2") #  "RE01"
+# coordinates(x) =~ CAPLON + CAPLAT
+# proj4string(x) <- CRS("+proj=utm +zone=55")
+# coordinates(ncrEE) =~ CAPLON + CAPLAT
+# proj4string(ncrEE) <- CRS("+proj=utm +zone=55")
+# plot(ncrEE, pch=21, cex=0.5)
+# plot(x, add=TRUE, pch=21, cex=1, col="red")
 
 
 ## NWFN NWFN HL 1 and 2
@@ -541,14 +543,14 @@ ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "POST BT2 VIS" & is.na(T
 
 ## NWFN POST KB VIS 1-3 and 3 EXTRA
 ## Same KMZ file showing only the TRAP stations
-nwfnPOST13KB <- subset(subcap, SITE == "NWFN" & (PROJECTCODE == "POST KB VIS 1" | PROJECTCODE == "POST KB VIS 2" | PROJECTCODE == "POST KB VIS 3" | PROJECTCODE == "POST KB VIS 3 EXTRA"))[,c("TRANSECT","LOCATION","COMMENT","Point")]
-
-## Check that all captures have locations
-if(nrow(subset(nwfnPOST13KB, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
-  stop('info missing for grid capture location or transect')
-}
-
-ToCheck[ToCheck$SITE == "NWFN" & (ToCheck$PROJECTCODE == "POST KB VIS 1" | ToCheck$PROJECTCODE == "POST KB VIS 2" | ToCheck$PROJECTCODE == "POST KB VIS 3" | ToCheck$PROJECTCODE == "POST KB VIS 3 EXTRA") & is.na(ToCheck$checked),"checked"] <- 1
+# nwfnPOST13KB <- subset(subcap, SITE == "NWFN" & (PROJECTCODE == "POST KB VIS 1" | PROJECTCODE == "POST KB VIS 2" | PROJECTCODE == "POST KB VIS 3" | PROJECTCODE == "POST KB VIS 3 EXTRA"))[,c("TRANSECT","LOCATION","COMMENT","Point")]
+# 
+# ## Check that all captures have locations
+# if(nrow(subset(nwfnPOST13KB, is.na(TRANSECT) | is.na(LOCATION) | TRANSECT == "" | LOCATION == "") > 0)){
+#   stop('info missing for grid capture location or transect')
+# }
+# 
+# ToCheck[ToCheck$SITE == "NWFN" & (ToCheck$PROJECTCODE == "POST KB VIS 1" | ToCheck$PROJECTCODE == "POST KB VIS 2" | ToCheck$PROJECTCODE == "POST KB VIS 3" | ToCheck$PROJECTCODE == "POST KB VIS 3 EXTRA") & is.na(ToCheck$checked),"checked"] <- 1
 
 
 
@@ -615,11 +617,12 @@ ggplot(sumdat, aes(x=Var1,y=Freq)) + geom_bar(stat = "identity") + theme(axis.te
   xlab("Date") + ylab("Count Across All Transects")
 
 
+
+
+
 #### SUMMARIZE INFO (project length, captures, recaptures) ABOUT VARIOUS STUDIES ####
 
 ## Days each project was conducted and date range
-subsurv <- subsurv[subsurv$PROJECTCODE != "HMU TOX DROP 2 VIS",]
-
 times <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) length(unique(x)))
 times$min <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) min(x))[,2]
 times$max <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) max(x))[,2]
