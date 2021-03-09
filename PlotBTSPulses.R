@@ -14,11 +14,11 @@ alldata <- data %>%
   filter(TRAPTYPE == "V", SITE == c("NWFN","HMUR","HMUI","ASOI","NCRI","NCRR")) %>%  #, SVL < 700
   mutate(Date = dmy(Date), Year = year(Date), Month = month(Date), Time = paste(Year,Month,sep=".")) %>%
   filter(Year < 2017) %>%
-  mutate(Time = fct_relevel(Time, paste(rep(2004:2016,each=12),".", rep(1:12,each=1), sep="")))
+  mutate(Time = factor(Time, levels = paste(rep(2004:2016,each=12),".", rep(1:12,each=1), sep="")))
 
-puls1 <- ggplot(alldata, aes(x=Time, y=SVL)) + geom_point() +
-  facet_grid(rows = vars(SITE), scales = "free_x") +
-  geom_hline(yintercept = 700, lty = 2, col = "red")
+# puls1 <- ggplot(alldata, aes(x=Time, y=SVL)) + geom_point() +
+#   facet_grid(rows = vars(SITE), scales = "free_x") +
+#   geom_hline(yintercept = 700, lty = 2, col = "red")
 
 test <- expand.grid(Year = unique(alldata$Year), Month = unique(alldata$Month))
 CPdata <- alldata %>%
