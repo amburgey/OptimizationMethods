@@ -93,10 +93,13 @@ prepSCR <- function(SCRcaps, SCReff){
     ## Add them, filled with '0's
     y[Missing] <- 0
     ## Put columns in desired order
-    y <- y[paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")]      
+    y <- y[paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")]  
     ## Prep for model
     y <- as.matrix(y)
   }
+  
+  ## Transform any multiple captures at a single location to just 1
+  y <- ifelse(y>=1,1,y)
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths
