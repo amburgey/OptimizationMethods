@@ -35,11 +35,6 @@ Xl<-min(locs[,1]) - delta
 Xu<-max(locs[,1]) + delta
 Yl<-min(locs[,2]) - delta
 Yu<-max(locs[,2]) + delta
-# delta<- 0
-# Xl<-min(X[,1]) - delta
-# Xu<-max(X[,1]) + delta
-# Yl<-min(X[,2]) - delta
-# Yu<-max(X[,2]) + delta
 ## Check area: 
 A <- (Xu-Xl)*(Yu-Yl)
 
@@ -48,9 +43,9 @@ A <- (Xu-Xl)*(Yu-Yl)
 ## Subset data based on how it was collected or the size of snakes involved
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","04"))  ## this is using 3 months (Feb - April)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("03","04"))  ## specify month range
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("02","04"))
+SCReff <- effSnk(eff=CPsurv, time=c("03","04"))
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -74,12 +69,13 @@ nocc <- ncol(act)
 
 
 ## Data augmentation
-M <- 150
-y <- rbind(y,array(0,dim=c((M-nrow(y)),ncol(y))))
+# M <- 150
+# y <- rbind(y,array(0,dim=c((M-nrow(y)),ncol(y))))
 
 ## Initial values for activity centers
 set.seed(02022021)
-sst <- cbind(runif(M,Xl,Xu),runif(M,Yl,Yu))
+# sst <- cbind(runif(M,Xl,Xu),runif(M,Yl,Yu))
+sst <- cbind(runif(nind,Xl,Xu),runif(nind,Yl,Yu))
 for(i in 1:nind){
   sst[i,1] <- mean( X[y[i,]>0,1] )
   sst[i,2] <- mean( X[y[i,]>0,2] )
@@ -218,11 +214,11 @@ model {
   
   for(i in 1:n){  ## n = number of observed individuals
   ## For use when defining state space and traps traditionally
-    # s[i,1] ~ dunif(Xl,Xu)
-    # s[i,2] ~ dunif(Yl,Yu)
+    s[i,1] ~ dunif(Xl,Xu)
+    s[i,2] ~ dunif(Yl,Yu)
     ## For use when defining traps on a grid cell
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
-    s[i] ~ dcat(pi[1:Gpts])
+    # pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    # s[i] ~ dcat(pi[1:Gpts])
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
@@ -253,6 +249,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 out <- jags("SCRpstar_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters)#, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/NWFNVIS2_SCRpstarvistest2noK.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/NWFNVIS2_SCRpstarvistest2noK2months.Rdata")  ## M = 150 (XXXXhrs)
 
 
