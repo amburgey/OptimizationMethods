@@ -5,7 +5,7 @@
 rm(list=ls())
 
 source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
-source("DataPrepCP.R")
+source("DataPrepCPvariableeffort.R")
 # source("SpecifyStateSpace.R")   ## Creation of NWFN grid (not using right now due to issue with perimeter surveys and knowing effort)
 
 library(secr); library(reshape2); library(jagsUI)
@@ -14,9 +14,9 @@ library(secr); library(reshape2); library(jagsUI)
 CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
-## Subset to specific NWFN project (options = MWFM VIS 2, NWFN VIS HL 1, NWFN VIS HL 2, PRE NT2 VIS, POST BT2 VIS, POST KB VIS 1, POST KB VIS 2, POST KB VIS 3 EXTRA, POST KB VIS 3, NWFN VISPACE, NWFN SCENT VIS TRAIL)
-CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS 2")
-CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS 2")
+## Subset to specific NWFN project (options = MWFM VIS 2, NWFN VIS HL 1, NWFN VIS HL 2, PRE BT2 VIS, POST BT2 VIS, POST KB VIS 1, POST KB VIS 2, POST KB VIS 3 EXTRA, POST KB VIS 3, NWFN VISPACE, NWFN SCENT VIS TRAIL)
+CPcaps <- subset(CPcaps, PROJECTCODE == "POST KB VIS 1")
+CPsurv <- subset(CPsurv, PROJECTCODE == "POST KB VIS 1")
 
 ##### SPECIFY DIMENSIONS OF CP #####
 ## Make study area grid to ensure correct size
@@ -43,14 +43,16 @@ A <- (Xu-Xl)*(Yu-Yl)
 ## Subset data based on how it was collected or the size of snakes involved
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("03","04"))  ## specify month range
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("07","08"))  ## CHANGE ME, SPECIFY MONTH RANGE
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("03","04"))
+SCReff <- effSnk(eff=CPsurv, time=c("07","08"))       ## CHANGE ME, SPECIFY MONTH RANGE
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
 dat <- prepSCR(SCRcaps, SCReff)
+## If error and need to do manual
+dat <- prepSCRman(SCRcaps, SCReff)
 
 ## Observations
 y <- dat$y
@@ -214,11 +216,11 @@ model {
   
   for(i in 1:n){  ## n = number of observed individuals
   ## For use when defining state space and traps traditionally
-    # s[i,1] ~ dunif(Xl,Xu)
-    # s[i,2] ~ dunif(Yl,Yu)
-  ## For use when defining traps on a grid cell
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
-    s[i] ~ dcat(pi[1:Gpts])
+    s[i,1] ~ dunif(Xl,Xu)
+    s[i,2] ~ dunif(Yl,Yu)
+    ## For use when defining traps on a grid cell
+    # pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    # s[i] ~ dcat(pi[1:Gpts])
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
@@ -249,6 +251,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 out <- jags("SCRpstar_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters)#, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/NWFNVIS2_SCRpstarvistest2noK2months.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/NWFNVIS2_SCRpstarvis_NWFNPREBT2VIS.Rdata")  ## M = 150 (XXXXhrs)
 
 
