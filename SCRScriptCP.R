@@ -214,11 +214,11 @@ model {
   
   for(i in 1:n){  ## n = number of observed individuals
   ## For use when defining state space and traps traditionally
-    s[i,1] ~ dunif(Xl,Xu)
-    s[i,2] ~ dunif(Yl,Yu)
-    ## For use when defining traps on a grid cell
-    # pi[1:Gpts] ~ ddirch(b[1:Gpts])
-    # s[i] ~ dcat(pi[1:Gpts])
+    # s[i,1] ~ dunif(Xl,Xu)
+    # s[i,2] ~ dunif(Yl,Yu)
+  ## For use when defining traps on a grid cell
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    s[i] ~ dcat(pi[1:Gpts])
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps

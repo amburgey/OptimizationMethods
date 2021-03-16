@@ -110,7 +110,7 @@ prepSCR <- function(SCRcaps, SCReff){
   ## Indicate these were the active times
   act$Active <- c(1)
   ## Create dataframe of all transect-location combinations
-  allact <- melt(data.frame(rep(c(LETTERS,"AA"),each=13),paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
+  allact <- melt(data.frame(rep(c(LETTERS,"AA"),each=13),paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")), id.vars = c("rep.c.LETTERS...AA....each...13.","paste.rep.c.LETTERS...AA....each...13...rep.1.13..times...27..."))
   colnames(allact) <- c("TRANSECT","Point")
   ## Expand dataframe to be all points and not just at the broad transect level
   allact <- merge(act, allact, by = c("TRANSECT"))

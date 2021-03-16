@@ -5,7 +5,7 @@
 
 library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf); library(tidyverse); library(plyr); library(plotKML)
 
-source("RenamingGrid.R")
+source("RenamingGrid.R")  ## only if using NWFN perimeter locations, which we are not currently but keep anyway for ease
 
 
 ###### SURVEY DATA ######
@@ -74,7 +74,7 @@ rownames(subsurv) <- 1:nrow(subsurv)
 ## Not a perfect match to CP but the dimensions and general guidelines are followed when splitting sections into grid cells
 ## Split into multiple ifelse statements as was exceeding stack memory
 subsurv$STARTNUMBER <- as.numeric(as.character(subsurv$STARTNUMBER))  ## ignore warning, blank entries becomes NA
-subsurv$STARTNUMBER <- gridrenam(data=subsurv, type=c("STARTNUMBER")) 
+subsurv$STARTNUMBER <- gridrenam(data=subsurv, type=c("STARTNUMBER"))
 
 
 
@@ -610,11 +610,11 @@ ToCheck[ToCheck$SITE == "NWFN" & ToCheck$PROJECTCODE == "NWFN SCENT VIS TRAIL" &
 
 
 ### SUM INFO BY EACH STUDY ###
-vissub <- subset(subsurv, SITE == "NWFN" & PROJECTCODE == "POST BT2 VIS" & TARGET == "BI")
-ggplot(vissub, aes(x=Date, y=BI)) + geom_point()
-sumdat <- as.data.frame(table(vissub$Date, vissub$TARGET))
-ggplot(sumdat, aes(x=Var1,y=Freq)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90)) +
-  xlab("Date") + ylab("Count Across All Transects")
+# vissub <- subset(subsurv, SITE == "NWFN" & PROJECTCODE == "POST BT2 VIS" & TARGET == "BI")
+# ggplot(vissub, aes(x=Date, y=BI)) + geom_point()
+# sumdat <- as.data.frame(table(vissub$Date, vissub$TARGET))
+# ggplot(sumdat, aes(x=Var1,y=Freq)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 90)) +
+#   xlab("Date") + ylab("Count Across All Transects")
 
 
 
@@ -623,68 +623,68 @@ ggplot(sumdat, aes(x=Var1,y=Freq)) + geom_bar(stat = "identity") + theme(axis.te
 #### SUMMARIZE INFO (project length, captures, recaptures) ABOUT VARIOUS STUDIES ####
 
 ## Days each project was conducted and date range
-times <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) length(unique(x)))
-times$min <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) min(x))[,2]
-times$max <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) max(x))[,2]
-
-tplot <- ggplot(times, aes(x=Date, y=PROJECTCODE)) + geom_bar(stat = "identity") + xlim(0,425) +
-  xlab("Days Surveyed") +
-  annotate(geom="text", x=(times$Date[1]+100), y=times$PROJECTCODE[1], label=paste(times$min[1]," to ",times$max[1],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[2]+100), y=times$PROJECTCODE[2], label=paste(times$min[2]," to ",times$max[2],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[3]+100), y=times$PROJECTCODE[3], label=paste(times$min[3]," to ",times$max[3],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[4]+100), y=times$PROJECTCODE[4], label=paste(times$min[4]," to ",times$max[4],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[5]+100), y=times$PROJECTCODE[5], label=paste(times$min[5]," to ",times$max[5],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[6]+100), y=times$PROJECTCODE[6], label=paste(times$min[6]," to ",times$max[6],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[7]+100), y=times$PROJECTCODE[7], label=paste(times$min[7]," to ",times$max[7],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[8]+100), y=times$PROJECTCODE[8], label=paste(times$min[8]," to ",times$max[8],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[9]+100), y=times$PROJECTCODE[9], label=paste(times$min[9]," to ",times$max[9],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[10]+100), y=times$PROJECTCODE[10], label=paste(times$min[10]," to ",times$max[10],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[11]+100), y=times$PROJECTCODE[11], label=paste(times$min[11]," to ",times$max[11],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[12]+100), y=times$PROJECTCODE[12], label=paste(times$min[12]," to ",times$max[12],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[13]+100), y=times$PROJECTCODE[13], label=paste(times$min[13]," to ",times$max[13],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[14]+100), y=times$PROJECTCODE[14], label=paste(times$min[14]," to ",times$max[14],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[15]+100), y=times$PROJECTCODE[15], label=paste(times$min[15]," to ",times$max[15],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[16]+100), y=times$PROJECTCODE[16], label=paste(times$min[16]," to ",times$max[16],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[17]+100), y=times$PROJECTCODE[17], label=paste(times$min[17]," to ",times$max[17],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[18]+100), y=times$PROJECTCODE[18], label=paste(times$min[18]," to ",times$max[18],sep=""), color="red", size=3.5) +
-  annotate(geom="text", x=(times$Date[19]+100), y=times$PROJECTCODE[19], label=paste(times$min[19]," to ",times$max[19],sep=""), color="red", size=3.5)
-
-
-## The count of previously marked and new snakes per project
-caps <- subcap
-caps[caps$NEW == "NEW","NEW"] <- 1
-caps[caps$NEW == "OLD","NEW"] <- 0
-caps2 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
-caps2$TYPE <- c("NEW")
-caps <- subcap
-caps[caps$NEW == "NEW","NEW"] <- 0
-caps[caps$NEW == "OLD","NEW"] <- 1
-caps3 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
-caps3$TYPE <- c("OLD")
-caps <- rbind(caps2,caps3)
-colnames(caps) <- c("PROJECTCODE","COUNT","TYPE")
-
-cplot <- ggplot(caps, aes(x=COUNT, y=PROJECTCODE, fill=factor(TYPE))) + geom_bar(stat = "identity", position="dodge")
-
-
-## The number of unique individuals per project
-snks <- aggregate(data=subcap, PITTAG ~ PROJECTCODE, function(x) length(unique(x)))
-
-## The projects under which each snake was caught
-proj <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) length(unique(x)))  ## snakes caught in 1.6 projects on av.
-proj2 <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) unique(x))  ## list of projects each caught in
-projsn <- proj2 %>% unnest(PROJECTCODE) %>% group_by(PITTAG) %>% mutate(col=seq_along(PROJECTCODE)) %>% spread(key=unique(PROJECTCODE), value=PROJECTCODE)
-
-## Number of times each individual was caught per project
-csnk <- count(subcap, c("PITTAG","PROJECTCODE"))  ## snakes caught about 3 times per project (though some projects will be grouped so increase captures)
-
-splot <- ggplot(subset(subcap, (SITE == "HMUR" | SITE == "HMUI") & PROJECTCODE == "EDGE EFFECT VIS"), aes(x=PITTAG)) +
-  geom_histogram(stat="count") + theme(axis.text.x = element_text(angle=90))
-
-sallplot <- ggplot(subcap, aes(x=PITTAG)) +
-  geom_histogram(stat="count") + theme(axis.text.x = element_text(angle=90))
-
-## Number of times each individual was caught over all projects
-asnk <- count(subcap, c("PITTAG"))  ## snakes caught about 5 times
+# times <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) length(unique(x)))
+# times$min <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) min(x))[,2]
+# times$max <- aggregate(data=subsurv, Date ~ PROJECTCODE, function(x) max(x))[,2]
+# 
+# tplot <- ggplot(times, aes(x=Date, y=PROJECTCODE)) + geom_bar(stat = "identity") + xlim(0,425) +
+#   xlab("Days Surveyed") +
+#   annotate(geom="text", x=(times$Date[1]+100), y=times$PROJECTCODE[1], label=paste(times$min[1]," to ",times$max[1],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[2]+100), y=times$PROJECTCODE[2], label=paste(times$min[2]," to ",times$max[2],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[3]+100), y=times$PROJECTCODE[3], label=paste(times$min[3]," to ",times$max[3],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[4]+100), y=times$PROJECTCODE[4], label=paste(times$min[4]," to ",times$max[4],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[5]+100), y=times$PROJECTCODE[5], label=paste(times$min[5]," to ",times$max[5],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[6]+100), y=times$PROJECTCODE[6], label=paste(times$min[6]," to ",times$max[6],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[7]+100), y=times$PROJECTCODE[7], label=paste(times$min[7]," to ",times$max[7],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[8]+100), y=times$PROJECTCODE[8], label=paste(times$min[8]," to ",times$max[8],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[9]+100), y=times$PROJECTCODE[9], label=paste(times$min[9]," to ",times$max[9],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[10]+100), y=times$PROJECTCODE[10], label=paste(times$min[10]," to ",times$max[10],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[11]+100), y=times$PROJECTCODE[11], label=paste(times$min[11]," to ",times$max[11],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[12]+100), y=times$PROJECTCODE[12], label=paste(times$min[12]," to ",times$max[12],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[13]+100), y=times$PROJECTCODE[13], label=paste(times$min[13]," to ",times$max[13],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[14]+100), y=times$PROJECTCODE[14], label=paste(times$min[14]," to ",times$max[14],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[15]+100), y=times$PROJECTCODE[15], label=paste(times$min[15]," to ",times$max[15],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[16]+100), y=times$PROJECTCODE[16], label=paste(times$min[16]," to ",times$max[16],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[17]+100), y=times$PROJECTCODE[17], label=paste(times$min[17]," to ",times$max[17],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[18]+100), y=times$PROJECTCODE[18], label=paste(times$min[18]," to ",times$max[18],sep=""), color="red", size=3.5) +
+#   annotate(geom="text", x=(times$Date[19]+100), y=times$PROJECTCODE[19], label=paste(times$min[19]," to ",times$max[19],sep=""), color="red", size=3.5)
+# 
+# 
+# ## The count of previously marked and new snakes per project
+# caps <- subcap
+# caps[caps$NEW == "NEW","NEW"] <- 1
+# caps[caps$NEW == "OLD","NEW"] <- 0
+# caps2 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
+# caps2$TYPE <- c("NEW")
+# caps <- subcap
+# caps[caps$NEW == "NEW","NEW"] <- 0
+# caps[caps$NEW == "OLD","NEW"] <- 1
+# caps3 <- aggregate(data=caps, as.numeric(NEW) ~ PROJECTCODE, function(x) sum(x))
+# caps3$TYPE <- c("OLD")
+# caps <- rbind(caps2,caps3)
+# colnames(caps) <- c("PROJECTCODE","COUNT","TYPE")
+# 
+# cplot <- ggplot(caps, aes(x=COUNT, y=PROJECTCODE, fill=factor(TYPE))) + geom_bar(stat = "identity", position="dodge")
+# 
+# 
+# ## The number of unique individuals per project
+# snks <- aggregate(data=subcap, PITTAG ~ PROJECTCODE, function(x) length(unique(x)))
+# 
+# ## The projects under which each snake was caught
+# proj <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) length(unique(x)))  ## snakes caught in 1.6 projects on av.
+# proj2 <- aggregate(data=subcap, PROJECTCODE ~ PITTAG, function(x) unique(x))  ## list of projects each caught in
+# projsn <- proj2 %>% unnest(PROJECTCODE) %>% group_by(PITTAG) %>% mutate(col=seq_along(PROJECTCODE)) %>% spread(key=unique(PROJECTCODE), value=PROJECTCODE)
+# 
+# ## Number of times each individual was caught per project
+# csnk <- count(subcap, c("PITTAG","PROJECTCODE"))  ## snakes caught about 3 times per project (though some projects will be grouped so increase captures)
+# 
+# splot <- ggplot(subset(subcap, (SITE == "HMUR" | SITE == "HMUI") & PROJECTCODE == "EDGE EFFECT VIS"), aes(x=PITTAG)) +
+#   geom_histogram(stat="count") + theme(axis.text.x = element_text(angle=90))
+# 
+# sallplot <- ggplot(subcap, aes(x=PITTAG)) +
+#   geom_histogram(stat="count") + theme(axis.text.x = element_text(angle=90))
+# 
+# ## Number of times each individual was caught over all projects
+# asnk <- count(subcap, c("PITTAG"))  ## snakes caught about 5 times
 
 
