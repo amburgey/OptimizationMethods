@@ -2,3 +2,13 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# Results
+/Results
+
+# Unused files
+NWFNlocationsKey.xlsx
+
+# Outdated files
+/Older
+
