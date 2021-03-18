@@ -4,16 +4,16 @@
 
 rm(list=ls())
 
-source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
-source("DataPrepCP.R")
+source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
+source("DataPrepCP.R")              ## Functions to reshape survey and capture data
 
 library(secr); library(reshape2); library(jagsUI)
 
-## Capture data (subcap) and effort/survey data (subsurv)
+## Subset capture data (subcap) and effort/survey data (subsurv)
 CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
-## Subset to specific NWFN project (options = MWFM VIS 2, NWFN VIS HL 1, NWFN VIS HL 2, PRE NT2 VIS, POST BT2 VIS, POST KB VIS 1, POST KB VIS 2, POST KB VIS 3 EXTRA, POST KB VIS 3, NWFN VISPACE, NWFN SCENT VIS TRAIL)
+## Subset to specific NWFN project
 CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS 2")
 CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS 2")
 
@@ -24,26 +24,21 @@ locs <- secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)
 J <- nrow(locs)
 
 ## Define state-space of point process. (i.e., where animals live).
-## Don't need to estimate state-space since we know it (5 ha enclosed pop) but do need this to help make integration grid below
+## Don't need to estimate state-space since we know it (5 ha/50000 m2 enclosed pop) but do need this to help make integration grid below
 delta<- 11.874929
 Xl<-min(locs[,1]) - delta
 Xu<-max(locs[,1]) + delta
 Yl<-min(locs[,2]) - delta
 Yu<-max(locs[,2]) + delta
+## Area of CP
+A <- (Xu-Xl)*(Yu-Yl)
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
-locs$CellID <- c(1:dim(locs)[1])
+## Surveys locations
 X <- as.matrix(locs)
 
-## Define state-space of point process. (i.e., where animals live).
-## "delta" just adds a fixed buffer to the outer extent of the traps.
-## Don't need to estimate state-space since we know it (5 ha/50,000 m2 enclosed pop)
-## Check area: 
-A <- 50000
-
-
 #### PREP DATA FOR SCR ANALYSIS ####
-## Subset data based on how it was collected or the size of snakes involved
+## Subset data based on how it was collected (V = visual, T = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
 SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","04"))  ## this is using 3 months (Feb - April)
@@ -62,7 +57,7 @@ colnames(y) <- 1:ncol(dat$y)
 ## Uniquely marked individuals
 nind <- nrow(y)
 
-## Active/not active for when transects run (one less day surveyed for TL), already in order of 1-351 CellID locations
+## Active/not active for when transects run, already in order of 1-351 CellID locations
 act <- as.matrix(dat$act[,-1])
 colnames(act) <- NULL
 K <- rowSums(act)
@@ -70,10 +65,13 @@ K <- rowSums(act)
 ## Number of survey occasions
 nocc <- ncol(act)
 
-## Take mean grid cell location where each snake was found
-sst <- lapply(apply(y,1,function(x) which(x==1)),function(x) mean(x))
-
-
+## Inits for activity centers, take mean grid cell location where each snake was found
+locs <- as.data.frame(locs)
+locs$CellID <- c(1:dim(locs)[1])
+sst <- round(unlist(lapply(apply(y,1,function(x) which(x==1)),function(x) mean(x))))
+vlocs <- locs[locs$CellID %in% sst,]
+sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
+vsst <- merge(sst,vlocs, by=c("CellID"))[,2:3]
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
 
@@ -83,19 +81,17 @@ e2dist <- function (x, y) {
   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
 }
 
-#Integration grid
-Ggrid <- 5                               #spacing (verify sensitivity to spacing)
+## Integration grid
+Ggrid <- 5                                #spacing (check sensitivity to spacing)
 Xlocs <- rep(seq(Xl, Xu, Ggrid), times = 47)
 Ylocs <- rep(seq(Yl, Yu, Ggrid), each = 44)
 G <- cbind(Xlocs, Ylocs)
-# Xlocs <- seq(Yl,Yu,Ggrid)          
-# G <- cbind(sort(rep(Xlocs,length(Xlocs))),rep(Xlocs,length(Xlocs))) #integration grid locations
-Gpts <- dim(G)[1]                            #number of integration points
-a <- Ggrid^2                                 #area of each integration grid
-Gdist <- e2dist(G, X)                      #distance between integration grid locations and traps
+Gpts <- dim(G)[1]                         #number of integration points
+a <- Ggrid^2                              #area of each integration grid
+Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
-points(Xl,Yu, pch=21, col="blue")  #check that state space area match for CP
+points(Xl,Yu, pch=21, col="blue")         #check CP dimensions match
 points(Xl,Yl, pch=21, col="blue")
 points(Xu,Yu, pch=21, col="blue")
 points(Xu,Yl, pch=21, col="blue")
@@ -119,7 +115,7 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  ## Remove k loop (for decreased run time?)
+  ## Removed k loop
   for(g in 1:Gpts){ # Gpts = number of points on integration grid
     for(j in 1:J){  # J = number of traps
       #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
@@ -129,7 +125,7 @@ model {
     pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
   } #G
   
-  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, a given as data)
+  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
   
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ##### 
   # Zero trick for initial 1/pstar^n
@@ -147,31 +143,33 @@ model {
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
-      d[i,j] <- pow(pow(s[i,1]-locs[j,1],2) + pow(s[i,2]-locs[j,2],2),0.5)
+      d[i,j] <- Gdist[s[i],j]  ## Doesn't Gdist already do what the line below does? As we're using categorical grid cells so s[i] are going to be one of G[i,]?
+      # d[i,j] <- pow(pow(s[i,1]-locs[j,1],2) + pow(s[i,2]-locs[j,2],2),0.5)  ### traditional SCR
       p[i,j] <- p0*exp(-alpha1*d[i,j]*d[i,j])
     }#J
   }#n
 }
-",file = "SCRpstar_CP.txt")
+",file = "SCRpstarCAT_CP.txt")
 
 #######################################################
 
 ## MCMC settings
 # nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-nc <- 3; nAdapt=5; nb <- 1; ni <- 10+nb; nt <- 1
+nc <- 3; nAdapt=50; nb <- 10; ni <- 1000+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
+#locs=X, 
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=(M-nind), s=sst[1:nind,], p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
+  list (sigma=runif(1,45,50), n0=nind, s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 
-out <- jags("SCRpstar_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
-            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters)#, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
+out <- jags("SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/NWFNVIS2_SCRpstarvistest2noK.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/NWFNVIS2_SCRpstarvistestCAT.Rdata")  ## M = 150 (XXXXhrs)
 
 
