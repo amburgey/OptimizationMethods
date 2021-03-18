@@ -167,8 +167,10 @@ for(i in 1:length(spd)){
   caphmu[i,11] <- point.in.poly(spd[i,],clipHMU)@data$poly.ids
 }
 
-ifelse(unique(unique(snkcap$GridID) %in% unique(vistran$GridID)) == TRUE, "GridID matched", "error: GridID mismatch")
+## Check that no grid cells were identified as having snakes captured that weren't part of transect grid cells surveyed
+ifelse(unique(unique(caphmu$GridID) %in% unique(vistran$GridID)) == TRUE, "GridID matched", "error: GridID mismatch")
 
+## Dataframe of snake capture info and the grid cell on which it occurred
 snkcap <- caphmu[,c("PITTAG","Date","TRANSECT","X","Y","GridID")]
 
 
