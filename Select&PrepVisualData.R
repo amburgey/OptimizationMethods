@@ -9,7 +9,8 @@ source("RenamingGrid.R")  ## only if using NWFN perimeter locations, which we ar
 
 
 ###### SURVEY DATA ######
-allsurv <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VISinfo.csv")[,-c(21:62)]
+# allsurv <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VISinfo.csv")[,-c(21:62)]
+allsurv <- read.csv("VISinfo.csv")[,-c(21:62)]
 
 ## Study areas deemed suitable
 subsurv <- subset(allsurv, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
@@ -80,7 +81,8 @@ subsurv$STARTNUMBER <- gridrenam(data=subsurv, type=c("STARTNUMBER"))
 
 
 ###### CAPTURE DATA ######
-allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VIScaptures.csv")[,-c(6,15,22:25,27,29:32,34:36)]
+# allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VIScaptures.csv")[,-c(6,15,22:25,27,29:32,34:36)]
+allcap <- read.csv("VIScaptures.csv")[,-c(6,15,22:25,27,29:32,34:36)]
 
 ## Study Areas deemed suitable
 subcap <- subset(allcap, SITE %in% c("NWFN","HMUI","HMUR","HMUI1","HMUI2","HMUI2B","HMUI3","HMUI4","HMUI5","HMUI5B","NCRI","NCRR"))
