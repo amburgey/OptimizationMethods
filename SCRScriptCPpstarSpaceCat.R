@@ -133,11 +133,12 @@ model {
   lambda <- -loglikterm + 1000
   dummy ~ dpois(lambda) # dummy = 0; entered as data
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY #####
-  
-  
+
+  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+  pi[1:Gpts] ~ ddirch(b[1:Gpts])
+ 
   for(i in 1:n){  ## n = number of observed individuals
     ## For use when defining traps on a grid cell
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
     s[i] ~ dcat(pi[1:Gpts])
     
     # Model for capture histories of observed individuals:
