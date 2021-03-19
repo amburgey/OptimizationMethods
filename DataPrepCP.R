@@ -115,7 +115,7 @@ prepSCR <- function(SCRcaps, SCReff){
   ## Expand dataframe to be all points and not just at the broad transect level
   allact <- merge(act, allact, by = c("TRANSECT"))
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
-  act2 <- reshape2::dcast(allact, Point ~ Date, fun.aggregate = length, value.var = "Active")
+  act2 <- reshape2::dcast(allact, Point ~ Date, fun.aggregate = sum, value.var = "Active")
   ## Order by Point
   act2$Point <- as.factor(act2$Point)
   act2$Point <- factor(act2$Point, levels=c(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
