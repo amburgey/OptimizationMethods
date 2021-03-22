@@ -71,7 +71,7 @@ locs$CellID <- c(1:dim(locs)[1])
 sst <- round(unlist(lapply(apply(y,1,function(x) which(x==1)),function(x) mean(x))))
 vlocs <- locs[locs$CellID %in% sst,]
 sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
-vsst <- merge(sst,vlocs, by=c("CellID"))[,2:3]
+vsst <- unlist(merge(sst,vlocs, by=c("CellID"))[,1])
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
 
@@ -156,7 +156,7 @@ model {
 
 ## MCMC settings
 # nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-nc <- 3; nAdapt=50; nb <- 10; ni <- 1000+nb; nt <- 1
+nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
