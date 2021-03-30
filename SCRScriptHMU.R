@@ -25,7 +25,8 @@ A <- 550000
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
-X <- as.matrix(HMUspecs$tran[,-1])
+X <- as.matrix(HMUspecs$tran[,-1])[,2:3]
+J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
 ## Subset data based on how it was collected or the size of snakes involved
@@ -59,10 +60,11 @@ nocc <- ncol(act)
 
 ## Inits for activity centers, take mean grid cell location where each snake was found
 locs <- HMUspecs$tran
-sst <- round(unlist(lapply(apply(dat$y,1,function(x) which(x==1)),function(x) mean(x))))
+colnames(locs)[2] <- c("CellID")
+sst <- round(unlist(lapply(apply(dat$y,1,function(x) which(x==1)),function(x) mean(as.numeric(names(x))))))
 vlocs <- locs[locs$CellID %in% sst,]
 sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
-vsst <- merge(sst,vlocs, by=c("CellID"))[,2:3]
+vsst <- unlist(merge(sst,vlocs, by=c("CellID"))[,1])
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
 
@@ -74,9 +76,7 @@ e2dist <- function (x, y) {
 
 #Integration grid
 Ggrid <- 5                               #spacing (verify sensitivity to spacing)
-Xlocs <- rep(seq(Xl, Xu, Ggrid), times = 47)
-Ylocs <- rep(seq(Yl, Yu, Ggrid), each = 44)
-G <- cbind(Xlocs, Ylocs)
+G <- HMUspecs$intgrd
 # Xlocs <- seq(Yl,Yu,Ggrid)          
 # G <- cbind(sort(rep(Xlocs,length(Xlocs))),rep(Xlocs,length(Xlocs))) #integration grid locations
 Gpts <- dim(G)[1]                            #number of integration points
@@ -84,16 +84,7 @@ a <- Ggrid^2                                 #area of each integration grid
 Gdist <- e2dist(G, X)                      #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
-points(Xl,Yu, pch=21, col="blue")  #check that state space area match for CP
-points(Xl,Yl, pch=21, col="blue")
-points(Xu,Yu, pch=21, col="blue")
-points(Xu,Yl, pch=21, col="blue")
 
-## compute the squared distance matrix to be used as DATA if using integratin points as trap locations  
-# dsq <- matrix(NA, nPix, J)
-# for(i in 1:nPix) {
-#   dsq[i,] <-  ((G$x[i] - trapmat[,"x"])^2 + (G$y[i] - trapmat[,"y"])^2)
-# }
 
 ########################################################
 ##Jags model for a King et al 2016 semicomplete likelihood
@@ -112,30 +103,17 @@ model {
   
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
-  
-  ## K loop if any time-varying covariates need to be added in
-  # for(g in 1:Gpts){ # Gpts = number of points on integration grid
-  #   for(k in 1:nocc){  # K = number of occasions
-  #     for(j in 1:J){  # J = number of traps
-  #     #Probability of being missed at grid cell g at survey k and trap j
-  #       one_minus_detprob[g,k,j] <- 1 - p0*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*act[k,j] #Gdist given as data
-  #     } #J
-  #   } #K
-  #   pdot.temp[g] <- 1 - prod(one_minus_detprob[g,,]) #Prob of failure to detect across entire study area and time period
-  #   pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
-  # } #G
 
 ## Remove k loop (for decreased run time?)
   for(g in 1:Gpts){ # Gpts = number of points on integration grid
     for(j in 1:J){  # J = number of traps
-      #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-      one_minus_detprob[g,j] <- 1 - p0*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+      one_minus_detprob[g,j] <- 1 - p0*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j]
     } #J
-  pdot.temp[g] <- 1 - prod(one_minus_detprob[g,]) #Prob of failure to detect across entire study area and time period
-  pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+  pdot.temp[g] <- 1 - prod(one_minus_detprob[g,])
+  pdot[g] <- max(pdot.temp[g], 1.0E-10)
 } #G
   
-  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, a given as data)
+  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S
   
   ### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ### 
   # Zero trick for initial 1/pstar^n
@@ -144,44 +122,41 @@ model {
   dummy ~ dpois(lambda) # dummy = 0; entered as data
   ### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ###
   
+  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior)   
+  pi[1:Gpts] ~ ddirch(b[1:Gpts])
   
   for(i in 1:n){  ## n = number of observed individuals
-  ## For use when defining state space and traps traditionally
-    # s[i,1] ~ dunif(Xl,Xu)
-    # s[i,2] ~ dunif(Yl,Yu)
-  ## For use when defining traps on a grid cell
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    ## For use when defining traps on a grid cell
     s[i] ~ dcat(pi[1:Gpts])
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
-      d[i,j] <- pow(pow(s[i,1]-locs[j,1],2) + pow(s[i,2]-locs[j,2],2),0.5)
+      d[i,j] <- Gdist[s[i],j]
       p[i,j] <- p0*exp(-alpha1*d[i,j]*d[i,j])
-      # trapdist calculated outside model for dcat option, could use some integration grid and denote which are traps
-      # g[i,j] <- exp(-dsq[s[i],j]/sigma2)  ## check if sigma or sigma squared
     }#J
   }#n
 }
-",file = "SCRpstar_CP.txt")
+",file = "SCRpstarCAT_HMU.txt")
 
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=nind, s=sst[1:nind,], p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
+  list (sigma=runif(1,45,50), n0=nind, s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 
-out <- jags("SCRpstar_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
-            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters)#, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
+out <- jags("SCRpstarCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
+            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/NWFNVIS2_SCRpstarvistest2noK2months.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/HMUEDGE_SCRpstarvistestCAT2months.Rdata")  ## M = 150 (XXXXhrs)
 
 

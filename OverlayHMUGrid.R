@@ -174,7 +174,23 @@ overlayHMU <- function(HMUcaps){
   snkcap <- caphmu[,c("EFFORTID","PITTAG","Date","TRANSECT","X","Y","GridID")]
   
   
-
+# Section 6. Create rotated integration grid ----
+  ## Desired grid cell to match surveying grid of Closed Population
+  cellsize2 = c(5,5)
+  ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
+  bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)+320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymax(hmuSpace)-95), c(xmin(hmuSpace)+320,ymin(hmuSpace)-95)))))
+  grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
+  rotang = -26.5
+  rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
+  intgrd_rot <- (grd2 - st_centroid(st_union(grd2))) * rot(rotang * pi / 180) +
+    st_centroid(st_union(grd2))
+  ## Specify projection again
+  st_crs(intgrd_rot) <- "+proj=utm +zone=55 +units=m +datum=WGS84"
+  ## Find centroid of all grid cells
+  intgrd_cts <- st_centroid(intgrd_rot)  ## Warnings about geometries, ignore
+  ## Convert from sfc polygon to Spatial Polygon
+  plot(intgrd_cts, col="red")
+  intgrd <- do.call(rbind, st_geometry(intgrd_cts))
 
 
   # ## Checking. Plot Interior transects ----
@@ -240,7 +256,7 @@ overlayHMU <- function(HMUcaps){
   # plot(hmucaps, add=TRUE, cex=1, pch=20)
   #### #####
   
-  dat <- list(tran = vistran, snks = snkcap)
+  dat <- list(tran = vistran, snks = snkcap, intgrd=intgrd)
   
   return(dat)
 }
