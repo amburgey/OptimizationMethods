@@ -82,9 +82,9 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
-Xlocs <- rep(seq(Xl, Xu, Ggrid), times = 47)
-Ylocs <- rep(seq(Yl, Yu, Ggrid), each = 44)
+Ggrid <- 10                                #spacing (check sensitivity to spacing)
+Xlocs <- rep(seq(Xl, Xu, Ggrid), times = length(seq(Yl, Yu, Ggrid)))
+Ylocs <- rep(seq(Yl, Yu, Ggrid), each = length(seq(Xl, Xu, Ggrid)))
 G <- cbind(Xlocs, Ylocs)
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
@@ -155,8 +155,8 @@ model {
 #######################################################
 
 ## MCMC settings
-# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
@@ -171,6 +171,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 out <- jags("SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/NWFNVIS2_SCRpstarvistestCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/NWFNVIS2_SCRpstarvistestCAT10.Rdata")  ## M = 150 (XXXXhrs)
 
 

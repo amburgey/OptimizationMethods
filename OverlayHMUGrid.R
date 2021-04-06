@@ -20,7 +20,8 @@ overlayHMU <- function(HMUcaps){
   
   # Section 2. Create Grid Polygon ----
   ## Grid should be 8 m by 16 m
-  hmuSpace <- raster("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/Reclass_hmu_71.tif")
+  # hmuSpace <- raster("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/Reclass_hmu_71.tif")
+  hmuSpace <- raster("Reclass_hmu_71.tif")
   ## Specify projection
   hmuSpace <- projectRaster(hmuSpace, crs="+proj=utm +zone=55 +units=m +datum=WGS84")
   ## Desired grid cell to match surveying grid of Closed Population
@@ -46,7 +47,8 @@ overlayHMU <- function(HMUcaps){
   
   
   # Section 4. Convert Transect Survey Locations to Grid Cells ----
-  HMUtran <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/HMU_EElocations.csv")
+  # HMUtran <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/HMU_EElocations.csv")
+  HMUtran <- read.csv("HMU_EElocations.csv")
   
   ## Create spatial lines from dataframe
   hmutran <- list()
@@ -260,3 +262,4 @@ overlayHMU <- function(HMUcaps){
   
   return(dat)
 }
+
