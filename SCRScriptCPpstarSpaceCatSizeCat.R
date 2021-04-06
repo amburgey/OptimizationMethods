@@ -60,6 +60,12 @@ nind <- nrow(y)
 ## Get sizes of individuals
 snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
 snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=c("2006-01-01","2006-05-30"))[,2] ## if some snake sizes are missing than expand window of time
+## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
+snsz <- ifelse(snsz < 850, 1,
+               ifelse(snsz >= 850 & snsz < 950, 2,
+                      ifelse(snsz >= 950 & snsz < 1150, 3,
+                             ifelse(snsz >= 1150, 4, -9999))))
+if(max(snsz) == -9999) stop('snake size incorrect')
 
 ## Active/not active for when transects run, already in order of 1-351 CellID locations
 act <- as.matrix(dat$act[,-1])
@@ -107,10 +113,12 @@ points(Xu,Yl, pch=21, col="blue")
 cat("
 model {
 
-  alpha0 ~ dnorm(0,0.1)
+  for(l in 1:4){
+    p0[l] ~ dunif(0,1)
+  }
+  alpha0 <- logit(p0)
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
-  beta ~ dnorm(0,5)
   
   # Posterior conditional distribution for N-n (and hence N):
   n0 ~ dnegbin(pstar,n)  # number of failures
@@ -124,14 +132,14 @@ model {
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[i,g,j] <- 1 - p0[i]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+        one_minus_detprob[i,g,j] <- 1 - p0[size[i]]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
       } #J
-      pdot.temp[g] <- 1 - prod(one_minus_detprob[,g,]) #Prob of failure to detect across entire study area and time period
-      pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+      pdot.temp[i,g] <- 1 - prod(one_minus_detprob[i,g,]) #Prob of failure to detect across entire study area and time period
+      pdot[i,g] <- max(pdot.temp[i,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
+    pstar[i] <- (sum(pdot[i,1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
   } #I
   
-  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
   
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ##### 
   # Zero trick for initial 1/pstar^n
@@ -146,18 +154,16 @@ model {
   for(i in 1:n){  ## n = number of observed individuals
     ## For use when defining traps on a grid cell
     s[i] ~ dcat(pi[1:Gpts])
-    logit(p0[i]) <- alpha0 + beta*size[i]
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
-      d[i,j] <- Gdist[s[i],j]  ## Doesn't Gdist already do what the line below does? As we're using categorical grid cells so s[i] are going to be one of G[i,]?
-      # d[i,j] <- pow(pow(s[i,1]-locs[j,1],2) + pow(s[i,2]-locs[j,2],2),0.5)  ### traditional SCR
-      p[i,j] <- p0[i]*exp(-alpha1*d[i,j]*d[i,j])
+      d[i,j] <- Gdist[s[i],j]
+      p[i,j] <- p0[size[i]]*exp(-alpha1*d[i,j]*d[i,j])
     }#J
   }#n
 }
-",file = "SCRpstarCATsize_CP.txt")
+",file = "SCRpstarCATsizeCAT_CP.txt")
 
 #######################################################
 
@@ -175,9 +181,11 @@ inits <- function(){
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","beta")
 
-out <- jags("SCRpstarCATsize_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+out <- jags("SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 save(out, file="Results/NWFNVIS2_SCRpstarvistestCATsize.Rdata")  ## M = 150 (XXXXhrs)
 
-
+# Error in checkForRemoteErrors(val) : 
+#   3 nodes produced errors; first error: Error in node pstar
+# Invalid vector parameter in distribution dnegbin
