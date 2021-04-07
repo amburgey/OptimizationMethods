@@ -113,31 +113,30 @@ points(Xu,Yl, pch=21, col="blue")
 cat("
 model {
 
-  for(l in 1:4){
+  for(l in 1:4){   # 4 size categories
     p0[l] ~ dunif(0,1)
+    # Posterior conditional distribution for N-n (and hence N):
+    n0[l] ~ dnegbin(pstar[l],n)  # number of failures by size category
   }
   alpha0 <- logit(p0)
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
   
-  # Posterior conditional distribution for N-n (and hence N):
-  n0 ~ dnegbin(pstar,n)  # number of failures
-  N <- n + n0  # successful observations plus failures to observe = total N
-  
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  ## Removed k loop
   for(i in 1:n){
-    for(g in 1:Gpts){ # Gpts = number of points on integration grid
-      for(j in 1:J){  # J = number of traps
-        #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[i,g,j] <- 1 - p0[size[i]]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
-      } #J
-      pdot.temp[i,g] <- 1 - prod(one_minus_detprob[i,g,]) #Prob of failure to detect across entire study area and time period
-      pdot[i,g] <- max(pdot.temp[i,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
-    } #G
-    pstar[i] <- (sum(pdot[i,1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
+    for(l in 1:4){  # size category
+      for(g in 1:Gpts){ # Gpts = number of points on integration grid
+        for(j in 1:J){  # J = number of traps
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+          one_minus_detprob[l,g,j] <- 1 - p0[size[i]]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+        } #J
+        pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+      } #G
+      pstar[i] <- (sum(pdot[i,1:Gpts])*a)/A   #prob of detecting an individual in that size category at least once in S (a=area of each integration grid, given as data)
+    } #L
   } #I
   
   
@@ -162,6 +161,8 @@ model {
       p[i,j] <- p0[size[i]]*exp(-alpha1*d[i,j]*d[i,j])
     }#J
   }#n
+  
+  N <- n + n0[1] + n0[2] + n0[3] + n0[4]  # successful observations plus failures to observe of each size = total N
 }
 ",file = "SCRpstarCATsizeCAT_CP.txt")
 
@@ -176,10 +177,10 @@ jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl,
 #locs=X, 
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=nind, s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
+  list (sigma=runif(1,45,50), n0=rep(round(nind/4),times=4), s=vsst, p0=runif(4,.002,.003))
 }
 
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","beta")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N", "n0")
 
 out <- jags("SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
