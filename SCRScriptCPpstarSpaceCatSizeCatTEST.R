@@ -113,34 +113,37 @@ points(Xu,Yl, pch=21, col="blue")
 cat("
 model {
 
-  for(l in 1:4){   # 4 size categories
-    p0[l] ~ dunif(0,1)
-    # Posterior conditional distribution for N-n (and hence N):
-    n0[l] ~ dnegbin(pstar[l],n)  # number of failures by size category
-  }
-  alpha0 <- logit(p0)
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
+  for (l in 1:4){            ## size, when doing quadratic function
+    beta[l] ~ dnorm(0,0.01)
+    beta2[l] ~ dnorm(0,0.01)
+  }
+  
+  # Posterior conditional distribution for N-n (and hence N):
+  n0 ~ dnegbin(pstar,n)  # number of failures
+  N <- n + n0  # successful observations plus failures to observe = total N
   
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(l in 1:4){  # size category
+  ## Removed k loop
+  for(i in 1:n){
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
-        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+        #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+        one_minus_detprob[i,g,j] <- 1 - p0[i]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
       } #J
-      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
-      pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+      pdot.temp[g] <- 1 - prod(one_minus_detprob[,g,]) #Prob of failure to detect across entire study area and time period
+      pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
-  } #L
+  } #I
   
+  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
   
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ##### 
   # Zero trick for initial 1/pstar^n
-  loglikterm <- -n * log(pstar[1]) * log(pstar[2]) * log(pstar[3]) * log(pstar[4])
+  loglikterm <- -n * log(pstar)
   lambda <- -loglikterm + 1000
   dummy ~ dpois(lambda) # dummy = 0; entered as data
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY #####
@@ -151,23 +154,24 @@ model {
   for(i in 1:n){  ## n = number of observed individuals
     ## For use when defining traps on a grid cell
     s[i] ~ dcat(pi[1:Gpts])
+    logit(p0[i]) <- beta[size[i]] + beta2[size[i]]*2
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
-      p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
+      d[i,j] <- Gdist[s[i],j]  ## Doesn't Gdist already do what the line below does? As we're using categorical grid cells so s[i] are going to be one of G[i,]?
+      # d[i,j] <- pow(pow(s[i,1]-locs[j,1],2) + pow(s[i,2]-locs[j,2],2),0.5)  ### traditional SCR
+      p[i,j] <- p0[i]*exp(-alpha1*d[i,j]*d[i,j])
     }#J
   }#n
-  
-  N <- n + n0[1] + n0[2] + n0[3] + n0[4]  # successful observations plus failures to observe of each size = total N
 }
-",file = "SCRpstarCATsizeCAT_CP.txt")
+",file = "SCRpstarCATsizeCAT2_CP.txt")
 
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act), size=snsz) # ## semicomplete likelihood
@@ -179,9 +183,11 @@ inits <- function(){
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N", "n0")
 
-out <- jags("SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+out <- jags("SCRpstarCATsizeCAT2_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 save(out, file="Results/NWFNVIS2_SCRpstarvistestCATsize.Rdata")  ## M = 150 (XXXXhrs)
 
-
+# Error in checkForRemoteErrors(val) : 
+#   3 nodes produced errors; first error: Error in node pstar
+# Invalid vector parameter in distribution dnegbin

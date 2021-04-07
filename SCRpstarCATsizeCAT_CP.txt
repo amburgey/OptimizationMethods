@@ -13,24 +13,22 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(i in 1:n){
-    for(l in 1:4){  # size category
-      for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J){  # J = number of traps
-          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-          one_minus_detprob[l,g,j] <- 1 - p0[size[i]]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
-        } #J
-        pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
-        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
-      } #G
-      pstar[i] <- (sum(pdot[i,1:Gpts])*a)/A   #prob of detecting an individual in that size category at least once in S (a=area of each integration grid, given as data)
-    } #L
-  } #I
+  for(l in 1:4){  # size category
+    for(g in 1:Gpts){ # Gpts = number of points on integration grid
+      for(j in 1:J){  # J = number of traps
+        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+      } #J
+      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
+      pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+    } #G
+    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+  } #L
   
   
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ##### 
   # Zero trick for initial 1/pstar^n
-  loglikterm <- -n * log(pstar)
+  loglikterm <- -n * log(pstar[1]) * log(pstar[2]) * log(pstar[3]) * log(pstar[4])
   lambda <- -loglikterm + 1000
   dummy ~ dpois(lambda) # dummy = 0; entered as data
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY #####
@@ -45,8 +43,7 @@ model {
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
-      d[i,j] <- Gdist[s[i],j]
-      p[i,j] <- p0[size[i]]*exp(-alpha1*d[i,j]*d[i,j])
+      p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#n
   
