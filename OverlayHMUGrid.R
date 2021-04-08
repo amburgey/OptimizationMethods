@@ -2,7 +2,7 @@
 
 library(rgeos); library(maptools); library(spatialEco)
 
-overlayHMU <- function(HMUcaps){
+overlayHMU <- function(HMUcaps, cellsize){
   # Section 1 Create HMU Polygon ----
   ## Read in shapefile of HMU fence
   hmuline <- st_read("hmuline/hmu.shp")
@@ -177,8 +177,8 @@ overlayHMU <- function(HMUcaps){
   
   
 # Section 6. Create rotated integration grid ----
-  ## Desired grid cell to match surveying grid of Closed Population
-  cellsize2 = c(5,5)
+  ## Desired grid cell
+  cellsize2 = c(cellsize,cellsize)
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
   bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)+320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymax(hmuSpace)-95), c(xmin(hmuSpace)+320,ymin(hmuSpace)-95)))))
   grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
@@ -188,11 +188,17 @@ overlayHMU <- function(HMUcaps){
     st_centroid(st_union(grd2))
   ## Specify projection again
   st_crs(intgrd_rot) <- "+proj=utm +zone=55 +units=m +datum=WGS84"
-  ## Find centroid of all grid cells
-  intgrd_cts <- st_centroid(intgrd_rot)  ## Warnings about geometries, ignore
   ## Convert from sfc polygon to Spatial Polygon
-  plot(intgrd_cts, col="red")
-  intgrd <- do.call(rbind, st_geometry(intgrd_cts))
+  intgrd_rot <- as_Spatial(intgrd_rot, cast=TRUE, IDs=paste0("ID", seq_along(intgrd_rot)))
+  
+# Section 7. Create HMU-clipped Integration Grid ----
+  clipG <- gIntersection(HMU, intgrd_rot, byid = TRUE, drop_lower_td = TRUE)
+  # par(mar = c(1,1,1,1))  ## if for some reason the margins are weird
+  plot(clipG, col="red")
+  ## Find centroid of all grid cells
+  intgrd_cts <- gCentroid(clipG, byid = TRUE)
+  plot(intgrd_cts, col="red", pch=21, cex=0.2)
+  intgrd <- geom(intgrd_cts)
 
 
   # ## Checking. Plot Interior transects ----

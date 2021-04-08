@@ -19,7 +19,8 @@ HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")[,c("EFFORTID","PITT
 HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
 
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-HMUspecs <- overlayHMU(HMUcaps)  ## ignore warnings, all about projections
+cellsize <- 10  ## dimensions of integration grid cell
+HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
 
@@ -76,10 +77,8 @@ e2dist <- function (x, y) {
 }
 
 #Integration grid
-Ggrid <- 10                               #spacing (verify sensitivity to spacing)
-G <- HMUspecs$intgrd
-# Xlocs <- seq(Yl,Yu,Ggrid)          
-# G <- cbind(sort(rep(Xlocs,length(Xlocs))),rep(Xlocs,length(Xlocs))) #integration grid locations
+Ggrid <- cellsize                               #spacing
+G <- HMUspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                            #number of integration points
 a <- Ggrid^2                                 #area of each integration grid
 Gdist <- e2dist(G, X)                      #distance between integration grid locations and traps
@@ -147,7 +146,7 @@ model {
 nc <- 3; nAdapt=5; nb <- 10; ni <- 20+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts)) # ## semicomplete likelihood
 
 inits <- function(){
   list (sigma=runif(1,45,50), n0=nind, s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
