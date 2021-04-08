@@ -66,6 +66,8 @@ snsz <- ifelse(snsz < 850, 1,
                       ifelse(snsz >= 950 & snsz < 1150, 3,
                              ifelse(snsz >= 1150, 4, -9999))))
 if(max(snsz) == -9999) stop('snake size incorrect')
+L <- length(unique(snsz))
+ngroup <- as.vector(table(snsz))
 
 ## Active/not active for when transects run, already in order of 1-351 CellID locations
 act <- as.matrix(dat$act[,-1])
@@ -113,14 +115,20 @@ points(Xu,Yl, pch=21, col="blue")
 cat("
 model {
 
-  for(l in 1:4){   # 4 size categories
-    p0[l] ~ dunif(0,1)
-    # Posterior conditional distribution for N-n (and hence N):
-    n0[l] ~ dnegbin(pstar[l],n)  # number of failures by size category
-  }
-  alpha0 <- logit(p0)
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
+
+  for(l in 1:L){   # 4 size categories
+    #prior for intercept
+    p0[l] ~ dunif(0,1)
+    alpha0[l] <- logit(p0[l])
+    
+    # Posterior conditional distribution for N-n (and hence N):
+    n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
+    Ngroup[l] <- ngroup[l] + n0[l]
+  }
+  
+  N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
   
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
@@ -135,15 +143,12 @@ model {
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
     pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+  
+    # Zero trick for initial 1/pstar^n
+    loglikterm[l] <- -ngroup[l] * log(pstar[l])
+    lambda[l] <- -loglikterm[l] + 1000
+    dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
   } #L
-  
-  
-  ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ##### 
-  # Zero trick for initial 1/pstar^n
-  loglikterm <- -n * log(pstar[1]) * log(pstar[2]) * log(pstar[3]) * log(pstar[4])
-  lambda <- -loglikterm + 1000
-  dummy ~ dpois(lambda) # dummy = 0; entered as data
-  ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY #####
 
   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
   pi[1:Gpts] ~ ddirch(b[1:Gpts])
@@ -157,9 +162,12 @@ model {
       y[i,j] ~ dbin(p[i,j],K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
-  }#n
+  }#I
   
-  N <- n + n0[1] + n0[2] + n0[3] + n0[4]  # successful observations plus failures to observe of each size = total N
+  #derived proportion in each size class
+  for(l in 1:L){
+    piGroup[l] <- Ngroup[l]/N
+  }
 }
 ",file = "SCRpstarCATsizeCAT_CP.txt")
 
@@ -170,18 +178,18 @@ nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act), size=snsz) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), act=t(act), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
 #locs=X, 
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=rep(round(nind/4),times=4), s=vsst, p0=runif(4,.002,.003))
+  list (sigma=runif(1,45,50), n0=rep(round(nind/4),L), s=vsst, p0=runif(L,.002,.003))
 }
 
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N", "n0")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
 
 out <- jags("SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/NWFNVIS2_SCRpstarvistestCATsize.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/NWFNVIS2_SCRpstarvistestCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
 
 
