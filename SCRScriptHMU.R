@@ -76,7 +76,7 @@ e2dist <- function (x, y) {
 
 #Integration grid
 Ggrid <- 5                               #spacing (verify sensitivity to spacing)
-G <- HMUspecs$intgrd
+G <- HMUspecs$intgrd[,2:3]
 # Xlocs <- seq(Yl,Yu,Ggrid)          
 # G <- cbind(sort(rep(Xlocs,length(Xlocs))),rep(Xlocs,length(Xlocs))) #integration grid locations
 Gpts <- dim(G)[1]                            #number of integration points

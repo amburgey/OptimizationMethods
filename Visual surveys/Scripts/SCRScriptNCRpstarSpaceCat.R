@@ -5,40 +5,44 @@
 rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("DataPrepCP.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/DataPrepNCR.R")   ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/OverlayNCRGrid.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
 ## Subset capture data (subcap) and effort/survey data (subsurv)
-HMUcaps <- subset(subcap, SITE == "HMUI" | SITE == "HMUR")
-HMUsurv <- subset(subsurv, SITE == "HMUI" | SITE == "HMUR")
+NCRcaps <- subset(subcap, SITE == "NCRI" | SITE == "NCRR")
+NCRsurv <- subset(subsurv, SITE == "NCRI" | SITE == "NCRR")
 
-## Subset to specific NWFN project
-HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")
-HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
+## Subset to specific NCR project
+NCRcaps <- subset(NCRcaps, PROJECTCODE == "EDGE EFFECT VIS")
+NCRsurv <- subset(NCRsurv, PROJECTCODE == "EDGE EFFECT VIS")
 
-##### SPECIFY DIMENSIONS OF HMU #####
-HMUspecs <- overlayHMU(HMUcaps)  ## ignore warnings, all about projections
-## Area (55 ha/550,000 m2): 
-A <- 550000
+## One snake observed at both edge and interior transects so analyze as one combined dataset
+
+##### SPECIFY DIMENSIONS AND GRID OF NCR #####
+NCRspecs <- overlayNCR(NCRcaps)  ## ignore warnings, all about projections
+## Area (open, match to integration grid area): 
+A <- as.numeric(st_bbox(NCRspecs$grd)[3] - st_bbox(NCRspecs$grd)[1]) * as.numeric(st_bbox(NCRspecs$grd)[4] - st_bbox(NCRspecs$grd)[2])
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
-X <- as.matrix(HMUspecs$tran[,-1])[,2:3]
+X <- as.matrix(NCRspecs$tran[,-1])[,2:3]
 J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
 ## Subset data based on how it was collected (V = visual, T = trap)
-capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
+capPROJ <- subSnk(SITEcaps=NCRspecs$snks)
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","04"))  ## this is using 3 months (Feb - April)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("11","12"))
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("02","04"))
+SCReff <- effSnk(eff=NCRsurv, time=c("11","12"))
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-dat <- prepSCR(SCRcaps, SCReff)
+# dat <- prepSCR(SCRcaps, SCReff, grid = NCRspecs$tran)
+dat <- prepSCRman(SCRcaps, SCReff, grid = NCRspecs$tran)
 
 ## Observations, already in order of 1-351 CellID locations
 y <- dat$y
@@ -81,6 +85,10 @@ a <- Ggrid^2                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
+points(Xl,Yu, pch=21, col="blue")         #check CP dimensions match
+points(Xl,Yl, pch=21, col="blue")
+points(Xu,Yu, pch=21, col="blue")
+points(Xu,Yl, pch=21, col="blue")
 
 
 ########################################################
