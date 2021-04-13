@@ -41,9 +41,9 @@ X <- as.matrix(locs)
 ## Subset data based on how it was collected (V = visual, T = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","04"))  ## this is using 3 months (Feb - April)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","03"))  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("02","04"))
+SCReff <- effSnk(eff=CPsurv, time=c("02","03"))
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
