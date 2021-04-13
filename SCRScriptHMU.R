@@ -19,7 +19,7 @@ HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")[,c("EFFORTID","PITT
 HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
 
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-cellsize <- 10  ## dimensions of integration grid cell
+cellsize <- 5  ## dimensions of integration grid cell
 HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
@@ -142,8 +142,8 @@ model {
 #######################################################
 
 ## MCMC settings
-# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-nc <- 3; nAdapt=5; nb <- 10; ni <- 20+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+# nc <- 3; nAdapt=5; nb <- 10; ni <- 20+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts)) # ## semicomplete likelihood
@@ -157,6 +157,5 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 out <- jags("SCRpstarCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/HMUEDGE_SCRpstarvistestCAT2months10.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/HMUEDGE_SCRpstarvistestCAT2months5.Rdata")  ## M = 150 (XXXXhrs)
 
-## ran for 7 hours and then hit an invalid parent value error (error in node n0)
