@@ -174,7 +174,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 100; ni <- 10000+nb; nt <- 1
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
@@ -182,7 +182,7 @@ jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl,
 #locs=X, 
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=rep(round(nind/4),L), s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,30,40), n0=ngroup, s=vsst, p0=runif(L,.002,.003))
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
