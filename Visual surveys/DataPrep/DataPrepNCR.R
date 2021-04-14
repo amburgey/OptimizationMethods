@@ -112,14 +112,18 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "GridID")
   y <- y[,-1]
   
+  ## subset grid to time specified as transects were removed and added during study
+  eff2 <- unique(SCReff$TRANSECT)
+  grid2 <- subset(grid, TranID %in% eff2)
+  
   ## Find names of missing columns
-  Missing <- as.character(setdiff(grid$GridID,colnames(y)))
+  Missing <- as.character(setdiff(grid2$GridID,colnames(y)))
   
   if(length(Missing)!= 0){
     ## Add them, filled with '0's
     y[Missing] <- 0
     ## Put columns in desired order
-    y <- y[as.character(grid$GridID)]  
+    y <- y[as.character(grid2$GridID)]  
     ## Prep for model
     y <- as.matrix(y)
   }
@@ -139,9 +143,9 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   act <- act %>%
     complete(Date, nesting(TRANSECT), fill = list(Active = 0))
   ## Name grid to match act
-  colnames(grid) <- c("TRANSECT","GridID","x","y")
+  colnames(grid2) <- c("TRANSECT","GridID","x","y")
   ## Expand dataframe to be all grid cells and not just at the broad transect level
-  allact <- merge(grid, act, by = c("TRANSECT"), all=TRUE)
+  allact <- merge(grid2, act, by = c("TRANSECT"), all=TRUE)
   allact <- allact[order(allact$TRANSECT,allact$Date,allact$GridID),]
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
@@ -149,18 +153,50 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
   
   ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
-  act2[act2$GridID == "2849",7] <- 0
-  act2[act2$GridID == "2868",7] <- 0
-  act2[act2$GridID == "2869",7] <- 0
-  act2[act2$GridID == "2870",7] <- 0 
-  act2[act2$GridID == "2871",7] <- 0
-  act2[act2$GridID == "2872",7] <- 0
-  act2[act2$GridID == "2873",7] <- 0
-  act2[act2$GridID == "2874",7] <- 0
-  act2[act2$GridID == "2875",7] <- 0
-  act2[act2$GridID == "2876",7] <- 0
+  ## NO CHANGES NEEDED TO EFFORT FOR NCR DATASET AS EDGE TRANSECTS WERE SHORTER (0.1) AND INTERIOR TRANSECTS WERE LONGER (0.2)
   
   both <- list(y=y,act=act2)
   
   return(both)
+}
+
+
+getSize <- function(capPROJ, SCRcaps, subcap){
+  
+  ## Find body sizes from current dataset
+  bod <- capPROJ[,c("PITTAG","SVL")]
+  ## Eliminate ones not retained for analysis above
+  bod <- bod[(bod$PITTAG %in% SCRcaps$PITTAG),]
+  ## Find mean body size in case multiple measures taken during this study
+  bod <- aggregate(bod[,c("SVL")],list(bod$PITTAG),mean,na.rm = TRUE)
+  bod <- bod[order(bod$Group.1),]
+  if(dim(subset(bod, is.na(x)))[1] != 0) stop("Not all snakes have size")
+  
+  return(bod)
+  
+}
+
+getSizeman <- function(capPROJ, SCRcaps, subcap, time){
+  
+  ## Find body sizes from current dataset
+  bod <- capPROJ[,c("PITTAG","SVL")]
+  ## Eliminate ones not retained for analysis above
+  bod <- bod[(bod$PITTAG %in% SCRcaps$PITTAG),]
+  ## Find mean body size in case multiple measures taken during this study
+  bod <- aggregate(bod[,c("SVL")],list(bod$PITTAG),mean,na.rm = TRUE)
+  
+  ## If some snakes are missing body size so see if there is another record from same area and ballpark time frame
+  Missing <- subset(bod, is.na(x))
+  tf <- subset(subcap, SITE == "NWFN" & Date >= as.Date(time[1]) & Date <= as.Date(time[2]))
+  tf <- tf[tf$PITTAG %in% Missing$Group.1,]
+  tfbod <- aggregate(tf[,c("SVL")],list(tf$PITTAG),mean,na.rm = TRUE)
+  ## Insert found values
+  for(i in 1:nrow(tfbod)){
+    bod[bod$Group.1 == tfbod$Group.1[i] & is.na(bod[2]), "x"] <- tfbod[i,2]
+  }
+  bod <- bod[order(bod$Group.1),]
+  ## If error triggered again then...other creative solutions to follow
+  if(dim(subset(bod, is.na(x)))[1] != 0) stop("Not all snakes have size")
+  
+  return(bod)
 }

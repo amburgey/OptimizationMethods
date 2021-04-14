@@ -3,7 +3,7 @@
 library(rgeos); library(maptools); library(spatialEco)
 
 
-overlayNCR <- function(NCRcaps){
+overlayNCR <- function(NCRcaps, cellsize){
   # Section 1. Load coordinates for NCRI/NCRR Edge Effects project ----
   ## Use kml transects and convert to UTM
   edgeline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
@@ -179,6 +179,25 @@ overlayNCR <- function(NCRcaps){
   snkcap <- capncr[,c("EFFORTID","PITTAG","SVL","Date","TRANSECT","X","Y","GridID")]
   
   
+  # Section 5. Create rotated integration grid ----
+  ## Desired grid cell
+  cellsize2 = c(cellsize,cellsize)
+  ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
+  bbox2 <- bbox
+  grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
+  rotang = rotang
+  rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
+  intgrd_rot <- (grd2 - st_centroid(st_union(grd2))) * rot(rotang * pi / 180) +
+    st_centroid(st_union(grd2))
+  ## Specify projection again
+  st_crs(intgrd_rot) <- "+proj=utm +zone=55 +units=m +datum=WGS84"
+  ## Convert from sfc polygon to Spatial Polygon
+  intgrd_rot <- as_Spatial(intgrd_rot, cast=TRUE, IDs=paste0("ID", seq_along(intgrd_rot)))
+  ## Find centroid of all grid cells
+  intgrd_cts <- gCentroid(intgrd_rot, byid = TRUE)
+  plot(intgrd_cts, col="red", pch=21, cex=0.2)
+  intgrd <- geom(intgrd_cts)
+  
   # Check. Plot all transects and grid----
   # par(mar = c(1,1,1,1))
   # plot(lines, col="red")
@@ -216,7 +235,7 @@ overlayNCR <- function(NCRcaps){
   # plot(ncrcaps, add=TRUE, pch=21, cex=0.5) ## original
   # plot(snaps1, add=TRUE, pch=21, cex=0.5, col="yellow") ## adjusted
   
-  dat <- list(tran = vistran, snks = snkcap, grd = grd)
+  dat <- list(tran = vistran, snks = snkcap, grd = grd, intgrd = intgrd)
   
   return(dat)
 }
