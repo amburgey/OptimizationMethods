@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>NCRR EDGE EFFECT VIS.kml</name>
+	<Style id="waypoint_n10">
+		<IconStyle>
+			<color>ff7f00ff</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+		</IconStyle>
+		<LabelStyle>
+			<color>ff7f00ff</color>
+			<scale>0.7</scale>
+		</LabelStyle>
+		<LineStyle>
+			<color>ff7f00ff</color>
+		</LineStyle>
+	</Style>
+	<StyleMap id="waypoint010">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#waypoint_n10</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#waypoint_h02</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="waypoint_h02">
+		<IconStyle>
+			<color>ff7f00ff</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href>
+			</Icon>
+		</IconStyle>
+		<LabelStyle>
+			<color>ff7f00ff</color>
+			<scale>0.7</scale>
+		</LabelStyle>
+		<LineStyle>
+			<color>ff7f00ff</color>
+		</LineStyle>
+	</Style>
+	<Folder>
+		<name>NCRR EDGE EFFECT VIS</name>
+		<Placemark>
+			<name>RE1</name>
+			<description>28-FEB-13 10:34:31</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.864233,13.591462,148.41</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE1end</name>
+			<description>28-FEB-13 10:37:03</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.863748,13.592221,152.01</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE2</name>
+			<description>28-FEB-13 10:39:12</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.863509,13.592594,152.25</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE2end</name>
+			<description>28-FEB-13 10:41:10</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.8631,13.59339,152.49</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE3</name>
+			<description>28-FEB-13 10:42:58</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.862887,13.59377,151.29</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE3end</name>
+			<description>28-FEB-13 10:44:47</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.862454,13.59456,153.21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE4</name>
+			<description>28-FEB-13 10:46:01</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.862272,13.594984,153.21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE4end</name>
+			<description>28-FEB-13 10:47:49</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.861863,13.595788,152.73</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE5</name>
+			<description>28-FEB-13 10:49:28</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.861682,13.596204,153.21</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE5end</name>
+			<description>28-FEB-13 10:51:45</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.86123,13.596993,154.18</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE6</name>
+			<description>28-FEB-13 10:53:26</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.861038,13.597401,153.7</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE6end</name>
+			<description>28-FEB-13 10:55:53</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.860605,13.598195,154.9</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE7</name>
+			<description>28-FEB-13 10:57:05</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.860392,13.598598,156.58</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE7end</name>
+			<description>28-FEB-13 10:59:11</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.859972,13.599402,157.06</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE8</name>
+			<description>28-FEB-13 11:00:19</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.859794,13.599824,156.82</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE8end</name>
+			<description>28-FEB-13 11:03:15</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.859386,13.600625,156.58</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE9</name>
+			<description>28-FEB-13 11:04:39</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.859175,13.601022,157.06</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE9end</name>
+			<description>28-FEB-13 11:06:40</description>
+			<styleUrl>#waypoint010</styleUrl>
+			<Point>
+				<coordinates>144.858764,13.601818,157.54</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>RE1</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8642290467382,13.59150342624511,0 144.8637373661689,13.59225316164895,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE2</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8635009632664,13.59262390645561,0 144.8630992580905,13.59342288106955,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE3</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8628772791424,13.59380172170874,0 144.8624459200955,13.59459641925803,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE4</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8622584451828,13.59501568111925,0 144.8618492310193,13.59582801853234,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE5</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8616734804868,13.59624686368223,0 144.8612183691543,13.59702789636747,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE6</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.861018275908,13.59743772006376,0 144.8605923604507,13.59822620577382,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE7</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8603840948827,13.59862405815376,0 144.8599629584039,13.5994296340813,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE8</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.859782544476,13.59986227993067,0 144.8593709182304,13.60066498587236,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+		<Placemark>
+			<name>RE9</name>
+			<styleUrl>#waypoint010</styleUrl>
+			<LineString>
+				<tessellate>1</tessellate>
+				<coordinates>
+					144.8591659064116,13.60104873601158,0 144.8587573074619,13.60185314561412,0 
+				</coordinates>
+			</LineString>
+		</Placemark>
+	</Folder>
+</Document>
+</kml>
