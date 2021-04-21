@@ -1,12 +1,10 @@
-##### CP (Closed Pop, aka NWFN) is a 5-ha closed (fenced to entry and exit of snakes) study area
-
-## CP was created in 2004 and has been used in several projects, resulting in a rich time series with surveys occurring at various densities of snakes
+##### HMU (Habitat Management Unit) is a 55-ha semi-closed (fenced to entry but not exit of snakes) study area
 
 rm(list=ls())
 
 source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
-source("OverlayHMUGrid.R")
-source("DataPrepHMUSize.R")
+source("Visual surveys/DataPrep/OverlayHMUGrid.R")
+source("Visual surveys/DataPrep/DataPrepHMU.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -156,7 +154,7 @@ model {
     piGroup[l] <- Ngroup[l]/N
   }
 }
-",file = "SCRpstarCATsizeCAT_HMU.txt")
+",file = "Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt")
 
 #######################################################
 
@@ -174,9 +172,9 @@ inits <- function(){
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
 
-out <- jags("SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
+out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/HMUEDGE_SCRpstarvistestCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/HMUEDGE_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
 
 ### Ran for two days, convergence looks pretty good, cell = 5

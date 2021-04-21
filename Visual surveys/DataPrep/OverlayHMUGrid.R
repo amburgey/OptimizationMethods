@@ -5,7 +5,7 @@ library(rgeos); library(maptools); library(spatialEco)
 overlayHMU <- function(HMUcaps, cellsize){
   # Section 1 Create HMU Polygon ----
   ## Read in shapefile of HMU fence
-  hmuline <- st_read("hmuline/hmu.shp")
+  hmuline <- st_read("Data/hmuline/hmu.shp")
   ## Specify projection
   hmuline <- st_transform(hmuline, CRS("+proj=utm +zone=55 +units=m +datum=WGS84"))
   ## Convert from a spatial line to a sfc polygon
@@ -21,7 +21,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   # Section 2. Create Grid Polygon ----
   ## Grid should be 8 m by 16 m
   # hmuSpace <- raster("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/Reclass_hmu_71.tif")
-  hmuSpace <- raster("Reclass_hmu_71.tif")
+  hmuSpace <- raster("Data/Reclass_hmu_71.tif")
   ## Specify projection
   hmuSpace <- projectRaster(hmuSpace, crs="+proj=utm +zone=55 +units=m +datum=WGS84")
   ## Desired grid cell to match surveying grid of Closed Population
@@ -48,7 +48,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   
   # Section 4. Convert Transect Survey Locations to Grid Cells ----
   # HMUtran <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/HMU_EElocations.csv")
-  HMUtran <- read.csv("HMU_EElocations.csv")
+  HMUtran <- read.csv("Data/HMU_EElocations.csv")
   
   ## Create spatial lines from dataframe
   hmutran <- list()
