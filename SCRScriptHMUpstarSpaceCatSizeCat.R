@@ -179,4 +179,4 @@ out <- jags("SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=
 
 save(out, file="Results/HMUEDGE_SCRpstarvistestCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
 
-
+### Ran for two days, convergence looks pretty good, cell = 5
