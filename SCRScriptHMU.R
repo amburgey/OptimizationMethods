@@ -19,8 +19,7 @@ HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")[,c("EFFORTID","PITT
 HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
 
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-cellsize <- 5  ## dimensions of integration grid cell
-HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
+HMUspecs <- overlayHMU(HMUcaps)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
 
@@ -62,8 +61,7 @@ nocc <- ncol(act)
 ## Inits for activity centers, take mean grid cell location where each snake was found
 locs <- HMUspecs$tran
 colnames(locs)[2] <- c("CellID")
-## Can't take mean location of cells here because not all cells surveyed in HMU, just pick one
-sst <- unlist(lapply(apply(dat$y,1,function(x) which(x==1)),function(x) min(as.numeric(names(x)))))
+sst <- round(unlist(lapply(apply(dat$y,1,function(x) which(x==1)),function(x) mean(as.numeric(names(x))))))
 vlocs <- locs[locs$CellID %in% sst,]
 sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
 vsst <- unlist(merge(sst,vlocs, by=c("CellID"))[,1])
@@ -77,8 +75,10 @@ e2dist <- function (x, y) {
 }
 
 #Integration grid
-Ggrid <- cellsize                               #spacing
+Ggrid <- 5                               #spacing (verify sensitivity to spacing)
 G <- HMUspecs$intgrd[,2:3]
+# Xlocs <- seq(Yl,Yu,Ggrid)          
+# G <- cbind(sort(rep(Xlocs,length(Xlocs))),rep(Xlocs,length(Xlocs))) #integration grid locations
 Gpts <- dim(G)[1]                            #number of integration points
 a <- Ggrid^2                                 #area of each integration grid
 Gdist <- e2dist(G, X)                      #distance between integration grid locations and traps
@@ -142,11 +142,11 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-# nc <- 3; nAdapt=5; nb <- 10; ni <- 20+nb; nt <- 1
+# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts)) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
 
 inits <- function(){
   list (sigma=runif(1,45,50), n0=nind, s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
@@ -157,5 +157,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 out <- jags("SCRpstarCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/HMUEDGE_SCRpstarvistestCAT2months5.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/HMUEDGE_SCRpstarvistestCAT2months.Rdata")  ## M = 150 (XXXXhrs)
+
 

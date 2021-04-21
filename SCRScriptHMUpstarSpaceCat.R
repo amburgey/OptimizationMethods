@@ -4,23 +4,21 @@
 
 rm(list=ls())
 
-source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
-source("OverlayHMUGrid.R")
-source("DataPrepHMU.R")
+source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
+source("DataPrepCP.R")              ## Functions to reshape survey and capture data
 
 library(secr); library(reshape2); library(jagsUI)
 
-## Capture data (subcap) and effort/survey data (subsurv)
-HMUcaps <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR"))
-HMUsurv <- subset(subsurv, (SITE == "HMUI" | SITE == "HMUR"))
+## Subset capture data (subcap) and effort/survey data (subsurv)
+HMUcaps <- subset(subcap, SITE == "HMUI" | SITE == "HMUR")
+HMUsurv <- subset(subsurv, SITE == "HMUI" | SITE == "HMUR")
 
-## Subset to specific NWFN project (options = MWFM VIS 2, NWFN VIS HL 1, NWFN VIS HL 2, PRE NT2 VIS, POST BT2 VIS, POST KB VIS 1, POST KB VIS 2, POST KB VIS 3 EXTRA, POST KB VIS 3, NWFN VISPACE, NWFN SCENT VIS TRAIL)
-HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")[,c("EFFORTID","PITTAG","Date","TRANSECT","LOCATION","CAPLAT","CAPLON")]
+## Subset to specific NWFN project
+HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")
 HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
 
-##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-cellsize <- 5  ## dimensions of integration grid cell
-HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
+##### SPECIFY DIMENSIONS OF HMU #####
+HMUspecs <- overlayHMU(HMUcaps)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
 
@@ -30,12 +28,12 @@ X <- as.matrix(HMUspecs$tran[,-1])[,2:3]
 J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
-## Subset data based on how it was collected or the size of snakes involved
-capPROJ <- subSnk(SITEcaps=HMUspecs$snks)
+## Subset data based on how it was collected (V = visual, T = trap)
+capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("05","06"))  ## specify month range
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","04"))  ## this is using 3 months (Feb - April)
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=HMUsurv, time=c("05","06"))
+SCReff <- effSnk(eff=CPsurv, time=c("02","04"))
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -58,9 +56,9 @@ K <- rowSums(act)
 nocc <- ncol(act)
 
 ## Inits for activity centers, take mean grid cell location where each snake was found
-locs <- HMUspecs$tran
-colnames(locs)[2] <- c("CellID")
-sst <- round(unlist(lapply(apply(dat$y,1,function(x) which(x==1)),function(x) mean(as.numeric(names(x))))))
+locs <- as.data.frame(locs)
+locs$CellID <- c(1:dim(locs)[1])
+sst <- round(unlist(lapply(apply(y,1,function(x) which(x==1)),function(x) mean(x))))
 vlocs <- locs[locs$CellID %in% sst,]
 sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
 vsst <- unlist(merge(sst,vlocs, by=c("CellID"))[,1])
@@ -75,7 +73,9 @@ e2dist <- function (x, y) {
 
 ## Integration grid
 Ggrid <- 5                                #spacing (check sensitivity to spacing)
-G <- HMUspecs$intgrd[,2:3]
+Xlocs <- rep(seq(Xl, Xu, Ggrid), times = 47)
+Ylocs <- rep(seq(Yl, Yu, Ggrid), each = 44)
+G <- cbind(Xlocs, Ylocs)
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
@@ -136,7 +136,7 @@ model {
     }#J
   }#n
 }
-",file = "SCRpstarCAT_HMU.txt")
+",file = "SCRpstarCAT_CP.txt")
 
 #######################################################
 
@@ -145,8 +145,8 @@ model {
 nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts)) # ## semicomplete likelihood
-
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts), act=t(act)) # ## semicomplete likelihood
+#locs=X, 
 
 inits <- function(){
   list (sigma=runif(1,45,50), n0=nind, s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
@@ -154,9 +154,9 @@ inits <- function(){
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N")
 
-out <- jags("SCRpstarCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
+out <- jags("SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Results/HMUEDGE_SCRpstarvistestCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Results/NWFNVIS2_SCRpstarvistestCAT.Rdata")  ## M = 150 (XXXXhrs)
 
 
