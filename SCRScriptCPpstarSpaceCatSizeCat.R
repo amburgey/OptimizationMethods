@@ -5,7 +5,7 @@
 rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("DataPrepCPSize.R")              ## Functions to reshape survey and capture data
+source("DataPrepCP.R")              ## Functions to reshape survey and capture data
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -41,9 +41,9 @@ X <- as.matrix(locs)
 ## Subset data based on how it was collected (V = visual, T = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","03"))  ## this is using 2 months (Feb - Mar)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","04"))  ## this is using 3 months (Feb - April)
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("02","03"))
+SCReff <- effSnk(eff=CPsurv, time=c("02","04"))
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -94,7 +94,7 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
+Ggrid <- 10                                #spacing (check sensitivity to spacing)
 Xlocs <- rep(seq(Xl, Xu, Ggrid), times = length(seq(Yl, Yu, Ggrid)))
 Ylocs <- rep(seq(Yl, Yu, Ggrid), each = length(seq(Xl, Xu, Ggrid)))
 G <- cbind(Xlocs, Ylocs)
@@ -115,6 +115,8 @@ points(Xu,Yl, pch=21, col="blue")
 cat("
 model {
 
+  p0 ~ dunif(0,1)
+  alpha0 <- logit(p0)
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
 
@@ -127,7 +129,7 @@ model {
     n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
     Ngroup[l] <- ngroup[l] + n0[l]
   }
-  
+ 
   N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
   
   #Probability of capture for integration grid points
@@ -143,7 +145,19 @@ model {
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
     pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+
+  ## Removed k loop
+  for(g in 1:Gpts){ # Gpts = number of points on integration grid
+    for(j in 1:J){  # J = number of traps
+      #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+      one_minus_detprob[g,j] <- 1 - p0*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+    } #J
+    pdot.temp[g] <- 1 - prod(one_minus_detprob[g,]) #Prob of failure to detect across entire study area and time period
+    pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+  } #G
   
+  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
+ 
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
     lambda[l] <- -loglikterm[l] + 1000
@@ -161,6 +175,7 @@ model {
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
+      d[i,j] <- Gdist[s[i],j]  ## Doesn't Gdist already do what the line below does? As we're using categorical grid cells so s[i] are going to be one of G[i,]?
     }#J
   }#I
   
@@ -191,5 +206,4 @@ out <- jags("SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=T
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 save(out, file="Results/NWFNVIS2_SCRpstarvistestCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
-
 
