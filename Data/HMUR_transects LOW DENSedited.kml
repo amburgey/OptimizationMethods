@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
 <Document>
-	<name>HMUR_transects LOW DENS.kml</name>
-	<Schema name="HMU LOWDENS_transects" id="S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+	<name>HMUR LOWDENS VIS EDGedited.kml</name>
+	<Schema name="HMU LOWDENS_transects" id="S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 		<SimpleField type="double" name="Latitude"><displayName>&lt;b&gt;Latitude&lt;/b&gt;</displayName>
 </SimpleField>
 		<SimpleField type="double" name="Longitude"><displayName>&lt;b&gt;Longitude&lt;/b&gt;</displayName>
@@ -32,91 +32,213 @@
 		<SimpleField type="int" name="LineStringAltitude"><displayName>&lt;b&gt;LineStringAltitude&lt;/b&gt;</displayName>
 </SimpleField>
 	</Schema>
-	<Style id="inline9">
+	<Style id="hlightPointStyle1">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
 		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
+			<color>ff00ffff</color>
 		</LineStyle>
 		<PolyStyle>
-			<fill>0</fill>
+			<color>ff00ffff</color>
 		</PolyStyle>
 	</Style>
-	<Style id="inline13">
+	<Style id="hlightPointStyle10">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
 		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
+			<color>ff00ffff</color>
 		</LineStyle>
 		<PolyStyle>
-			<fill>0</fill>
+			<color>ff00ffff</color>
 		</PolyStyle>
 	</Style>
-	<Style id="inline18">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-	</Style>
-	<StyleMap id="inline19">
+	<StyleMap id="inline60">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline20</styleUrl>
+			<styleUrl>#inline40</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline8</styleUrl>
+			<styleUrl>#inline100</styleUrl>
 		</Pair>
 	</StyleMap>
-	<StyleMap id="inline6">
+	<StyleMap id="inline190">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline4</styleUrl>
+			<styleUrl>#inline200</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline10</styleUrl>
+			<styleUrl>#inline80</styleUrl>
 		</Pair>
 	</StyleMap>
-	<StyleMap id="inline11">
+	<Style id="hlightPointStyle11">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="pointStyleMap00">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline</styleUrl>
+			<styleUrl>#normPointStyle10</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline18</styleUrl>
+			<styleUrl>#hlightPointStyle15</styleUrl>
 		</Pair>
 	</StyleMap>
-	<Style id="inline21">
+	<StyleMap id="inline23">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#inline90</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#inline160</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="normPointStyle1">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
 		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-	</Style>
-	<Style id="inline7">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
+			<color>ff00ffff</color>
 		</LineStyle>
 		<PolyStyle>
-			<fill>0</fill>
+			<color>ff00ffff</color>
 		</PolyStyle>
+		<gx:IconStackStyle>
+		</gx:IconStackStyle>
 	</Style>
-	<Style id="inline1">
+	<StyleMap id="inline30">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#inline130</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#inline70</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="inline24">
 		<LineStyle>
 			<color>ff0000ff</color>
 			<width>2</width>
 		</LineStyle>
 	</Style>
-	<Style id="inline16">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-		<PolyStyle>
-			<fill>0</fill>
-		</PolyStyle>
-	</Style>
-	<Style id="hlightPointStyle">
+	<Style id="hlightPointStyle12">
 		<IconStyle>
 			<Icon>
 				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href>
@@ -141,17 +263,92 @@
 </table>]]></text>
 		</BalloonStyle>
 	</Style>
-	<StyleMap id="inline14">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#inline17</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#inline22</styleUrl>
-		</Pair>
-	</StyleMap>
-	<Style id="normPointStyle">
+	<Style id="hlightPointStyle13">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="inline90">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="normPointStyle10">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+		<gx:IconStackStyle>
+		</gx:IconStackStyle>
+	</Style>
+	<Style id="normPointStyle11">
 		<IconStyle>
 			<Icon>
 				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
@@ -176,17 +373,23 @@
 </table>]]></text>
 		</BalloonStyle>
 	</Style>
-	<StyleMap id="inline2">
+	<StyleMap id="inline50">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline9</styleUrl>
+			<styleUrl>#inline120</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline16</styleUrl>
+			<styleUrl>#inline00</styleUrl>
 		</Pair>
 	</StyleMap>
-	<Style id="inline22">
+	<Style id="inline110">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+	</Style>
+	<Style id="inline220">
 		<LineStyle>
 			<color>ff0000ff</color>
 			<width>2</width>
@@ -195,61 +398,74 @@
 			<fill>0</fill>
 		</PolyStyle>
 	</Style>
-	<Style id="inline10">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-		<PolyStyle>
-			<fill>0</fill>
-		</PolyStyle>
-	</Style>
-	<StyleMap id="inline5">
+	<StyleMap id="pointStyleMap000">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline12</styleUrl>
+			<styleUrl>#normPointStyle14</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline0</styleUrl>
+			<styleUrl>#hlightPointStyle11</styleUrl>
 		</Pair>
 	</StyleMap>
-	<Style id="inline4">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-		<PolyStyle>
-			<fill>0</fill>
-		</PolyStyle>
-	</Style>
-	<StyleMap id="inline15">
+	<StyleMap id="pointStyleMap001">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline21</styleUrl>
+			<styleUrl>#normPointStyle15</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline1</styleUrl>
+			<styleUrl>#hlightPointStyle10</styleUrl>
 		</Pair>
 	</StyleMap>
-	<Style id="inline">
+	<Style id="hlightPointStyle14">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
 		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
+			<color>ff00ffff</color>
 		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
 	</Style>
-	<StyleMap id="pointStyleMap0">
+	<StyleMap id="pointStyleMap002">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#normPointStyle</styleUrl>
+			<styleUrl>#normPointStyle11</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#hlightPointStyle</styleUrl>
+			<styleUrl>#hlightPointStyle12</styleUrl>
 		</Pair>
 	</StyleMap>
-	<Style id="inline17">
+	<Style id="inline130">
 		<LineStyle>
 			<color>ff0000ff</color>
 			<width>2</width>
@@ -258,7 +474,7 @@
 			<fill>0</fill>
 		</PolyStyle>
 	</Style>
-	<Style id="inline20">
+	<Style id="inline80">
 		<LineStyle>
 			<color>ff0000ff</color>
 			<width>2</width>
@@ -267,35 +483,329 @@
 			<fill>0</fill>
 		</PolyStyle>
 	</Style>
-	<Style id="inline8">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-		<PolyStyle>
-			<fill>0</fill>
-		</PolyStyle>
-	</Style>
-	<Style id="inline12">
-		<LineStyle>
-			<color>ff0000ff</color>
-			<width>2</width>
-		</LineStyle>
-		<PolyStyle>
-			<fill>0</fill>
-		</PolyStyle>
-	</Style>
-	<StyleMap id="inline3">
+	<StyleMap id="pointStyleMap003">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#inline13</styleUrl>
+			<styleUrl>#normPointStyle12</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#inline7</styleUrl>
+			<styleUrl>#hlightPointStyle13</styleUrl>
 		</Pair>
 	</StyleMap>
-	<Style id="inline0">
+	<Style id="inline120">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="normPointStyle12">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="inline00">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="inline150">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#inline210</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#inline110</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="normPointStyle13">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+	</Style>
+	<Style id="inline40">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="hlightPointStyle15">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+		<gx:IconStackStyle>
+		</gx:IconStackStyle>
+	</Style>
+	<Style id="inline170">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="inline180">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+	</Style>
+	<Style id="inline160">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="inline210">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+	</Style>
+	<StyleMap id="pointStyleMap004">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#normPointStyle1</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#hlightPointStyle14</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="inline111">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#inline24</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#inline180</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="normPointStyle14">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="pointStyleMap005">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#normPointStyle13</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#hlightPointStyle1</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="inline200">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="normPointStyle15">
+		<IconStyle>
+			<color>ff00ffff</color>
+			<heading>0</heading>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+			<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>
+			<gx:headingMode>auto</gx:headingMode>
+		</IconStyle>
+		<BalloonStyle>
+			<text><![CDATA[<table border="0">
+  <tr><td><b>Latitude</b></td><td>$[HMU LOWDENS_transects/Latitude]</td></tr>
+  <tr><td><b>Longitude</b></td><td>$[HMU LOWDENS_transects/Longitude]</td></tr>
+  <tr><td><b>Name</b></td><td>$[HMU LOWDENS_transects/Name]</td></tr>
+  <tr><td><b>Description</b></td><td>$[HMU LOWDENS_transects/Description]</td></tr>
+  <tr><td><b>Icon</b></td><td>$[HMU LOWDENS_transects/Icon]</td></tr>
+  <tr><td><b>Snippet</b></td><td>$[HMU LOWDENS_transects/Snippet]</td></tr>
+  <tr><td><b>IconColor</b></td><td>$[HMU LOWDENS_transects/IconColor]</td></tr>
+  <tr><td><b>IconHeading</b></td><td>$[HMU LOWDENS_transects/IconHeading]</td></tr>
+  <tr><td><b>IconScale</b></td><td>$[HMU LOWDENS_transects/IconScale]</td></tr>
+  <tr><td><b>IconAltitude</b></td><td>$[HMU LOWDENS_transects/IconAltitude]</td></tr>
+  <tr><td><b>IconLineColor</b></td><td>$[HMU LOWDENS_transects/IconLineColor]</td></tr>
+  <tr><td><b>HideNameUntilMouseOver</b></td><td>$[HMU LOWDENS_transects/HideNameUntilMouseOver]</td></tr>
+  <tr><td><b>LineStringColor</b></td><td>$[HMU LOWDENS_transects/LineStringColor]</td></tr>
+  <tr><td><b>LineStringAltitude</b></td><td>$[HMU LOWDENS_transects/LineStringAltitude]</td></tr>
+</table>]]></text>
+		</BalloonStyle>
+		<ListStyle>
+		</ListStyle>
+		<LineStyle>
+			<color>ff00ffff</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>ff00ffff</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="inline140">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#inline170</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#inline220</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="inline70">
+		<LineStyle>
+			<color>ff0000ff</color>
+			<width>2</width>
+		</LineStyle>
+		<PolyStyle>
+			<fill>0</fill>
+		</PolyStyle>
+	</Style>
+	<Style id="inline100">
 		<LineStyle>
 			<color>ff0000ff</color>
 			<width>2</width>
@@ -309,7 +819,7 @@
 		<open>1</open>
 		<Placemark>
 			<name>H1start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -328,7 +838,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.601</SimpleData>
 					<SimpleData name="Longitude">144.862</SimpleData>
 					<SimpleData name="Name">H1start</SimpleData>
@@ -351,7 +861,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H1end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -370,7 +880,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.6001</SimpleData>
 					<SimpleData name="Longitude">144.86</SimpleData>
 					<SimpleData name="Name">H1end</SimpleData>
@@ -393,26 +903,9 @@
 		</Placemark>
 		<Placemark>
 			<name>H2start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
-			<Style id="inline">
-				<IconStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-					<Icon>
-						<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-					</Icon>
-				</IconStyle>
-				<LineStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</LineStyle>
-				<PolyStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</PolyStyle>
-			</Style>
+			<styleUrl>#pointStyleMap004</styleUrl>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5996</SimpleData>
 					<SimpleData name="Longitude">144.86</SimpleData>
 					<SimpleData name="Name">H2start</SimpleData>
@@ -430,31 +923,14 @@
 				</SchemaData>
 			</ExtendedData>
 			<Point>
-				<coordinates>144.86034,13.59964,0</coordinates>
+				<coordinates>144.8603780932291,13.59965867836355,0</coordinates>
 			</Point>
 		</Placemark>
 		<Placemark>
 			<name>H2end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
-			<Style id="inline">
-				<IconStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-					<Icon>
-						<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-					</Icon>
-				</IconStyle>
-				<LineStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</LineStyle>
-				<PolyStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</PolyStyle>
-			</Style>
+			<styleUrl>#pointStyleMap005</styleUrl>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5979</SimpleData>
 					<SimpleData name="Longitude">144.861</SimpleData>
 					<SimpleData name="Name">H2end</SimpleData>
@@ -472,31 +948,14 @@
 				</SchemaData>
 			</ExtendedData>
 			<Point>
-				<coordinates>144.86124,13.59786,0</coordinates>
+				<coordinates>144.8612902194494,13.59787725754591,0</coordinates>
 			</Point>
 		</Placemark>
 		<Placemark>
 			<name>H3start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
-			<Style id="inline">
-				<IconStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-					<Icon>
-						<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-					</Icon>
-				</IconStyle>
-				<LineStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</LineStyle>
-				<PolyStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</PolyStyle>
-			</Style>
+			<styleUrl>#pointStyleMap000</styleUrl>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5969</SimpleData>
 					<SimpleData name="Longitude">144.862</SimpleData>
 					<SimpleData name="Name">H3start</SimpleData>
@@ -514,31 +973,14 @@
 				</SchemaData>
 			</ExtendedData>
 			<Point>
-				<coordinates>144.86171,13.59693999999998,0</coordinates>
+				<coordinates>144.8617603766553,13.59695955613286,0</coordinates>
 			</Point>
 		</Placemark>
 		<Placemark>
 			<name>H3end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
-			<Style id="inline">
-				<IconStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-					<Icon>
-						<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-					</Icon>
-				</IconStyle>
-				<LineStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</LineStyle>
-				<PolyStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</PolyStyle>
-			</Style>
+			<styleUrl>#pointStyleMap001</styleUrl>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5952</SimpleData>
 					<SimpleData name="Longitude">144.863</SimpleData>
 					<SimpleData name="Name">H3end</SimpleData>
@@ -556,31 +998,14 @@
 				</SchemaData>
 			</ExtendedData>
 			<Point>
-				<coordinates>144.86261,13.59515999999998,0</coordinates>
+				<coordinates>144.8626817174867,13.5951782061085,0</coordinates>
 			</Point>
 		</Placemark>
 		<Placemark>
 			<name>H4start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
-			<Style id="inline">
-				<IconStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-					<Icon>
-						<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-					</Icon>
-				</IconStyle>
-				<LineStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</LineStyle>
-				<PolyStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</PolyStyle>
-			</Style>
+			<styleUrl>#pointStyleMap00</styleUrl>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5938</SimpleData>
 					<SimpleData name="Longitude">144.863</SimpleData>
 					<SimpleData name="Name">H4start</SimpleData>
@@ -598,31 +1023,14 @@
 				</SchemaData>
 			</ExtendedData>
 			<Point>
-				<coordinates>144.86331,13.59376000000001,0</coordinates>
+				<coordinates>144.8633960905226,13.59381076205275,0</coordinates>
 			</Point>
 		</Placemark>
 		<Placemark>
 			<name>H4end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
-			<Style id="inline">
-				<IconStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-					<Icon>
-						<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-					</Icon>
-				</IconStyle>
-				<LineStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</LineStyle>
-				<PolyStyle>
-					<color>ff00ffff</color>
-					<colorMode>normal</colorMode>
-				</PolyStyle>
-			</Style>
+			<styleUrl>#pointStyleMap003</styleUrl>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.592</SimpleData>
 					<SimpleData name="Longitude">144.864</SimpleData>
 					<SimpleData name="Name">H4end</SimpleData>
@@ -640,12 +1048,12 @@
 				</SchemaData>
 			</ExtendedData>
 			<Point>
-				<coordinates>144.86432,13.59203,0</coordinates>
+				<coordinates>144.8643817430319,13.59206610019528,0</coordinates>
 			</Point>
 		</Placemark>
 		<Placemark>
 			<name>H5start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -664,7 +1072,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5912</SimpleData>
 					<SimpleData name="Longitude">144.867</SimpleData>
 					<SimpleData name="Name">H5start</SimpleData>
@@ -687,7 +1095,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H5end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -706,7 +1114,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5914</SimpleData>
 					<SimpleData name="Longitude">144.869</SimpleData>
 					<SimpleData name="Name">H5end</SimpleData>
@@ -729,7 +1137,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H6start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -748,7 +1156,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.593</SimpleData>
 					<SimpleData name="Longitude">144.869</SimpleData>
 					<SimpleData name="Name">H6start</SimpleData>
@@ -771,7 +1179,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H6end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -790,7 +1198,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5939</SimpleData>
 					<SimpleData name="Longitude">144.867</SimpleData>
 					<SimpleData name="Name">H6end</SimpleData>
@@ -813,7 +1221,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H7start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -832,7 +1240,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5968</SimpleData>
 					<SimpleData name="Longitude">144.867</SimpleData>
 					<SimpleData name="Name">H7start</SimpleData>
@@ -855,7 +1263,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H7end</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -874,7 +1282,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5986</SimpleData>
 					<SimpleData name="Longitude">144.866</SimpleData>
 					<SimpleData name="Name">H7end</SimpleData>
@@ -897,7 +1305,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H8start</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -916,7 +1324,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.5998</SimpleData>
 					<SimpleData name="Longitude">144.865</SimpleData>
 					<SimpleData name="Name">H8start</SimpleData>
@@ -939,7 +1347,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H8send</name>
-			<styleUrl>#pointStyleMap0</styleUrl>
+			<styleUrl>#pointStyleMap002</styleUrl>
 			<Style id="inline">
 				<IconStyle>
 					<color>ff00ffff</color>
@@ -958,7 +1366,7 @@
 				</PolyStyle>
 			</Style>
 			<ExtendedData>
-				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII">
+				<SchemaData schemaUrl="#S_HMU_LOWDENS_transects_DDSIIISSIIIIII0">
 					<SimpleData name="Latitude">13.6015</SimpleData>
 					<SimpleData name="Longitude">144.864</SimpleData>
 					<SimpleData name="Name">H8send</SimpleData>
@@ -981,7 +1389,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H1</name>
-			<styleUrl>#inline11</styleUrl>
+			<styleUrl>#inline111</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
@@ -991,37 +1399,37 @@
 		</Placemark>
 		<Placemark>
 			<name>H2</name>
-			<styleUrl>#inline15</styleUrl>
+			<styleUrl>#inline150</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
-					144.8612394734666,13.59786155973871,147.2595629891767 144.8603402953346,13.59964293471616,147.9128190518372 
+					144.8612883343145,13.59786956344781,0 144.8603741724015,13.59965110394696,0 
 				</coordinates>
 			</LineString>
 		</Placemark>
 		<Placemark>
 			<name>H3</name>
-			<styleUrl>#inline2</styleUrl>
+			<styleUrl>#inline23</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
-					144.8626134065584,13.5951556138979,0 144.8617110705226,13.59694107284234,0 
+					144.8626780257486,13.59517602777148,0 144.8617626514138,13.59695178260537,0 
 				</coordinates>
 			</LineString>
 		</Placemark>
 		<Placemark>
 			<name>H4</name>
-			<styleUrl>#inline19</styleUrl>
+			<styleUrl>#inline190</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
-					144.8643156284521,13.59203071028023,0 144.8633141971413,13.59376271150454,0 
+					144.8643781156857,13.59206476544744,0 144.863392462642,13.59381325085845,0 
 				</coordinates>
 			</LineString>
 		</Placemark>
 		<Placemark>
 			<name>H5</name>
-			<styleUrl>#inline5</styleUrl>
+			<styleUrl>#inline50</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
@@ -1031,7 +1439,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H6</name>
-			<styleUrl>#inline3</styleUrl>
+			<styleUrl>#inline30</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
@@ -1041,7 +1449,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H7</name>
-			<styleUrl>#inline14</styleUrl>
+			<styleUrl>#inline140</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
@@ -1051,7 +1459,7 @@
 		</Placemark>
 		<Placemark>
 			<name>H8</name>
-			<styleUrl>#inline6</styleUrl>
+			<styleUrl>#inline60</styleUrl>
 			<LineString>
 				<tessellate>1</tessellate>
 				<coordinates>
