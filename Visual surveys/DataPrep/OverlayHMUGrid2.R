@@ -3,7 +3,8 @@
 library(rgeos); library(maptools); library(spatialEco)
 
 overlayHMU <- function(HMUcaps, cellsize){
-  # Section 1 Create HMU Polygon ----
+  
+  # Section 1. Create HMU Polygon ----
   ## Read in shapefile of HMU fence
   hmuline <- st_read("Data/hmuline/hmu.shp")
   ## Specify projection
@@ -47,35 +48,32 @@ overlayHMU <- function(HMUcaps, cellsize){
   
   
   # Section 4. Convert Transect Survey Locations to Grid Cells ----
-  edgeline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
+  edgeline <- rgdal::readOGR("Data/HMUR_transects LOW DENS.kml","HMUR", require_geomType = "wkbLineString")
   edgeline <- spTransform(edgeline, CRS("+proj=utm +zone=55"))
-  intline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbLineString")
+  intline <- rgdal::readOGR("Data/HMUI_transects LOW DENS.kml","HMUI_transects", require_geomType = "wkbLineString")
   intline <- spTransform(intline, CRS("+proj=utm +zone=55"))
-  
-  ## Create spatial lines from dataframe
-  hmutran <- list()
-  hmutran[[1]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[1,4],HMUtran[1,7]),c(HMUtran[1,5],HMUtran[1,8]))), ID = "HE01")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[2]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[2,4],HMUtran[2,7]),c(HMUtran[2,5],HMUtran[2,8]))), ID = "HE02")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[3]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[3,4],HMUtran[3,7]),c(HMUtran[3,5],HMUtran[3,8]))), ID = "HE03")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[4]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[4,4],HMUtran[4,7]),c(HMUtran[4,5],HMUtran[4,8]))), ID = "HE04")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[5]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[5,4],HMUtran[5,7]),c(HMUtran[5,5],HMUtran[5,8]))), ID = "HE05")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[6]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[6,4],HMUtran[6,7]),c(HMUtran[6,5],HMUtran[6,8]))), ID = "HE06")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[7]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[7,4],HMUtran[7,7]),c(HMUtran[7,5],HMUtran[7,8]))), ID = "HE07")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[8]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[8,4],HMUtran[8,7]),c(HMUtran[8,5],HMUtran[8,8]))), ID = "HE08")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[9]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[9,4],HMUtran[9,7]),c(HMUtran[9,5],HMUtran[9,8]))), ID = "HE09")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[10]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[10,4],HMUtran[10,7]),c(HMUtran[10,5],HMUtran[10,8]))), ID = "HP01")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[11]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[11,4],HMUtran[11,7]),c(HMUtran[11,5],HMUtran[11,8]))), ID = "HP02")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[12]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[12,4],HMUtran[12,7]),c(HMUtran[12,5],HMUtran[12,8]))), ID = "HP03")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[13]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[13,4],HMUtran[13,7]),c(HMUtran[13,5],HMUtran[13,8]))), ID = "HP04")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[14]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[14,4],HMUtran[14,7]),c(HMUtran[14,5],HMUtran[14,8]))), ID = "HP05")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[15]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[15,4],HMUtran[15,7]),c(HMUtran[15,5],HMUtran[15,8]))), ID = "HP06")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[16]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[16,4],HMUtran[16,7]),c(HMUtran[16,5],HMUtran[16,8]))), ID = "HP07")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[17]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[17,4],HMUtran[17,7]),c(HMUtran[17,5],HMUtran[17,8]))), ID = "HP08")), proj4string = CRS("+proj=utm +zone=55"))
-  hmutran[[18]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[18,4],HMUtran[18,7]),c(HMUtran[18,5],HMUtran[18,8]))), ID = "HP09")), proj4string = CRS("+proj=utm +zone=55"))
+  ## Combine all transects into one object
+  lines <- rbind(edgeline,intline)
+  lines <- lines[,!(names(lines) %in% c("Description"))]
+  ## Convert to dataframe in order to separate lines
+  df <- as.data.frame(geom(lines))
+  ## Name transects to simpler names that match capture locations
+  new_IDs <- as.vector(c(rep(c("H1","H2","H3","H4"),each=2),rep("H5",times=8),rep("H6",times=6),rep(c("H7","H8"),each=2),rep(intline$Name,each=2)))
+  df$Transect <- new_IDs
+  ## Create combined dataframe of all transects for later use
+  # write.csv(df,"Data/HMULDCoordinates.csv")
+  tran <- read.csv("Data/HMULDCoordinates.csv")[,-1]
+  ## Convert all to spatial lines
+  lines2 <- list()
+  key <- 1
+  for(i in 1:length(unique(df$Transect))){
+    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[i])), proj4string = CRS("+proj=utm +zone=55"))
+    key <- key + 2
+  }
   
   ## Make sure all transects pass through cells
-  for(i in 1:length(hmutran)){
-    test[i] <- gIntersects(hmutran[[i]],clipHMU)
+  for(i in 1:length(lines2)){
+    test[i] <- gIntersects(lines2[[i]],clipHMU)
   }
   unique(test)
   
