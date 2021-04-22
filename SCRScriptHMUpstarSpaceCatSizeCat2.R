@@ -4,7 +4,7 @@ rm(list=ls())
 
 
 source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
-source("Visual surveys/DataPrep/OverlayHMUGrid.R")
+source("Visual surveys/DataPrep/OverlayHMUGrid2.R")
 source("Visual surveys/DataPrep/DataPrepHMU.R")
 
 library(secr); library(reshape2); library(jagsUI)
@@ -14,8 +14,8 @@ HMUcaps <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR"))
 HMUsurv <- subset(subsurv, (SITE == "HMUI" | SITE == "HMUR"))
 
 ## Subset to specific NWFN project (options = MWFM VIS 2, NWFN VIS HL 1, NWFN VIS HL 2, PRE NT2 VIS, POST BT2 VIS, POST KB VIS 1, POST KB VIS 2, POST KB VIS 3 EXTRA, POST KB VIS 3, NWFN VISPACE, NWFN SCENT VIS TRAIL)
-HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")
-HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
+HMUcaps <- subset(HMUcaps, PROJECTCODE == "LOWDENS VIS")
+HMUsurv <- subset(HMUsurv, PROJECTCODE == "LOWDENS VIS")
 
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
 cellsize <- 5  ## dimensions of integration grid cell
