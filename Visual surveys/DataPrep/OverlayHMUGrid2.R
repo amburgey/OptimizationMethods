@@ -48,7 +48,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   
   
   # Section 4. Convert Transect Survey Locations to Grid Cells ----
-  edgeline <- rgdal::readOGR("Data/HMUR_transects LOW DENS.kml","HMUR", require_geomType = "wkbLineString")
+  edgeline <- rgdal::readOGR("Data/HMUR_transects LOW DENSedited.kml","HMUR", require_geomType = "wkbLineString")
   edgeline <- spTransform(edgeline, CRS("+proj=utm +zone=55"))
   intline <- rgdal::readOGR("Data/HMUI_transects LOW DENS.kml","HMUI_transects", require_geomType = "wkbLineString")
   intline <- spTransform(intline, CRS("+proj=utm +zone=55"))
