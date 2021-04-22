@@ -58,7 +58,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Convert to dataframe in order to separate lines
   df <- as.data.frame(geom(lines))
   ## Name transects to simpler names that match capture locations
-  new_IDs <- as.vector(c(rep(c("H1","H2","H3","H4"),each=2),rep("H5",times=8),rep("H6",times=6),rep(c("H7","H8"),each=2),rep(intline$Name,each=2)))
+  new_IDs <- as.vector(c(rep(c("H1","H2","H3"),each=2),rep("H4",times=4),rep("H5",times=8),rep("H6",times=6),rep(c("H7","H8"),each=2),rep(intline$Name,each=2)))
   df$Transect <- new_IDs
   ## Create combined dataframe of all transects for later use
   # write.csv(df,"Data/HMULDCoordinates.csv")
@@ -80,7 +80,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Find which grid cells a transect passes through
   ## Lines have to be linestrings instead of spatial lines
   ## Convert data frame to linestrings
-  ltran <- pmap(HMUtran[,-c(1:3,6)], ~c(...) %>%
+  ltran <- pmap(tran[,-c(1:3,6)], ~c(...) %>%
                 matrix(., , ncol=2, byrow = TRUE) %>% 
                 st_linestring)
   
