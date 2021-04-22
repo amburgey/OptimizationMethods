@@ -80,7 +80,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Find which grid cells a transect passes through
   ## Lines have to be linestrings instead of spatial lines
   ## Convert data frame to linestrings
-  ltran <- pmap(tran[,-c(1:3,6)], ~c(...) %>%
+  ltran <- pmap(tran[,-c(1:3,8)], ~c(...) %>%
                 matrix(., , ncol=2, byrow = TRUE) %>% 
                 st_linestring)
   
@@ -109,8 +109,20 @@ overlayHMU <- function(HMUcaps, cellsize){
   polylin16 <- grd_rotID[which(st_intersects(ltran[16], grd_rotID, sparse = FALSE)), ]
   polylin17 <- grd_rotID[which(st_intersects(ltran[17], grd_rotID, sparse = FALSE)), ]
   polylin18 <- grd_rotID[which(st_intersects(ltran[18], grd_rotID, sparse = FALSE)), ]
+  polylin19 <- grd_rotID[which(st_intersects(ltran[19], grd_rotID, sparse = FALSE)), ]
+  polylin20 <- grd_rotID[which(st_intersects(ltran[20], grd_rotID, sparse = FALSE)), ]
+  polylin21 <- grd_rotID[which(st_intersects(ltran[21], grd_rotID, sparse = FALSE)), ]
+  polylin22 <- grd_rotID[which(st_intersects(ltran[22], grd_rotID, sparse = FALSE)), ]
+  polylin23 <- grd_rotID[which(st_intersects(ltran[23], grd_rotID, sparse = FALSE)), ]
+  polylin24 <- grd_rotID[which(st_intersects(ltran[24], grd_rotID, sparse = FALSE)), ]
+  polylin25 <- grd_rotID[which(st_intersects(ltran[25], grd_rotID, sparse = FALSE)), ]
+  polylin26 <- grd_rotID[which(st_intersects(ltran[26], grd_rotID, sparse = FALSE)), ]
+  polylin27 <- grd_rotID[which(st_intersects(ltran[27], grd_rotID, sparse = FALSE)), ]
+  polylin28 <- grd_rotID[which(st_intersects(ltran[28], grd_rotID, sparse = FALSE)), ]
+  polylin29 <- grd_rotID[which(st_intersects(ltran[29], grd_rotID, sparse = FALSE)), ]
+  polylin30 <- grd_rotID[which(st_intersects(ltran[30], grd_rotID, sparse = FALSE)), ]
   
-  my.list <- list(polylin1, polylin2, polylin3, polylin4, polylin5, polylin6, polylin7, polylin8, polylin9, polylin10, polylin11, polylin12, polylin13, polylin14, polylin15, polylin16, polylin17, polylin18)
+  my.list <- list(polylin1, polylin2, polylin3, polylin4, polylin5, polylin6, polylin7, polylin8, polylin9, polylin10, polylin11, polylin12, polylin13, polylin14, polylin15, polylin16, polylin17, polylin18, polylin19, polylin20, polylin21, polylin22, polylin23, polylin24, polylin25, polylin26, polylin27, polylin28, polylin29, polylin30)
   
   ## Find centroid of all grid cells
   eff_cts <- list()
@@ -119,13 +131,13 @@ overlayHMU <- function(HMUcaps, cellsize){
   }
   
   ## Names (in order) of transects
-  tnames <- c("HE01","HE02","HE03","HE04","HE05","HE06","HE07","HE08","HE09","HP01","HP02","HP03","HP04","HP05","HP06","HP07","HP08","HP09")
+  tnames <- c("H1","H2","H3","H4","H4","H4","H5","H5","H5","H5","H5","H5","H5","H6","H6","H6","H6","H6","H7","H8","HK","HL","HM","HN","HO","HP","HQ","HR","HS","HT")
   
   names(eff_cts) <- tnames
   
   ## Create a matrix of transect name, grid cell ID, and X-Y coordinate information
   ## Number of rows needed based on elements of the list
-  entries <- nrow(eff_cts[[1]]) + nrow(eff_cts[[2]]) + nrow(eff_cts[[3]]) + nrow(eff_cts[[4]]) + nrow(eff_cts[[5]]) + nrow(eff_cts[[6]]) + nrow(eff_cts[[7]]) + nrow(eff_cts[[8]]) + nrow(eff_cts[[9]]) + nrow(eff_cts[[10]]) + nrow(eff_cts[[11]]) + nrow(eff_cts[[12]]) + nrow(eff_cts[[13]]) + nrow(eff_cts[[14]]) + nrow(eff_cts[[15]]) + nrow(eff_cts[[16]]) + nrow(eff_cts[[17]]) + nrow(eff_cts[[18]])
+  entries <- nrow(eff_cts[[1]]) + nrow(eff_cts[[2]]) + nrow(eff_cts[[3]]) + nrow(eff_cts[[4]]) + nrow(eff_cts[[5]]) + nrow(eff_cts[[6]]) + nrow(eff_cts[[7]]) + nrow(eff_cts[[8]]) + nrow(eff_cts[[9]]) + nrow(eff_cts[[10]]) + nrow(eff_cts[[11]]) + nrow(eff_cts[[12]]) + nrow(eff_cts[[13]]) + nrow(eff_cts[[14]]) + nrow(eff_cts[[15]]) + nrow(eff_cts[[16]]) + nrow(eff_cts[[17]]) + nrow(eff_cts[[18]]) + nrow(eff_cts[[19]]) + nrow(eff_cts[[20]]) + nrow(eff_cts[[21]]) + nrow(eff_cts[[22]]) + nrow(eff_cts[[23]]) + nrow(eff_cts[[24]]) + nrow(eff_cts[[25]]) + nrow(eff_cts[[26]]) + nrow(eff_cts[[27]]) + nrow(eff_cts[[28]]) + nrow(eff_cts[[29]]) + nrow(eff_cts[[30]])
   
   vistran <- setNames(as.data.frame(matrix(NA, nrow = entries, ncol = 4)), c("TranID","GridID","x","y"))
   key <- 1
@@ -151,11 +163,11 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Convert points to UTM
   hmucaps <- spTransform(hmucaps, CRS("+proj=utm +zone=55"))
   ## snap these capture locations to nearest transect line to correct for GPS inaccuracy
-  names <- c("HE01","HE02","HE03","HE04","HE05","HE06","HE07","HE08","HE09","HP01","HP02","HP03","HP04","HP05","HP06","HP07","HP08","HP09")
+  names <- c("H1","H2","H3","H4","H5","H6","H7","H8","HK","HL","HM","HN","HO","HP","HQ","HR","HS","HT")
   
   snaplist <- list()
-  for (i in 1:length(hmutran)){
-    snaplist[[i]] <- as.data.frame(snapPointsToLines(subset(hmucaps, TRANSECT == names[i]), hmutran[[i]]))  ## warning about CRS, ignore
+  for (i in 1:length(lines2)){
+    snaplist[[i]] <- as.data.frame(snapPointsToLines(subset(hmucaps, TRANSECT == names[i]), lines2[[i]]))  ## warning about CRS, ignore
   }
   ## Convert from list of dataframes to a single dataframe with transect info
   allsnap <- do.call(rbind,snaplist)
@@ -201,68 +213,39 @@ overlayHMU <- function(HMUcaps, cellsize){
   intgrd <- geom(intgrd_cts)
 
 
-  # ## Checking. Plot Interior transects ----
-  # plot(clipHMU, xlim=c(268550,268860), ylim=c(1504100,1504490))
-  # plot(hmutran[[18]], add=TRUE, col="red")
-  # plot(hmutran[[17]], add=TRUE, col="green")
-  # plot(hmutran[[16]], add=TRUE, col="blue")
-  # plot(hmutran[[15]], add=TRUE, col="orange")
-  # plot(hmutran[[14]], add=TRUE, col="brown")
-  # plot(hmutran[[13]], add=TRUE, col="purple")
-  # plot(hmutran[[12]], add=TRUE, col="yellow")
-  # plot(hmutran[[11]], add=TRUE, col="pink")
-  # plot(hmutran[[10]], add=TRUE, col="lightblue")
-  # plot(my.list[[18]], add=TRUE, col="red")
-  # plot(my.list[[17]], add=TRUE, col="green")
-  # plot(my.list[[16]], add=TRUE, col="blue")
-  # plot(my.list[[15]], add=TRUE, col="orange")
-  # plot(my.list[[14]], add=TRUE, col="brown")
-  # plot(my.list[[13]], add=TRUE, col="purple")
-  # plot(my.list[[12]], add=TRUE, col="yellow")
-  # plot(my.list[[11]], add=TRUE, col="pink")
-  # plot(my.list[[10]], add=TRUE, col="lightblue")
-  # 
-  # ## Checking. Plot Edge transects ----
+  # Check. Plot all transects and grid----
+  # par(mar = c(1,1,1,1))
+  # plot(lines, col="red")
+  # plot(edgeline, col="blue", add=TRUE)
+  # plot(intline, col="green", add=TRUE)
+  # plot(clipHMU, col="red")
+  # for(i in 1:length(ltran)){
+  #   plot(ltran[[i]], add=TRUE, col="white", lwd=2)
+  # }
+  
+  # ## Checking. Plot transects up close ----
   # plot(clipHMU, xlim=c(268735.1,268737.6), ylim=c(1503600,1504100))
-  # plot(hmutran[[8]], add=TRUE, col="red")
-  # plot(hmutran[[7]], add=TRUE, col="green")
-  # plot(hmutran[[6]], add=TRUE, col="blue")
-  # plot(hmutran[[5]], add=TRUE, col="orange")
-  # plot(my.list[[8]], add=TRUE, col="red")
-  # plot(my.list[[7]], add=TRUE, col="green")
-  # plot(my.list[[6]], add=TRUE, col="blue")
-  # plot(my.list[[5]], add=TRUE, col="orange")
-  # ## This one seems too short but that's because edge transects were only 0.1km and this was the only one oriented longways (so fewer grid cells are part of the transect)
-  # plot(clipHMU, xlim=c(268690.7,268819.6), ylim=c(1504643,1504685))
-  # plot(hmutran[[9]], add=TRUE, col="red")
-  # plot(my.list[[9]], add=TRUE, col="red")
-  # plot(clipHMU, xlim=c(268945.6,269187.2), ylim=c(1504147,1504634))
-  # plot(hmutran[[4]], add=TRUE, col="red")
-  # plot(hmutran[[3]], add=TRUE, col="green")
-  # plot(hmutran[[2]], add=TRUE, col="blue")
-  # plot(hmutran[[1]], add=TRUE, col="orange")
-  # plot(my.list[[4]], add=TRUE, col="red")
-  # plot(my.list[[3]], add=TRUE, col="green")
-  # plot(my.list[[2]], add=TRUE, col="blue")
-  # plot(my.list[[1]], add=TRUE, col="orange")
-  # 
-  # ## Checking. Plot snapped captures to transects ----
-  # snaps1 <- snaplist[[10]]
-  # snaps2 <- snaplist[[11]]
-  # snaps3 <- snaplist[[12]]
+  plot(lines2[[3]], add=TRUE, col="blue", lwd=2)
+  plot(lines2[[4]], add=TRUE, col="orange", lwd=2)
+  plot(lines2[[5]], add=TRUE, col="red", lwd=2)
+  plot(lines2[[6]], add=TRUE, col="red", lwd=2)
+  plot(lines2[[7]], add=TRUE, col="red", lwd=2)
+  plot(lines2[[8]], add=TRUE, col="red", lwd=2)
+  plot(lines2[[9]], add=TRUE, col="red", lwd=2)
+  t <- extent(lines2[[1]])
+  plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
+  plot(lines2[[1]], add=TRUE, col="red")
+  plot(my.list[[1]]$sfHMU.geometry, add=TRUE, col="red")
+
+  
+  ## Checking. Plot snapped captures to transects ----
+  # t <- extent(lines[[23]])
+  # plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
+  # plot(my.list[[23]]$sfNCR.geometry, add=TRUE, col="red")
+  # snaps1 <- snaplist[[23]]
   # coordinates(snaps1) =~ X + Y
-  # coordinates(snaps2) =~ X + Y
-  # coordinates(snaps3) =~ X + Y
-  # plot(clipHMU, xlim=c(268550,268860), ylim=c(1504100,1504490))
-  # plot(hmucaps, add=TRUE, pch=21, cex=0.5) ## original
-  # plot(snaps1, add=TRUE, pch=21, cex=0.5, col="red") ## adjusted
-  # plot(snaps2, add=TRUE, pch=21, cex=0.5, col="red") ## adjusted
-  # plot(snaps3, add=TRUE, pch=21, cex=0.5, col="red") ## adjusted
-  # 
-  # ## use drawExtent() to find spot on hmuSpace
-  # plot(clipHMU, xlim=c(268614.2, 268677.9), ylim=c(1504381,1504436))
-  # plot(hmucaps, add=TRUE, cex=1, pch=20)
-  #### #####
+  # plot(ncrcaps, add=TRUE, pch=21, cex=0.5) ## original
+  # plot(snaps1, add=TRUE, pch=21, cex=0.5, col="yellow") ## adjusted
   
   dat <- list(tran = vistran, snks = snkcap, intgrd=intgrd)
   
