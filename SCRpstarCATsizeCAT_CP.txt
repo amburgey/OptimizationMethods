@@ -32,7 +32,7 @@ model {
   
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
-    lambda[l] <- -loglikterm[l] + 1000
+    lambda[l] <- -loglikterm[l] + 10000
     dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
   } #L
 

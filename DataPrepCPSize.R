@@ -132,6 +132,70 @@ prepSCR <- function(SCRcaps, SCReff){
 }
 
 
+prepSCRman <- function(SCRcaps, SCReff){
+  
+  ## set up observations as count of individuals (rows) and traps (columns) over study
+  y <- dcast(data=SCRcaps, formula=PITTAG ~ Point, length, fill=0, value.var = "Point")
+  y <- y[,-1]
+  ## Find names of missing columns
+  Missing <- setdiff(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep=""),colnames(y))
+  
+  if(length(Missing)!= 0){
+    ## Add them, filled with '0's
+    y[Missing] <- 0
+    ## Put columns in desired order
+    y <- y[paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")]  
+    ## Prep for model
+    y <- as.matrix(y)
+  }
+  
+  ## Transform any multiple captures at a single location to just 1
+  y <- ifelse(y>=1,1,y)
+  
+  ## Set up effort matrix (Grid cell by Date and indicate if active or not)
+  ## Check if effort should be scaled due to different survey lengths
+  if(length(unique(SCReff$DISTANCE)) == 1) stop('no mismatch in effort and capture dimensions')
+  
+  ## Subset to which transects were done on which dates
+  act <- SCReff[,c("Date","TRANSECT")]
+  ## Indicate these were the active times
+  act$Active <- c(1)
+  ## Create dataframe of all transect-location combinations
+  allact <- melt(data.frame(rep(c(LETTERS,"AA"),each=13),paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
+  colnames(allact) <- c("TRANSECT","Point")
+  ## Expand dataframe to be all points and not just at the broad transect level
+  allact <- merge(act, allact, by = c("TRANSECT"))
+  ## Distance is in km, correct effort to represent portions of transect that were not walked
+  tocorr <- subset(SCReff, DISTANCE == 0.02)
+  
+  ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
+  act2 <- reshape2::dcast(allact, Point ~ Date, fun.aggregate = sum, value.var = "Active")
+  ## Order by Point
+  act2$Point <- as.factor(act2$Point)
+  act2$Point <- factor(act2$Point, levels=c(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
+  act2 <- act2[order(act2$Point),]
+  ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
+  act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
+  
+  ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
+  act2[act2$Point == "W1",22] <- 0
+  act2[act2$Point == "W2",22] <- 0
+  act2[act2$Point == "W3",22] <- 0
+  act2[act2$Point == "W4",22] <- 0 
+  act2[act2$Point == "W5",22] <- 0
+  act2[act2$Point == "W6",22] <- 0
+  act2[act2$Point == "W7",22] <- 0
+  act2[act2$Point == "W8",22] <- 0
+  act2[act2$Point == "W9",22] <- 0
+  act2[act2$Point == "W10",22] <- 0
+  act2[act2$Point == "W11",22] <- 0
+  
+  both <- list(y=y,act=act2)
+  
+  return(both)
+}
+
+
 getSize <- function(capPROJ, SCRcaps, subcap){
   
   ## Find body sizes from current dataset

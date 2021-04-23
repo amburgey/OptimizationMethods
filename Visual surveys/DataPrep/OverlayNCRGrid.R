@@ -6,9 +6,9 @@ library(rgeos); library(maptools); library(spatialEco)
 overlayNCR <- function(NCRcaps, cellsize){
   # Section 1. Load coordinates for NCRI/NCRR Edge Effects project ----
   ## Use kml transects and convert to UTM
-  edgeline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
+  edgeline <- rgdal::readOGR("Data/NCRR EDGE EFFECT VIS.kml","NCRR EDGE EFFECT VIS", require_geomType = "wkbLineString")
   edgeline <- spTransform(edgeline, CRS("+proj=utm +zone=55"))
-  intline <- rgdal::readOGR("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Data/KMZ files/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbLineString")
+  intline <- rgdal::readOGR("Data/NCRI EDGE EFFECT VIS.kml","NCRI EDGE EFFECT VIS", require_geomType = "wkbLineString")
   intline <- spTransform(intline, CRS("+proj=utm +zone=55"))
   ## Combine all transects into one object
   lines <- rbind(edgeline,intline)
@@ -27,7 +27,7 @@ overlayNCR <- function(NCRcaps, cellsize){
   }
   
   ## Some transects needed to be replaced with new locations due to construction
-  missing <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/NCRI_missing.csv")
+  missing <- read.csv("Data/NCRI_missing.csv")
   coordinates(missing) =~ Lon + Lat
   proj4string(missing) <- CRS("+proj=longlat +datum=WGS84")
   ## Convert missing points to UTM and create lines between beginning and end points

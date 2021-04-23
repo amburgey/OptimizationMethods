@@ -167,20 +167,20 @@ model {
 #######################################################
 
 ## MCMC settings
-# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 1; ni <- 30000+nb; nt <- 1
+# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=(nind+10), s=vsst, p0=runif(1,.002,.003)) #ran at 0.002 and 0.003 before
+  list (sigma=runif(1,45,50), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003)) #ran at 0.002 and 0.003 before
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
 
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_NCR.txt", data=jags.data, inits=inits, parallel=TRUE,n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
 
-save(out, file="Visual surveys/Results/NCREDGE_SCRpstarvistest.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NCREDGE_SCRpstarvistest30000.Rdata")  ## M = 150 (XXXXhrs)
 
 
