@@ -1,0 +1,23 @@
+
+model {
+
+  lam0 ~ dunif(0,5)
+  sigma ~ dunif(0,100)
+  psi ~ dunif(0,1)
+
+  for(i in 1:M){
+    z[i] ~ dbern(psi)
+    s[i,1] ~ dunif(Xl,Xu)
+    s[i,2] ~ dunif(Yl,Yu)
+  
+    for(j in 1:J) {
+      d[i,j] <- pow(s[i,1]-locs[j,1], 2) + pow(s[i,2]-locs[j,2],2)
+      p[i,j] <- z[i]*lam0*exp(-(d[i,j])/(2*sigma*sigma))
+      y[i,j] ~ dpois(p[i,j]*K[j])
+      } # locations
+    } # individuals
+  
+  N <- sum(z[])
+  D <- N/A
+  
+}
