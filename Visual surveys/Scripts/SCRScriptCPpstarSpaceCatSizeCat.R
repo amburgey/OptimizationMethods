@@ -5,7 +5,7 @@
 rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("DataPrepCP.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/DataPrepCP.R")              ## Functions to reshape survey and capture data
 
 library(secr); library(reshape2); library(jagsUI)
 
