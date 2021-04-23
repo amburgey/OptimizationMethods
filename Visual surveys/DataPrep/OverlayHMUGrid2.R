@@ -67,8 +67,13 @@ overlayHMU <- function(HMUcaps, cellsize){
   lines2 <- list()
   key <- 1
   for(i in 1:length(unique(df$Transect))){
-    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[i])), proj4string = CRS("+proj=utm +zone=55"))
-    key <- key + 2
+    if(i < 7){
+      lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[i])), proj4string = CRS("+proj=utm +zone=55"))
+      key <- key + 2
+    }
+    if(i == 7){
+      
+    }
   }
   
   ## Make sure all transects pass through cells
@@ -232,10 +237,10 @@ overlayHMU <- function(HMUcaps, cellsize){
   plot(lines2[[7]], add=TRUE, col="red", lwd=2)
   plot(lines2[[8]], add=TRUE, col="red", lwd=2)
   plot(lines2[[9]], add=TRUE, col="red", lwd=2)
-  t <- extent(lines2[[1]])
+  t <- extent(lines2[[5]])
   plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
-  plot(lines2[[1]], add=TRUE, col="red")
-  plot(my.list[[1]]$sfHMU.geometry, add=TRUE, col="red")
+  plot(lines2[[5]], add=TRUE, col="red")
+  plot(my.list[[5]]$sfHMU.geometry, add=TRUE, col="red")
 
   
   ## Checking. Plot snapped captures to transects ----
