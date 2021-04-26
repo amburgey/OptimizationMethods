@@ -5,7 +5,7 @@ rm(list=ls())
 
 source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
 source("Visual surveys/DataPrep/OverlayHMUGrid2.R")
-source("Visual surveys/DataPrep/DataPrepHMU.R")
+source("Visual surveys/DataPrep/DataPrepHMU2.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -32,9 +32,9 @@ J <- nrow(X)
 ## Subset data based on how it was collected or the size of snakes involved
 capPROJ <- subSnk(SITEcaps=HMUspecs$snks)
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("05","06"))  ## specify month range
+SCRcaps <- subYr(SITEcaps=capPROJ, time=c("06","07"))  ## specify month range
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=HMUsurv, time=c("05","06"))
+SCReff <- effSnk(eff=HMUsurv, time=c("06","07"))
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -50,8 +50,8 @@ colnames(y) <- NULL
 nind <- nrow(y)
 
 ## Get sizes of individuals
-snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
-# snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=c("2013-04-01","2013-07-31"))[,2] ## if some snake sizes are missing than expand window of time
+# snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
+snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=c("2015-04-01","2015-09-30"))[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
 snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
@@ -160,8 +160,8 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
@@ -176,6 +176,5 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/HMUEDGE_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/HMULOWDENS_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
 
-### Ran for two days, convergence looks pretty good, cell = 5

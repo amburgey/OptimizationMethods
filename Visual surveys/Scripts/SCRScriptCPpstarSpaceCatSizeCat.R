@@ -14,8 +14,13 @@ CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
-CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS 2")
-CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS 2")
+CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS HL 1")
+CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS HL 1")
+
+## SECIFY TIME FRAME
+time <- c("11","12")
+time2 <- c("2006-08-01","2007-02-28")
+
 
 ##### SPECIFY DIMENSIONS OF CP #####
 ## Make study area grid to ensure correct size
@@ -41,16 +46,16 @@ X <- as.matrix(locs)
 ## Subset data based on how it was collected (V = visual, T = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","03"))  ## this is using 2 months (Feb - Mar)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("02","03"))
+SCReff <- effSnk(eff=CPsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-dat <- prepSCR(SCRcaps, SCReff)
+# dat <- prepSCR(SCRcaps, SCReff)
 ## If error and need to do manual
-# dat <- prepSCRman(SCRcaps, SCReff)
+dat <- prepSCRman(SCRcaps, SCReff)
 
 ## Observations, already in order of 1-351 CellID locations
 y <- dat$y
@@ -60,8 +65,8 @@ colnames(y) <- 1:ncol(dat$y)
 nind <- nrow(y)
 
 ## Get sizes of individuals
-snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
-snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=c("2006-01-01","2006-05-30"))[,2] ## if some snake sizes are missing than expand window of time
+# snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
+snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
 snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
@@ -176,8 +181,8 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=500; nb <- 100; ni <- 1500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+# nc <- 3; nAdapt=500; nb <- 100; ni <- 1500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), act=t(act), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
