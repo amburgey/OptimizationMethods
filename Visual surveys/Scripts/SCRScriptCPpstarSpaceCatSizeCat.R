@@ -181,8 +181,8 @@ model {
 #######################################################
 
 ## MCMC settings
-# nc <- 3; nAdapt=500; nb <- 100; ni <- 1500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
-nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=500; nb <- 100; ni <- 1000+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), act=t(act), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
@@ -197,6 +197,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCAT1500iter.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCAT1500iter.Rdata")  ## M = 150 (XXXXhrs)
 
 
