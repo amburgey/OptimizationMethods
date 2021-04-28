@@ -14,12 +14,12 @@ CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
-CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS HL 1")
-CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS HL 1")
+CPcaps <- subset(CPcaps, PROJECTCODE == "POST KB VIS 2")
+CPsurv <- subset(CPsurv, PROJECTCODE == "POST KB VIS 2")
 
 ## SECIFY TIME FRAME
-time <- c("11","12")
-time2 <- c("2006-08-01","2007-02-28")
+time <- c("01","02")
+time2 <- c("2011-12-01","2012-03-31")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
@@ -53,9 +53,9 @@ SCReff <- effSnk(eff=CPsurv, time=time)
 checkDims(SCReff, SCRcaps)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-# dat <- prepSCR(SCRcaps, SCReff)
+dat <- prepSCR(SCRcaps, SCReff)
 ## If error and need to do manual
-dat <- prepSCRman(SCRcaps, SCReff)
+# dat <- prepSCRman(SCRcaps, SCReff)
 
 ## Observations, already in order of 1-351 CellID locations
 y <- dat$y
@@ -140,7 +140,7 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(l in 1:4){  # size category
+  for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
@@ -197,6 +197,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCAT1000iter.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NWFNVISPOSTKB2_SCRpstarvisCATsizeCAT1000iter.Rdata")  ## M = 150 (XXXXhrs)
 
 

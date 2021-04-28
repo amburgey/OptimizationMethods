@@ -19,7 +19,7 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(l in 1:4){  # size category
+  for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
