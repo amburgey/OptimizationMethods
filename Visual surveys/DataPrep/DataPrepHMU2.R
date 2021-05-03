@@ -36,7 +36,6 @@ effSnk <- function(eff, time){
   effyr <- subset(eff, MONTH >= time[1] & MONTH <= time[2])
   effyr <- effyr[,c("EFFORTID","Date","BI","TRANSECT","DISTANCE")]
   effyr <- effyr[order(effyr$TRANSECT, effyr$Date),]
-  
   return(effyr)
 }
 
@@ -91,6 +90,15 @@ prepSCR <- function(SCRcaps, SCReff, grid){
   colnames(grid) <- c("TRANSECT","GridID","x","y")
   ## Expand dataframe to be all grid cells and not just at the broad transect level
   allact <- merge(grid, act, by = c("TRANSECT"), all=TRUE)
+  ## 10 sites (5 int and 5 edge) overlap the same grid cells but just change to be one or the other name
+  ## Add in cell IDs that were renamed in OverlayHMUGrid2 so that these cells were also surveyed when their old name was also surveyed
+  missing <- subset(grid,GridID == "603" | GridID == "1123" | GridID == "1999" | GridID == "2557" | GridID == "4262")
+  dates1 <- as.Date(c("2015-06-01","2015-06-03","2015-06-08","2015-06-10","2015-06-15","2015-06-17","2015-06-22","2015-06-24","2015-06-29","2015-07-01","2015-07-06","2015-07-08","2015-07-13","2015-07-15","2015-07-20","2015-07-22","2015-07-27","2015-07-29"))
+  dates2 <- as.Date(c("2015-06-02","2015-06-04","2015-06-09","2015-06-11","2015-06-16","2015-06-18","2015-06-23","2015-06-25","2015-06-30","2015-07-02","2015-07-07","2015-07-09","2015-07-14","2015-07-16","2015-07-21","2015-07-23","2015-07-28","2015-07-30"))
+  missing <- missing[rep(seq_len(nrow(missing)), each =18),]
+  missing$Date <- c(dates1,dates2,dates2,dates1,dates1)
+  missing$Active <- 1
+  allact <- rbind(allact,missing)
   allact <- allact[order(allact$TRANSECT,allact$Date,allact$GridID),]
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
@@ -141,6 +149,15 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   colnames(grid) <- c("TRANSECT","GridID","x","y")
   ## Expand dataframe to be all grid cells and not just at the broad transect level
   allact <- merge(grid, act, by = c("TRANSECT"), all=TRUE)
+  ## 10 sites (5 int and 5 edge) overlap the same grid cells but just change to be one or the other name
+  ## Add in cell IDs that were renamed in OverlayHMUGrid2 so that these cells were also surveyed when their old name was also surveyed
+  missing <- subset(grid,GridID == "603" | GridID == "1123" | GridID == "1999" | GridID == "2557" | GridID == "4262")
+  dates1 <- as.Date(c("2015-06-01","2015-06-03","2015-06-08","2015-06-10","2015-06-15","2015-06-17","2015-06-22","2015-06-24","2015-06-29","2015-07-01","2015-07-06","2015-07-08","2015-07-13","2015-07-15","2015-07-20","2015-07-22","2015-07-27","2015-07-29"))
+  dates2 <- as.Date(c("2015-06-02","2015-06-04","2015-06-09","2015-06-11","2015-06-16","2015-06-18","2015-06-23","2015-06-25","2015-06-30","2015-07-02","2015-07-07","2015-07-09","2015-07-14","2015-07-16","2015-07-21","2015-07-23","2015-07-28","2015-07-30"))
+  missing <- missing[rep(seq_len(nrow(missing)), each =18),]
+  missing$Date <- c(dates1,dates2,dates2,dates1,dates1)
+  missing$Active <- 1
+  allact <- rbind(allact,missing)
   allact <- allact[order(allact$TRANSECT,allact$Date,allact$GridID),]
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
@@ -148,16 +165,7 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
   
   ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
-  act2[act2$GridID == "2849",7] <- 0
-  act2[act2$GridID == "2868",7] <- 0
-  act2[act2$GridID == "2869",7] <- 0
-  act2[act2$GridID == "2870",7] <- 0 
-  act2[act2$GridID == "2871",7] <- 0
-  act2[act2$GridID == "2872",7] <- 0
-  act2[act2$GridID == "2873",7] <- 0
-  act2[act2$GridID == "2874",7] <- 0
-  act2[act2$GridID == "2875",7] <- 0
-  act2[act2$GridID == "2876",7] <- 0
+  ## NO CHANGES NEEDED TO EFFORT FOR HMU DATASET AS EDGE TRANSECTS WERE SHORTER (0.22) AND INTERIOR TRANSECTS WERE LONGER (0.44)
   
   both <- list(y=y,act=act2)
   
@@ -194,6 +202,9 @@ getSizeman <- function(capPROJ, SCRcaps, subcap, time){
   tf <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & Date >= as.Date(time[1]) & Date <= as.Date(time[2]))
   tf <- tf[tf$PITTAG %in% Missing$Group.1,]
   tfbod <- aggregate(tf[,c("SVL")],list(tf$PITTAG),mean,na.rm = TRUE)
+  ## 1435 SVL for HMUR9156 on 3rd of March 2015 (measure for the day it was caught for this experiment deemed improbable)
+  ## 1604 SVl for 0A140A4B4D on 24th of May 2015? (last measure in database)
+  tfbod$x <- c(1604,1435)
   ## Insert found values
   for(i in 1:nrow(tfbod)){
     bod[bod$Group.1 == tfbod$Group.1[i] & is.na(bod[2]), "x"] <- tfbod[i,2]

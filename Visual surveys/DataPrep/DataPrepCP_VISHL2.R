@@ -177,17 +177,15 @@ prepSCRman <- function(SCRcaps, SCReff){
   act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
   
   ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
-  act2[act2$Point == "W1",22] <- 0
-  act2[act2$Point == "W2",22] <- 0
-  act2[act2$Point == "W3",22] <- 0
-  act2[act2$Point == "W4",22] <- 0 
-  act2[act2$Point == "W5",22] <- 0
-  act2[act2$Point == "W6",22] <- 0
-  act2[act2$Point == "W7",22] <- 0
-  act2[act2$Point == "W8",22] <- 0
-  act2[act2$Point == "W9",22] <- 0
-  act2[act2$Point == "W10",22] <- 0
-  act2[act2$Point == "W11",22] <- 0
+  act2[act2$Point == "W5",24] <- 0
+  act2[act2$Point == "W6",24] <- 0
+  act2[act2$Point == "W7",24] <- 0
+  act2[act2$Point == "W8",24] <- 0
+  act2[act2$Point == "W9",24] <- 0
+  act2[act2$Point == "W10",24] <- 0
+  act2[act2$Point == "W11",24] <- 0
+  act2[act2$Point == "W12",24] <- 0
+  act2[act2$Point == "W13",24] <- 0
   
   both <- list(y=y,act=act2)
   
@@ -225,11 +223,11 @@ getSizeman <- function(capPROJ, SCRcaps, subcap, time){
   tf <- tf[tf$PITTAG %in% Missing$Group.1,]
   tfbod <- aggregate(tf[,c("SVL")],list(tf$PITTAG),mean,na.rm = TRUE)
   ## When manual solutions are needed
-  # tfbod[tfbod$Group.1 == "45296F4049" & is.na(tfbod$x), "x"] <- 961.5  ## HL 2
+  tfbod[tfbod$Group.1 == "45296F4049" & is.na(tfbod$x), "x"] <- 961.5  ## HL 2
   # tfbod[tfbod$Group.1 == "432B0F5C38" & is.na(tfbod$x), "x"] <- 914.5  ## PRE BT2
   # tfbod[tfbod$Group.1 == "432E731D1B" & is.na(tfbod$x), "x"] <- 1200  ## PRE BT2
   # tfbod[tfbod$Group.1 == "486C2C3E1F" & is.na(tfbod$x), "x"] <- 840  ## PRE BT2
-  tfbod[tfbod$Group.1 == "028516377" & is.na(tfbod$x), "x"] <- 800  ## POST KB VIS 2
+  # tfbod[tfbod$Group.1 == "028516377" & is.na(tfbod$x), "x"] <- 800  ## POST KB VIS 2
   ## Insert found values
   for(i in 1:nrow(tfbod)){
     bod[bod$Group.1 == tfbod$Group.1[i] & is.na(bod[2]), "x"] <- tfbod[i,2]

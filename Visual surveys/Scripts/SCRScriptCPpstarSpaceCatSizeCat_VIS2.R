@@ -5,7 +5,7 @@
 rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("Visual surveys/DataPrep/DataPrepCP.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/DataPrepCP_VIS2.R")              ## Functions to reshape survey and capture data
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -14,12 +14,12 @@ CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
-CPcaps <- subset(CPcaps, PROJECTCODE == "POST KB VIS 2")
-CPsurv <- subset(CPsurv, PROJECTCODE == "POST KB VIS 2")
+CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS 2")
+CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS 2")
 
 ## SECIFY TIME FRAME
-time <- c("01","02")
-time2 <- c("2011-12-01","2012-03-31")
+time <- c("02","03")
+time2 <- c("2006-01-01","2006-05-31")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
@@ -181,7 +181,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=500; nb <- 100; ni <- 1000+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
@@ -197,6 +197,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVISPOSTKB2_SCRpstarvisCATsizeCAT1000iter.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
 
 

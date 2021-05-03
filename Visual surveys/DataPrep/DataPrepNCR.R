@@ -187,7 +187,7 @@ getSizeman <- function(capPROJ, SCRcaps, subcap, time){
   
   ## If some snakes are missing body size so see if there is another record from same area and ballpark time frame
   Missing <- subset(bod, is.na(x))
-  tf <- subset(subcap, SITE == "NWFN" & Date >= as.Date(time[1]) & Date <= as.Date(time[2]))
+  tf <- subset(subcap, SITE == "NCR" & Date >= as.Date(time[1]) & Date <= as.Date(time[2]))
   tf <- tf[tf$PITTAG %in% Missing$Group.1,]
   tfbod <- aggregate(tf[,c("SVL")],list(tf$PITTAG),mean,na.rm = TRUE)
   ## Insert found values

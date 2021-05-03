@@ -65,15 +65,30 @@ overlayHMU <- function(HMUcaps, cellsize){
   tran <- read.csv("Data/HMULDCoordinates.csv")[,-1]
   ## Convert all to spatial lines
   lines2 <- list()
+  ## Do manually for some due to multi-segmented lines for some transects
   key <- 1
-  for(i in 1:length(unique(df$Transect))){
-    if(i < 7){
-      lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[i])), proj4string = CRS("+proj=utm +zone=55"))
-      key <- key + 2
-    }
-    if(i == 7){
-      
-    }
+  for(i in 1:3){
+    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[key])), proj4string = CRS("+proj=utm +zone=55"))
+    key <- key + 2
+  }
+  for(i in 4:6){
+    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[key])), proj4string = CRS("+proj=utm +zone=55"))
+    key <- key + 1  
+  }
+  key <- key + 1
+  for(i in 7:13){
+    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[key])), proj4string = CRS("+proj=utm +zone=55"))
+    key <- key + 1  
+  }
+  key <- key + 1
+  for(i in 14:18){
+    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[key])), proj4string = CRS("+proj=utm +zone=55"))
+    key <- key + 1  
+  }
+  key <- key + 1
+  for(i in 19:30){
+    lines2[[i]] <- SpatialLines(list(Lines(Line(cbind(c(df[key,4],df[key+1,4]),c(df[key,5],df[key+1,5]))), ID = new_IDs[key])), proj4string = CRS("+proj=utm +zone=55"))
+    key <- key + 2
   }
   
   ## Make sure all transects pass through cells
@@ -156,23 +171,41 @@ overlayHMU <- function(HMUcaps, cellsize){
       key <- key + 1
     }
   }
-  
+  ## Remove duplicate cell IDs (transect segments that break in the middle of a grid cell were counted twice)
+  vistran <- unique(vistran)
   vistran <- vistran[order(vistran$GridID),]
   
   # Section 5. Convert BTS Captures to Grid Cells ----
   ## Import capture locations (from Select&Prep) and convert to UTM
   hmucaps <- HMUcaps[order(HMUcaps$TRANSECT, HMUcaps$LOCATION),]
+  hmucaps[hmucaps$TRANSECT == "H4" & hmucaps$Point == "H421", "TRANSECT"] <- "H4.1"
+  hmucaps[hmucaps$TRANSECT == "H4" & hmucaps$Point == "H474", "TRANSECT"] <- "H4.1"
+  hmucaps[hmucaps$TRANSECT == "H4" & hmucaps$Point == "H4150", "TRANSECT"] <- "H4.2"
+  hmucaps[hmucaps$TRANSECT == "H4" & hmucaps$Point == "H4174", "TRANSECT"] <- "H4.2"
+  hmucaps[hmucaps$TRANSECT == "H4" & hmucaps$Point == "H4213", "TRANSECT"] <- "H4.3"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H539", "TRANSECT"] <- "H5.3"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H562", "TRANSECT"] <- "H5.3"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H5104", "TRANSECT"] <- "H5.5"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H5135", "TRANSECT"] <- "H5.6"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H5135", "TRANSECT"] <- "H5.6"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H5155", "TRANSECT"] <- "H5.6"
+  hmucaps[hmucaps$TRANSECT == "H5" & hmucaps$Point == "H5195", "TRANSECT"] <- "H5.7"
+  hmucaps[hmucaps$TRANSECT == "H6" & hmucaps$Point == "H6174", "TRANSECT"] <- "H6.1"
+  hmucaps[hmucaps$TRANSECT == "H6" & hmucaps$Point == "H639", "TRANSECT"] <- "H6.4"
+  hmucaps[hmucaps$TRANSECT == "H6" & hmucaps$Point == "H635", "TRANSECT"] <- "H6.5"
   coordinates(hmucaps)=~CAPLON+CAPLAT
   ## Specify projection
   proj4string(hmucaps) <- CRS("+proj=longlat +datum=WGS84")
   ## Convert points to UTM
   hmucaps <- spTransform(hmucaps, CRS("+proj=utm +zone=55"))
   ## snap these capture locations to nearest transect line to correct for GPS inaccuracy
-  names <- c("H1","H2","H3","H4","H5","H6","H7","H8","HK","HL","HM","HN","HO","HP","HQ","HR","HS","HT")
+  names <- c("H1","H2","H3","H4.1","H4.2","H4.3","H5.1","H5.2","H5.3","H5.4","H5.5","H5.6","H5.7","H6.1","H6.2","H6.3","H6.4","H6.5","H7","H8","HK","HL","HM","HN","HO","HP","HQ","HR","HS","HT")
   
   snaplist <- list()
   for (i in 1:length(lines2)){
-    snaplist[[i]] <- as.data.frame(snapPointsToLines(subset(hmucaps, TRANSECT == names[i]), lines2[[i]]))  ## warning about CRS, ignore
+    if(length(subset(hmucaps, TRANSECT == names[i]))>0){
+      snaplist[[i]] <- as.data.frame(snapPointsToLines(subset(hmucaps, TRANSECT == names[i]), lines2[[i]]))  ## warning about CRS, ignore
+    }
   }
   ## Convert from list of dataframes to a single dataframe with transect info
   allsnap <- do.call(rbind,snaplist)
@@ -191,6 +224,17 @@ overlayHMU <- function(HMUcaps, cellsize){
   
   ## Dataframe of snake capture info and the grid cell on which it occurred
   snkcap <- caphmu[,c("EFFORTID","PITTAG","SVL","Date","TRANSECT","X","Y","GridID")]
+  ## Rename transects that were split
+  snkcap$TRANSECT[snkcap$TRANSECT == "H4.1"] <- "H4"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H4.2"] <- "H4"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H4.3"] <- "H4"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H5.3"] <- "H5"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H5.5"] <- "H5"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H5.6"] <- "H5"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H5.7"] <- "H5"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H6.5"] <- "H6"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H6.4"] <- "H6"
+  snkcap$TRANSECT[snkcap$TRANSECT == "H6.1"] <- "H6"
   
   
 # Section 6. Create rotated integration grid ----
@@ -229,28 +273,43 @@ overlayHMU <- function(HMUcaps, cellsize){
   # }
   
   # ## Checking. Plot transects up close ----
-  # plot(clipHMU, xlim=c(268735.1,268737.6), ylim=c(1503600,1504100))
-  plot(lines2[[3]], add=TRUE, col="blue", lwd=2)
-  plot(lines2[[4]], add=TRUE, col="orange", lwd=2)
-  plot(lines2[[5]], add=TRUE, col="red", lwd=2)
-  plot(lines2[[6]], add=TRUE, col="red", lwd=2)
-  plot(lines2[[7]], add=TRUE, col="red", lwd=2)
-  plot(lines2[[8]], add=TRUE, col="red", lwd=2)
-  plot(lines2[[9]], add=TRUE, col="red", lwd=2)
-  t <- extent(lines2[[5]])
-  plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
-  plot(lines2[[5]], add=TRUE, col="red")
-  plot(my.list[[5]]$sfHMU.geometry, add=TRUE, col="red")
+  # plot(clipHMU, xlim=c(268735.1,268737.6), ylim=c(1503530,1504100))
+  # plot(lines2[[3]], add=TRUE, col="blue", lwd=2)
+  # plot(lines2[[4]], add=TRUE, col="orange", lwd=2)
+  # plot(lines2[[5]], add=TRUE, col="orange", lwd=2)
+  # plot(lines2[[6]], add=TRUE, col="orange", lwd=2)
+  # plot(lines2[[7]], add=TRUE, col="red", lwd=2)
+  # plot(lines2[[8]], add=TRUE, col="red", lwd=2)
+  # plot(lines2[[9]], add=TRUE, col="red", lwd=2)
+  # plot(lines2[[10]], add=TRUE, col="red", lwd=2)
+  # plot(lines2[[11]], add=TRUE, col="red", lwd=2)
+  # plot(lines2[[12]], add=TRUE, col="red", lwd=2)
+  # plot(lines2[[13]], add=TRUE, col="red", lwd=2)
+  # t <- extent(lines2[[10]])
+  # plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
+  # plot(lines2[[10]], add=TRUE, col="red")
+  # plot(my.list[[10]]$sfHMU.geometry, add=TRUE, col="red")
 
   
   ## Checking. Plot snapped captures to transects ----
-  # t <- extent(lines[[23]])
+  # t <- extent(lines2[[9]])
   # plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
-  # plot(my.list[[23]]$sfNCR.geometry, add=TRUE, col="red")
-  # snaps1 <- snaplist[[23]]
+  # plot(my.list[[9]]$sfHMU.geometry, add=TRUE, col="red")
+  # snaps1 <- snaplist[[9]]
   # coordinates(snaps1) =~ X + Y
-  # plot(ncrcaps, add=TRUE, pch=21, cex=0.5) ## original
+  # plot(hmucaps, add=TRUE, pch=21, cex=0.5) ## original
   # plot(snaps1, add=TRUE, pch=21, cex=0.5, col="yellow") ## adjusted
+  
+  ## 10 sites (5 int and 5 edge) overlap the same grid cells so can just change to be one or the other name
+  ## Change to other transect name and then remove via unique just to have record of decision
+  vistran[vistran$TranID == "HS" & vistran$GridID == "603", "TranID"] <- "H6"
+  vistran[vistran$TranID == "HR" & vistran$GridID == "1123", "TranID"] <- "H4"
+  vistran[vistran$TranID == "HP" & vistran$GridID == "1999", "TranID"] <- "H7"
+  vistran[vistran$TranID == "HO" & vistran$GridID == "2557", "TranID"] <- "H7"
+  vistran[vistran$TranID == "HK" & vistran$GridID == "4262", "TranID"] <- "H8"
+  vistran <- unique(vistran)
+  
+  ## No snake captures at those locations, changes to active (surveyed/not surveyed) made in DataPrepHMU2
   
   dat <- list(tran = vistran, snks = snkcap, intgrd=intgrd)
   
