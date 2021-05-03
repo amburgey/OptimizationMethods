@@ -21,11 +21,11 @@ subSnk <- function(SITEcaps, type, info){
     
   SITEcaps2 <- matrix(NA)
   
-  ## Make sure only using visual survey data (should be determined by PROJECTCODE but double check)
+  ## Make sure only using trapping data (should be determined by PROJECTCODE but double check)
   if(type == c("TRAPTYPE")){
-    if(info == c("V")){
+    if(info == c("M")){
       ## Subset captures to those from traps only, no visual surveys
-      SITEcaps2 <- subset(SITEcaps, TRAPTYPE == "V")
+      SITEcaps2 <- subset(SITEcaps, TRAPTYPE == "M")
     }
   }
   
@@ -60,7 +60,7 @@ effSnk <- function(eff, time){
   eff$MONTH <- format(as.Date(eff$Date, format="%m/%d/%Y"),"%m")
   ## Subset to timespan
   effyr <- subset(eff, MONTH >= time[1] & MONTH <= time[2])
-  effyr <- effyr[,c("EFFORTID","Date","BI","TRANSECT","DISTANCE")]
+  effyr <- effyr[,c("EFFORTID","Date","BI","TRANSECT","COUNT")]
   effyr <- effyr[order(effyr$TRANSECT, effyr$Date),]
   
   return(effyr)

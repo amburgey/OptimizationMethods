@@ -17,6 +17,10 @@ CPsurv <- subset(subsurv, SITE == "NWFN")
 CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN TRAP 1")
 CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN TRAP 1")
 
+## SECIFY TIME FRAME
+time <- c("06","07")
+time2 <- c("2004-05-01","2004-08-31")
+
 
 ##### SPECIFY DIMENSIONS OF CP #####
 ## Make study area grid to ensure correct size
@@ -43,8 +47,8 @@ X <- as.matrix(locs)
 ## Subset data based on how it was collected (V = visual, T = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("M"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("02","03"))  ## this is using 2 months (Feb - Mar)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=CPsurv, time=c("02","03"))
+SCReff <- effSnk(eff=CPsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
