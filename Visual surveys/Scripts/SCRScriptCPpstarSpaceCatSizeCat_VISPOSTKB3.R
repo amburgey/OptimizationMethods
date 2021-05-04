@@ -5,7 +5,8 @@
 rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("Visual surveys/DataPrep/DataPrepCP_VIS2.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/DataPrepCP_VISPOSTKB3.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/OverlayCPGrid.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -14,12 +15,12 @@ CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
-CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS 2")
-CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS 2")
+CPcaps <- subset(CPcaps, PROJECTCODE == "POST KB VIS 3")
+CPsurv <- subset(CPsurv, PROJECTCODE == "POST KB VIS 3")
 
 ## SECIFY TIME FRAME
-time <- c("02","03")
-time2 <- c("2006-01-01","2006-05-31")
+time <- c("10","11")
+time2 <- c("2012-09-01","2012-12-30")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
@@ -53,9 +54,9 @@ SCReff <- effSnk(eff=CPsurv, time=time)
 checkDims(SCReff, SCRcaps)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-dat <- prepSCR(SCRcaps, SCReff)
+# dat <- prepSCR(SCRcaps, SCReff)
 ## If error and need to do manual
-# dat <- prepSCRman(SCRcaps, SCReff)
+dat <- prepSCRman(SCRcaps, SCReff)
 
 ## Observations, already in order of 1-351 CellID locations
 y <- dat$y
@@ -102,8 +103,11 @@ e2dist <- function (x, y) {
 
 ## Integration grid
 Ggrid <- 5                                #spacing (check sensitivity to spacing)
-Xlocs <- rep(seq(Xl, Xu, Ggrid), times = length(seq(Yl, Yu, Ggrid)))
-Ylocs <- rep(seq(Yl, Yu, Ggrid), each = length(seq(Xl, Xu, Ggrid)))
+# Xlocs <- rep(seq(Xl, Xu, Ggrid), times = length(seq(Yl, Yu, Ggrid)))
+# Ylocs <- rep(seq(Yl, Yu, Ggrid), each = length(seq(Xl, Xu, Ggrid)))
+Xlocs <- x
+Ylocs <- y
+
 G <- cbind(Xlocs, Ylocs)
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
@@ -181,7 +185,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 1500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+nc <- 3; nAdapt=200; nb <- 100; ni <- 100+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
@@ -189,7 +193,7 @@ jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl,
 #locs=X, 
 
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=c(200,200,25,40), s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,30,40), n0=c(1000,1000,32,1000), s=vsst, p0=runif(L,.002,.003))
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
@@ -197,6 +201,6 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NWFNVISPOSTKB3_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
 
 
