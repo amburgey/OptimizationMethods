@@ -26,10 +26,10 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Specify projection
   hmuSpace <- projectRaster(hmuSpace, crs="+proj=utm +zone=55 +units=m +datum=WGS84")
   ## Desired grid cell to match surveying grid of Closed Population
-  cellsize = c(16,8)
+  cellsize1 = c(16,8)
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
   bbox <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)+320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymax(hmuSpace)-95), c(xmin(hmuSpace)+320,ymin(hmuSpace)-95)))))
-  grd <- sf::st_make_grid(bbox, cellsize = cellsize, square = TRUE)
+  grd <- sf::st_make_grid(bbox, cellsize = cellsize1, square = TRUE)
   rotang = -26.5
   rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
   grd_rot <- (grd - st_centroid(st_union(grd))) * rot(rotang * pi / 180) +

@@ -101,7 +101,7 @@ points(X, pch=16, col="red")
 cat("
 model {
 
-  sigma ~ dunif(0,100)
+  sigma ~ dunif(0,200)
   alpha1 <- 1/(2*sigma*sigma)
 
   for(l in 1:L){   # 4 size categories
@@ -155,7 +155,7 @@ model {
     piGroup[l] <- Ngroup[l]/N
   }
 }
-",file = "Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt")
+",file = "Visual surveys/Models/SCRpstarCATsizeCAT_HMU2.txt")
 
 #######################################################
 
@@ -168,13 +168,13 @@ jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc
 #locs=X, 
 
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=ngroup, s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,70,90), n0=c(57,7,5,25), s=vsst, p0=runif(L,.0002,.0003))
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
 
-out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
+out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU2.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/HMULOWDENS_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/HMULOWDENS_SCRpstarvisCATsizeCATupdated.Rdata")  ## M = 150 (XXXXhrs)
 

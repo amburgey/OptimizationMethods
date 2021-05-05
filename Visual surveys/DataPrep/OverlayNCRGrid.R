@@ -50,12 +50,12 @@ overlayNCR <- function(NCRcaps, cellsize){
   
   # Section 2. Create Grid Polygon
   ## Grid should be 8 m by 16 m to match surveying grid of Closed Population
-  cellsize = c(8,16)
+  cellsize1 = c(8,16)
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
   ## drawExtent()
   ## What grid size is good to use? Probably the same as the state space
   bbox <- st_sfc(st_polygon(list(rbind(c(267700,1503020), c(269000,1503020), c(269000,1504763), c(267700,1503020)))))
-  grd <- sf::st_make_grid(bbox, cellsize = cellsize, square = TRUE)
+  grd <- sf::st_make_grid(bbox, cellsize = cellsize1, square = TRUE)
   rotang = -26.5
   rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
   grd_rot <- (grd - st_centroid(st_union(grd))) * rot(rotang * pi / 180) +
