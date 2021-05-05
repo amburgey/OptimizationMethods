@@ -57,6 +57,9 @@ subcap[subcap$EFFORTID == "5618" & subcap$TRANSID == "5136" & subcap$TRANSECT ==
 subcap[subcap$EFFORTID == "7793" & subcap$TRANSID == "37059" & subcap$TRANSECT == "" & subcap$LOCATION == "T4",c("TRANSECT","LOCATION")] <- c("T","4") # capture listed as unknown transect and blank location, but comments say it looks like a poorly written X10 (and surveys did happen on X that evening)
 subcap <- subcap[!(subcap$EFFORTID == "9968" & subcap$TRANSID == "48687" & subcap$TRANSECT == "" & subcap$LOCATION == ""),] # Snake found incidentally while walking the transect (didn't remove survey as this was the trapping transect being checked)
 
+## Transect + location = Point
+subcap$Point <- paste(subcap$TRANSECT, subcap$LOCATION, sep = "")
+
 #### CHECK FOR MISSING SURVEYS ####
 ###### Check that dates of captures match dates when surveys were conducted, this will flag for captures without survey dates but not the other way around (because snakes weren't caught at every survey so wouldn't match) ######
 test <- ifelse(subcap$TRANSID %in% subsurv$TRANSID & subcap$EFFORTID %in% subsurv$EFFORTID, 1, 0)
