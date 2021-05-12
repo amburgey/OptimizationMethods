@@ -18,7 +18,7 @@ HMUcaps <- subset(HMUcaps, PROJECTCODE == "EDGE EFFECT VIS")
 HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
 
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-cellsize <- 5  ## dimensions of integration grid cell
+cellsize <- 10  ## dimensions of integration grid cell
 HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
@@ -86,7 +86,7 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- HMUspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
