@@ -176,5 +176,5 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU2.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/HMULOWDENS_SCRpstarvisCATsizeCATupdated.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/HMULOWDENS_SCRpstarvisCATsizeCATupdatedgrid.Rdata")  ## M = 150 (XXXXhrs)
 
