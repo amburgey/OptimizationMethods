@@ -27,7 +27,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Desired grid cell to match surveying grid of Closed Population
   cellsize1 = c(16,8)
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
-  bbox <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)+320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymax(hmuSpace)-95), c(xmin(hmuSpace)+320,ymin(hmuSpace)-95)))))
+  bbox <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)-7,ymin(hmuSpace)-80), c(xmax(hmuSpace),ymin(hmuSpace)-80), c(xmax(hmuSpace),ymax(hmuSpace)+10), c(xmin(hmuSpace)-7,ymax(hmuSpace)+10), c(xmin(hmuSpace)-7,ymin(hmuSpace)-80)))))
   grd <- sf::st_make_grid(bbox, cellsize = cellsize1, square = TRUE)
   rotang = -26.5
   rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
@@ -180,7 +180,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   ## Desired grid cell
   cellsize2 = c(cellsize,cellsize)
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
-  bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)+320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymax(hmuSpace)-95), c(xmin(hmuSpace)+320,ymin(hmuSpace)-95)))))
+  bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)-7,ymin(hmuSpace)-80), c(xmax(hmuSpace),ymin(hmuSpace)-80), c(xmax(hmuSpace),ymax(hmuSpace)+10), c(xmin(hmuSpace)-7,ymax(hmuSpace)+10), c(xmin(hmuSpace)-7,ymin(hmuSpace)-80)))))
   grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
   rotang = -26.5
   rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)

@@ -105,7 +105,7 @@ prepSCR <- function(SCRcaps, SCReff){
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths
-  if(length(unique(SCReff$DISTANCE)) != 1) stop('mismatch in effort and capture dimensions')
+  if(length(unique(SCReff$COUNT)) != 1) stop('mismatch in effort and capture dimensions')
   
   ## Subset to which transects were done on which dates
   act <- SCReff[,c("Date","TRANSECT")]

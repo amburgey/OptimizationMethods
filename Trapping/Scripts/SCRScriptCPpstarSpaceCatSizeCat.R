@@ -5,7 +5,8 @@
 rm(list=ls())
 
 source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("Trapping/DataPrep/DataPrepCP.R")              ## Functions to reshape survey and capture data
+source("Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
+source("Trapping/DataPrep/OverlayCPGrid.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -23,25 +24,16 @@ time2 <- c("2004-05-01","2004-08-31")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-## Make study area grid to ensure correct size
-## 27 transects (VIS and TRAP) with 13 points each, 8m from VIS to TRAP and 16m between points
-locs <- secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)
-J <- nrow(locs)
-
-## Define state-space of point process. (i.e., where animals live).
-## Don't need to estimate state-space since we know it (5 ha/50000 m2 enclosed pop) but do need this to help make integration grid below
-delta<- 11.874929
-Xl<-min(locs[,1]) - delta
-Xu<-max(locs[,1]) + delta
-Yl<-min(locs[,2]) - delta
-Yu<-max(locs[,2]) + delta
-## Area of CP
-A <- (Xu-Xl)*(Yu-Yl)
+cellsize <- c(5,5)  ## dimensions of integration grid cell
+CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
+## Area (5 ha/50,000 m2): 
+A <- 50000
 
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
-X <- as.matrix(locs)
+X <- as.matrix(CPspecs$tran[,-1])[,2:3]
+J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
 ## Subset data based on how it was collected (V = visual, T = trap)
@@ -52,3 +44,14 @@ SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - 
 SCReff <- effSnk(eff=CPsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
+
+
+## Inits for activity centers, can't take mean grid cell location where each snake was found as snakes found all over CP
+## Instead take first cell location where captured for each individual
+locs <- CPspecs$tran
+colnames(locs)[2] <- c("CellID")
+vsst <- list()
+for(i in 1:nrow(dat$y)){
+  vsst[i] <- apply(dat$y,1,function(x) which(x==1))[[i]][1]
+  vsst <- unlist(vsst)
+}
