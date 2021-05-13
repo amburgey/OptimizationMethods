@@ -6,6 +6,7 @@ rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
 source("Visual surveys/DataPrep/DataPrepCP_VISHL1.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/OverlayCPGrid.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -23,24 +24,16 @@ time2 <- c("2006-08-01","2007-02-28")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-## Make study area grid to ensure correct size
-## 27 transects (VIS and TRAP) with 13 points each, 8m from VIS to TRAP and 16m between points
-locs <- secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)
-J <- nrow(locs)
+cellsize <- 5  ## dimensions of integration grid cell
+CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
+## Area (5 ha/50,000 m2): 
+A <- 50000
 
-## Define state-space of point process. (i.e., where animals live).
-## Don't need to estimate state-space since we know it (5 ha/50000 m2 enclosed pop) but do need this to help make integration grid below
-delta<- 11.874929
-Xl<-min(locs[,1]) - delta
-Xu<-max(locs[,1]) + delta
-Yl<-min(locs[,2]) - delta
-Yu<-max(locs[,2]) + delta
-## Area of CP
-A <- (Xu-Xl)*(Yu-Yl)
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
-X <- as.matrix(locs)
+X <- as.matrix(CPspecs$tran[,-1])[,2:3]
+J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
 ## Subset data based on how it was collected (V = visual, T = trap)
@@ -84,13 +77,15 @@ K <- rowSums(act)
 ## Number of survey occasions
 nocc <- ncol(act)
 
-## Inits for activity centers, take mean grid cell location where each snake was found
-locs <- as.data.frame(locs)
-locs$CellID <- c(1:dim(locs)[1])
-sst <- round(unlist(lapply(apply(y,1,function(x) which(x==1)),function(x) mean(x))))
-vlocs <- locs[locs$CellID %in% sst,]
-sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
-vsst <- unlist(merge(sst,vlocs, by=c("CellID"))[,1])
+## Inits for activity centers, can't take mean grid cell location where each snake was found as snakes found all over CP
+## Instead take first cell location where captured for each individual
+locs <- CPspecs$tran
+colnames(locs)[2] <- c("CellID")
+vsst <- list()
+for(i in 1:nrow(dat$y)){
+  vsst[i] <- apply(dat$y,1,function(x) which(x==1))[[i]][1]
+  vsst <- unlist(vsst)
+}
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
 
@@ -101,19 +96,13 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
-Xlocs <- rep(seq(Xl, Xu, Ggrid), times = length(seq(Yl, Yu, Ggrid)))
-Ylocs <- rep(seq(Yl, Yu, Ggrid), each = length(seq(Xl, Xu, Ggrid)))
-G <- cbind(Xlocs, Ylocs)
+Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
+G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid^2                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
-points(Xl,Yu, pch=21, col="blue")         #check CP dimensions match
-points(Xl,Yl, pch=21, col="blue")
-points(Xu,Yu, pch=21, col="blue")
-points(Xu,Yl, pch=21, col="blue")
 
 
 ########################################################
@@ -181,15 +170,14 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 1000+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+nc <- 3; nAdapt=200; nb <- 100; ni <- 500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, Xu=Xu, Xl=Xl, Yu=Yu, Yl=Yl, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), act=t(act), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-#locs=X, 
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
 
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=c(60,300,24,24), s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
