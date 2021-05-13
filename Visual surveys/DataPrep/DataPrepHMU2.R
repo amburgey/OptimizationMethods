@@ -149,15 +149,18 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   colnames(grid) <- c("TRANSECT","GridID","x","y")
   ## Expand dataframe to be all grid cells and not just at the broad transect level
   allact <- merge(grid, act, by = c("TRANSECT"), all=TRUE)
-  ## 10 sites (5 int and 5 edge) overlap the same grid cells but just change to be one or the other name
+  ## SHOULDN'T NEED - edge transects were surveyed every date
+  ## 3 sites (at intersection of edge and interior transects) overlap the same grid cells but just change to be one or the other name
   ## Add in cell IDs that were renamed in OverlayHMUGrid2 so that these cells were also surveyed when their old name was also surveyed
-  missing <- subset(grid,GridID == "603" | GridID == "1123" | GridID == "1999" | GridID == "2557" | GridID == "4262")
-  dates1 <- as.Date(c("2015-06-01","2015-06-03","2015-06-08","2015-06-10","2015-06-15","2015-06-17","2015-06-22","2015-06-24","2015-06-29","2015-07-01","2015-07-06","2015-07-08","2015-07-13","2015-07-15","2015-07-20","2015-07-22","2015-07-27","2015-07-29"))
-  dates2 <- as.Date(c("2015-06-02","2015-06-04","2015-06-09","2015-06-11","2015-06-16","2015-06-18","2015-06-23","2015-06-25","2015-06-30","2015-07-02","2015-07-07","2015-07-09","2015-07-14","2015-07-16","2015-07-21","2015-07-23","2015-07-28","2015-07-30"))
-  missing <- missing[rep(seq_len(nrow(missing)), each =18),]
-  missing$Date <- c(dates1,dates2,dates2,dates1,dates1)
-  missing$Active <- 1
-  allact <- rbind(allact,missing)
+  # missing <- subset(grid,GridID == "578" | GridID == "1092" | GridID == "2518")
+  ## Interior and edge transects surveyed on different dates
+  ## 578 = H6 (all) and HS (dates1), 1092 = H4 (all) and HR (dates2), 2518 = H3 (all) and HO (dates1)
+  # dates1 <- as.Date(c("2015-06-01","2015-06-03","2015-06-08","2015-06-10","2015-06-15","2015-06-17","2015-06-22","2015-06-24","2015-06-29","2015-07-01","2015-07-06","2015-07-08","2015-07-13","2015-07-15","2015-07-20","2015-07-22","2015-07-27","2015-07-29"))
+  # dates2 <- as.Date(c("2015-06-02","2015-06-04","2015-06-09","2015-06-11","2015-06-16","2015-06-18","2015-06-23","2015-06-25","2015-06-30","2015-07-02","2015-07-07","2015-07-09","2015-07-14","2015-07-16","2015-07-21","2015-07-23","2015-07-28","2015-07-30"))
+  # missing <- missing[rep(seq_len(nrow(missing)), each =18),]
+  # missing$Date <- c(dates1,dates2,dates1,dates2,dates1,dates2)
+  # missing$Active <- 1
+  # allact <- rbind(allact,missing)
   allact <- allact[order(allact$TRANSECT,allact$Date,allact$GridID),]
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")

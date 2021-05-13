@@ -293,20 +293,19 @@ overlayHMU <- function(HMUcaps, cellsize){
   
   ## Checking. Plot snapped captures to transects ----
   # t <- extent(lines2[[9]])
-  # plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
+  # plot(clipHMU, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
+  # plot(lines2[[9]], add=TRUE, col="blue")
   # plot(my.list[[9]]$sfHMU.geometry, add=TRUE, col="red")
   # snaps1 <- snaplist[[9]]
   # coordinates(snaps1) =~ X + Y
   # plot(hmucaps, add=TRUE, pch=21, cex=0.5) ## original
   # plot(snaps1, add=TRUE, pch=21, cex=0.5, col="yellow") ## adjusted
 
-  ## 10 sites (5 int and 5 edge) overlap the same grid cells so can just change to be one or the other name
+  ## 3 sites (at intersection of edge and interior transects) overlap the same grid cells so can just change to be one or the other name
   ## Change to other transect name and then remove via unique just to have record of decision
-  vistran[vistran$TranID == "HS" & vistran$GridID == "603", "TranID"] <- "H6"
-  vistran[vistran$TranID == "HR" & vistran$GridID == "1123", "TranID"] <- "H4"
-  vistran[vistran$TranID == "HP" & vistran$GridID == "1999", "TranID"] <- "H7"
-  vistran[vistran$TranID == "HO" & vistran$GridID == "2557", "TranID"] <- "H7"
-  vistran[vistran$TranID == "HK" & vistran$GridID == "4262", "TranID"] <- "H8"
+  vistran[vistran$TranID == "HS" & vistran$GridID == "578", "TranID"] <- "H6"
+  vistran[vistran$TranID == "HR" & vistran$GridID == "1092", "TranID"] <- "H4"
+  vistran[vistran$TranID == "HO" & vistran$GridID == "2518", "TranID"] <- "H3"
   vistran <- unique(vistran)
   
   ## No snake captures at those locations, changes to active (surveyed/not surveyed) made in DataPrepHMU2

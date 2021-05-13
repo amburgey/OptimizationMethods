@@ -22,7 +22,7 @@ time <- c("06","07")
 time2 <- c("2015-04-01","2015-09-30")
 
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-cellsize <- c(16,8)  ## dimensions of integration grid cell
+cellsize <- c(10,10)  ## dimensions of integration grid cell
 HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
