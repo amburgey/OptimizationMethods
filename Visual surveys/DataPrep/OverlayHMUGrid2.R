@@ -239,7 +239,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   
 # Section 6. Create rotated integration grid ----
   ## Desired grid cell
-  cellsize2 = c(cellsize,cellsize)
+  cellsize2 = cellsize
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
   bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(hmuSpace)+320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymin(hmuSpace)-95), c(xmax(hmuSpace)-320,ymax(hmuSpace)-95), c(xmin(hmuSpace)+320,ymin(hmuSpace)-95)))))
   grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
@@ -299,7 +299,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   # coordinates(snaps1) =~ X + Y
   # plot(hmucaps, add=TRUE, pch=21, cex=0.5) ## original
   # plot(snaps1, add=TRUE, pch=21, cex=0.5, col="yellow") ## adjusted
-  
+
   ## 10 sites (5 int and 5 edge) overlap the same grid cells so can just change to be one or the other name
   ## Change to other transect name and then remove via unique just to have record of decision
   vistran[vistran$TranID == "HS" & vistran$GridID == "603", "TranID"] <- "H6"

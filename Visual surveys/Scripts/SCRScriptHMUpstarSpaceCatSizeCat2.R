@@ -17,8 +17,12 @@ HMUsurv <- subset(subsurv, (SITE == "HMUI" | SITE == "HMUR"))
 HMUcaps <- subset(HMUcaps, PROJECTCODE == "LOWDENS VIS")
 HMUsurv <- subset(HMUsurv, PROJECTCODE == "LOWDENS VIS")
 
+## SECIFY TIME FRAME
+time <- c("06","07")
+time2 <- c("2015-04-01","2015-09-30")
+
 ##### SPECIFY DIMENSIONS AND GRID OF HMU #####
-cellsize <- 5  ## dimensions of integration grid cell
+cellsize <- c(16,8)  ## dimensions of integration grid cell
 HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
 A <- 550000
@@ -32,9 +36,9 @@ J <- nrow(X)
 ## Subset data based on how it was collected or the size of snakes involved
 capPROJ <- subSnk(SITEcaps=HMUspecs$snks)
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("06","07"))  ## specify month range
+SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## specify month range
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=HMUsurv, time=c("06","07"))
+SCReff <- effSnk(eff=HMUsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -51,7 +55,7 @@ nind <- nrow(y)
 
 ## Get sizes of individuals
 # snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
-snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=c("2015-04-01","2015-09-30"))[,2] ## if some snake sizes are missing than expand window of time
+snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
 snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
@@ -86,10 +90,10 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- HMUspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid^2                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
@@ -160,12 +164,11 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+# nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=2; nb <- 10; ni <- 10+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-#locs=X, 
 
 inits <- function(){
   list (sigma=runif(1,70,90), n0=c(57,7,5,25), s=vsst, p0=runif(L,.0002,.0003))
