@@ -103,31 +103,3 @@ overlayCP <- function(CPcaps, cellsize){
 }
 
 
-
-
-test <- rotate.polygon(CP, angle = 42.2)
-
-plot(test)
-test2 <- rasterize(test)
-bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(test2),ymin(test2)), c(xmax(test2),ymin(test2)), c(xmax(test2),ymax(test2)), c(xmin(test2),ymax(test2)), c(xmin(test2),ymin(test2))))))
-intgrd_rot <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
-## Specify projection again
-st_crs(intgrd_rot) <- "+proj=utm +zone=55 +units=m +datum=WGS84"
-## Convert from sfc polygon to Spatial Polygon
-intgrd_rot <- as_Spatial(intgrd_rot, cast=TRUE, IDs=paste0("ID", seq_along(intgrd_rot)))
-
-
-rotang = -42.5
-rot = function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
-intgrd_rot2 <- (intgrd_rot - st_centroid(st_union(grd2))) * rot(rotang * pi / 180) +
-  st_centroid(st_union(grd2))
-## Specify projection again
-st_crs(intgrd_rot2) <- "+proj=utm +zone=55 +units=m +datum=WGS84"
-## Convert from sfc polygon to Spatial Polygon
-intgrd_rot2 <- as_Spatial(intgrd_rot2, cast=TRUE, IDs=paste0("ID", seq_along(intgrd_rot)))
-
-
-rotate.polygon()
-
-
-

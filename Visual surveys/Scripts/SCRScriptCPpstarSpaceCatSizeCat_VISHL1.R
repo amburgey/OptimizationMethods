@@ -96,10 +96,10 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid^2                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")

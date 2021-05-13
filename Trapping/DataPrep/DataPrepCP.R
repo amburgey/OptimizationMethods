@@ -154,7 +154,7 @@ prepSCRman <- function(SCRcaps, SCReff){
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths
-  if(length(unique(SCReff$DISTANCE)) == 1) stop('no mismatch in effort and capture dimensions')
+  if(length(unique(SCReff$COUNT)) == 1) stop('no mismatch in effort and capture dimensions')
   
   ## Subset to which transects were done on which dates
   act <- SCReff[,c("Date","TRANSECT")]
@@ -166,7 +166,6 @@ prepSCRman <- function(SCRcaps, SCReff){
   ## Expand dataframe to be all points and not just at the broad transect level
   allact <- merge(act, allact, by = c("TRANSECT"))
   ## Distance is in km, correct effort to represent portions of transect that were not walked
-  tocorr <- subset(SCReff, DISTANCE == 0.02)
   
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, Point ~ Date, fun.aggregate = sum, value.var = "Active")
@@ -177,18 +176,7 @@ prepSCRman <- function(SCRcaps, SCReff){
   ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
   act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
   
-  ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
-  act2[act2$Point == "W1",22] <- 0
-  act2[act2$Point == "W2",22] <- 0
-  act2[act2$Point == "W3",22] <- 0
-  act2[act2$Point == "W4",22] <- 0 
-  act2[act2$Point == "W5",22] <- 0
-  act2[act2$Point == "W6",22] <- 0
-  act2[act2$Point == "W7",22] <- 0
-  act2[act2$Point == "W8",22] <- 0
-  act2[act2$Point == "W9",22] <- 0
-  act2[act2$Point == "W10",22] <- 0
-  act2[act2$Point == "W11",22] <- 0
+  ##### CAN'T CORRECT EFFORT HERE AS WE LACK A RELIABLE RECORD OF WHICH TRAPS WERE INACTIVE
   
   both <- list(y=y,act=act2)
   
