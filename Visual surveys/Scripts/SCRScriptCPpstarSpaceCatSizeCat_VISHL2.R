@@ -24,7 +24,7 @@ time2 <- c("2007-08-01","2009-01-22")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- c(5,5)  ## dimensions of integration grid cell
+cellsize <- c(10,10)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (5 ha/50,000 m2): 
 A <- 50000
@@ -193,6 +193,6 @@ out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, i
 #             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 
-save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATupdated.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATupdatedgrid10.Rdata")  ## M = 150 (XXXXhrs)
 # save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATNOSIZEgrid5.Rdata")
 
