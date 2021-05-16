@@ -24,7 +24,7 @@ time2 <- c("2012-09-01","2012-12-30")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- 10  ## dimensions of integration grid cell
+cellsize <- c(10,10)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (5 ha/50,000 m2): 
 A <- 50000
@@ -99,7 +99,7 @@ e2dist <- function (x, y) {
 Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid^2                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")

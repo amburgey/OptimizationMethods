@@ -62,7 +62,7 @@ overlayCP <- function(CPcaps, cellsize){
   
 # Section 5. Create rotated integration grid ----
   ## Desired grid cell
-  cellsize2 = c(cellsize,cellsize)
+  cellsize2 = cellsize
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
   bbox2 <- st_sfc(st_polygon(list(rbind(c(xmin(cpSpace)+7,ymin(cpSpace)-2), c(xmax(cpSpace)+7,ymin(cpSpace)-2), c(xmax(cpSpace)+7,ymax(cpSpace)-2), c(xmin(cpSpace)+7,ymax(cpSpace)-2), c(xmin(cpSpace)+7,ymin(cpSpace)-2)))))
   grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)

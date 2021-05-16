@@ -24,7 +24,7 @@ time2 <- c("2007-08-01","2009-01-22")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- 5  ## dimensions of integration grid cell
+cellsize <- c(5,5)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (5 ha/50,000 m2): 
 A <- 50000
@@ -96,10 +96,10 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- 5                                #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid^2                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2]                            #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
@@ -175,16 +175,24 @@ nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1  ## hits error at 2000 it
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
 
 inits <- function(){
   list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
 }
+# inits <- function(){
+#   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+# }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0")
 
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+# out <- jags("Archive/SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+#             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+
 
 save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATupdated.Rdata")  ## M = 150 (XXXXhrs)
-
+# save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATNOSIZEgrid5.Rdata")
 
