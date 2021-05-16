@@ -165,7 +165,7 @@ model {
 
 ## MCMC settings
 # nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-nc <- 3; nAdapt=2; nb <- 10; ni <- 10+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
