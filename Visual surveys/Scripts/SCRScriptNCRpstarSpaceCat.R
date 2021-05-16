@@ -21,7 +21,7 @@ NCRsurv <- subset(NCRsurv, PROJECTCODE == "EDGE EFFECT VIS")
 ## One snake observed at both edge and interior transects so analyze as one combined dataset
 
 ##### SPECIFY DIMENSIONS AND GRID OF NCR #####
-cellsize <- 5  ## dimensions of integration grid cell
+cellsize <- c(10,10)  ## dimensions of integration grid cell
 NCRspecs <- overlayNCR(NCRcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (open, match to integration grid area): 
 A <- as.numeric(st_bbox(NCRspecs$grd)[3] - st_bbox(NCRspecs$grd)[1]) * as.numeric(st_bbox(NCRspecs$grd)[4] - st_bbox(NCRspecs$grd)[2])
@@ -96,7 +96,7 @@ e2dist <- function (x, y) {
 Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- NCRspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid^2                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")

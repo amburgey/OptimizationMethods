@@ -181,7 +181,7 @@ overlayNCR <- function(NCRcaps, cellsize){
   
   # Section 5. Create rotated integration grid ----
   ## Desired grid cell
-  cellsize2 = c(cellsize,cellsize)
+  cellsize2 = cellsize
   ## Overlay a grid of these dimensions across the space of the HMU (but with room for rotation) and then rotate
   bbox2 <- bbox
   grd2 <- sf::st_make_grid(bbox2, cellsize = cellsize2, square = TRUE)
