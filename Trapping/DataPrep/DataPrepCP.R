@@ -122,7 +122,7 @@ prepSCR <- function(SCRcaps, SCReff, grid){
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
   ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
-  act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
+  act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
   ## Prep for model
  
   both <- list(y=y,act=act2)
@@ -172,7 +172,7 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
   act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
   ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
-  act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
+  act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
   ## Prep for model
   
   ##### CAN'T CORRECT EFFORT HERE AS WE LACK A RELIABLE RECORD OF WHICH TRAPS WERE INACTIVE
