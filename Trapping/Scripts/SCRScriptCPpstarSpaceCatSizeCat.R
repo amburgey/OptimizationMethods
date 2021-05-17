@@ -24,7 +24,7 @@ time2 <- c("2004-05-01","2004-08-31")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- c(5,5)  ## dimensions of integration grid cell
+cellsize <- c(10,10)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (5 ha/50,000 m2): 
 A <- 50000
@@ -43,18 +43,20 @@ checkDims(SCReff, SCRcaps)
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
 slocs <- paste(rep(unique(SCReff$TRANSECT),each=13),1:13,sep="")
-X <- subset(CPspecs$tran, TranID %in% slocs)
-X <- as.matrix(X[,-1])[,2:3]
+fullX <- subset(CPspecs$tran, TranID %in% slocs)
+X <- as.matrix(fullX[,-1])[,2:3]
 J <- nrow(X)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-# dat <- prepSCR(SCRcaps, SCReff)
+## Add GridID to captures so sorting using that instead of location
+colnames(fullX)[1] <- c("Point")
+SCRcaps <- merge(SCRcaps, fullX[,1:2], by = c("Point"))
+# dat <- prepSCR(SCRcaps, SCReff, grid = fullX)
 ## If error and need to do manual
-dat <- prepSCRman(SCRcaps, SCReff)
+dat <- prepSCRman(SCRcaps, SCReff, grid = fullX)
 
-## Observations, already in order of 1-351 CellID locations
+## Observations, already in order of CellID locations
 y <- dat$y
-colnames(y) <- 1:ncol(dat$y)
 
 ## Uniquely marked individuals
 nind <- nrow(y)
@@ -172,21 +174,27 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+nc <- 3; nAdapt=200; nb <- 100; ni <- 100+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts)) 
 
+# inits <- function(){
+#   list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
+# }
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
 }
 
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0")
 
-out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+# out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+out <- jags("Archive/SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Trapping/Results/NWFNTRAP1_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
-
-
+# save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata")
+save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATNOSIZEgrid10.Rdata")
 
