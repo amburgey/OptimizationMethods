@@ -1,0 +1,220 @@
+##### HMU (Habitat Management Unit) is a 55-ha semi-closed (fenced to entry) study area
+
+
+## Subset down to captures needed for project:
+subSnk <- function(SITEcaps){
+
+  ##### READ IN AND FORMAT CAPTURES #####
+  ## Order by GridID
+  SITEcaps <- SITEcaps[order(SITEcaps$GridID),]
+  ## Separate year and month out for organizing
+  SITEcaps$YEAR <- format(as.Date(SITEcaps$Date, format="%m/%d/%Y"),"%Y")
+  SITEcaps$MONTH <- format(as.Date(SITEcaps$Date, format="%m/%d/%Y"),"%m")
+  
+  return(SITEcaps)
+  
+}
+
+
+## Specify time and subset snake captures to that timeframe
+subYr <- function(SITEcaps, time){
+  
+  capsyr <- subset(SITEcaps, MONTH >= time[1] & MONTH <= time[2])
+  capsyr <- capsyr[,c("EFFORTID","Date","PITTAG","TRANSECT","GridID")]
+  capsyr <- capsyr[order(capsyr$TRANSECT, capsyr$Date),]
+  
+  return(capsyr)
+}
+
+
+## Determine the sampling effort (when transects were surveyed)
+effSnk <- function(eff, time){
+  ##### READ IN TRAPPING EFFORT #####
+  ## Separate month out for organizing
+  eff$MONTH <- format(as.Date(eff$Date, format="%m/%d/%Y"),"%m")
+  ## Subset to timespan
+  effyr <- subset(eff, MONTH >= time[1] & MONTH <= time[2])
+  effyr <- effyr[,c("EFFORTID","Date","BI","TRANSECT","DISTANCE")]
+  effyr <- effyr[order(effyr$TRANSECT, effyr$Date),]
+  return(effyr)
+}
+
+
+##### COMPARE DATES BETWEEN CAPTURES AND EFFORT #####
+## Make sure that the captures of snakes match the dates when surveys occurred
+checkDims <- function(SCRseff, SCRcaps){
+  x <- unique(SCReff[,c("Date","EFFORTID")])
+  y <- unique(SCRcaps[,c("Date","EFFORTID")])
+  
+  new <- merge(x, y, by=c("EFFORTID","Date"), all = TRUE)
+  
+  if(nrow(new) != nrow(unique(SCReff[,c("Date","EFFORTID")]))) stop('mismatch in effort and capture dimensions')
+
+}
+
+
+##### SETUP DATA FOR SCR ANALYSIS FORMAT #####
+prepSCR <- function(SCRcaps, SCReff, grid){
+  
+  ## set up observations as count of individuals (rows) and traps (columns) over study
+  y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "GridID")
+  y <- y[,-1]
+  
+  ## Find names of missing columns
+  Missing <- as.character(setdiff(grid$GridID,colnames(y)))
+  
+  if(length(Missing)!= 0){
+    ## Add them, filled with '0's
+    y[Missing] <- 0
+    ## Put columns in desired order
+    y <- y[as.character(grid$GridID)]  
+    ## Prep for model
+    y <- as.matrix(y)
+  }
+  
+  ## Transform any multiple captures at a single location to just 1
+  y <- ifelse(y>=1,1,y)
+  
+  ## Set up effort matrix (Grid cell by Date and indicate if active or not)
+  ## Check if effort should be scaled due to different survey lengths
+  if(length(unique(SCReff$DISTANCE)) != 1) stop('mismatch in effort and capture dimensions')
+  
+  ## Subset to which transects were done on which dates
+  act <- SCReff[,c("Date","TRANSECT")]
+  ## Indicate these were the active times
+  act$Active <- c(1)
+  ## Add missing transect - date combinations
+  act <- act %>%
+    complete(Date, nesting(TRANSECT), fill = list(Active = 0))
+  ## Name grid to match act
+  colnames(grid) <- c("TRANSECT","GridID","x","y")
+  ## Expand dataframe to be all grid cells and not just at the broad transect level
+  allact <- merge(grid, act, by = c("TRANSECT"), all=TRUE)
+  ## 10 sites (5 int and 5 edge) overlap the same grid cells but just change to be one or the other name
+  ## Add in cell IDs that were renamed in OverlayHMUGrid2 so that these cells were also surveyed when their old name was also surveyed
+  missing <- subset(grid,GridID == "603" | GridID == "1123" | GridID == "1999" | GridID == "2557" | GridID == "4262")
+  dates1 <- as.Date(c("2015-06-01","2015-06-03","2015-06-08","2015-06-10","2015-06-15","2015-06-17","2015-06-22","2015-06-24","2015-06-29","2015-07-01","2015-07-06","2015-07-08","2015-07-13","2015-07-15","2015-07-20","2015-07-22","2015-07-27","2015-07-29"))
+  dates2 <- as.Date(c("2015-06-02","2015-06-04","2015-06-09","2015-06-11","2015-06-16","2015-06-18","2015-06-23","2015-06-25","2015-06-30","2015-07-02","2015-07-07","2015-07-09","2015-07-14","2015-07-16","2015-07-21","2015-07-23","2015-07-28","2015-07-30"))
+  missing <- missing[rep(seq_len(nrow(missing)), each =18),]
+  missing$Date <- c(dates1,dates2,dates2,dates1,dates1)
+  missing$Active <- 1
+  allact <- rbind(allact,missing)
+  allact <- allact[order(allact$TRANSECT,allact$Date,allact$GridID),]
+  ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
+  act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
+  ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
+  act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
+  ## Prep for model
+  
+  
+  both <- list(y=y,act=act2)
+  
+  return(both)
+}
+
+
+prepSCRman <- function(SCRcaps, SCReff, grid){
+  
+  ## set up observations as count of individuals (rows) and traps (columns) over study
+  y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "GridID")
+  y <- y[,-1]
+  
+  ## Find names of missing columns
+  Missing <- as.character(setdiff(grid$GridID,colnames(y)))
+  
+  if(length(Missing)!= 0){
+    ## Add them, filled with '0's
+    y[Missing] <- 0
+    ## Put columns in desired order
+    y <- y[as.character(grid$GridID)]  
+    ## Prep for model
+    y <- as.matrix(y)
+  }
+  
+  ## Transform any multiple captures at a single location to just 1
+  y <- ifelse(y>=1,1,y)
+  
+  ## Set up effort matrix (Grid cell by Date and indicate if active or not)
+  ## Check if effort should be scaled due to different survey lengths
+  if(length(unique(SCReff$DISTANCE)) == 1) stop('no mismatch in effort and capture dimensions')
+  
+  ## Subset to which transects were done on which dates
+  act <- SCReff[,c("Date","TRANSECT")]
+  ## Indicate these were the active times
+  act$Active <- c(1)
+  ## Add missing transect - date combinations
+  act <- act %>%
+    complete(Date, nesting(TRANSECT), fill = list(Active = 0))
+  ## Name grid to match act
+  colnames(grid) <- c("TRANSECT","GridID","x","y")
+  ## Expand dataframe to be all grid cells and not just at the broad transect level
+  allact <- merge(grid, act, by = c("TRANSECT"), all=TRUE)
+  ## SHOULDN'T NEED - edge transects were surveyed every date
+  ## 3 sites (at intersection of edge and interior transects) overlap the same grid cells but just change to be one or the other name
+  ## Add in cell IDs that were renamed in OverlayHMUGrid2 so that these cells were also surveyed when their old name was also surveyed
+  # missing <- subset(grid,GridID == "578" | GridID == "1092" | GridID == "2518")
+  ## Interior and edge transects surveyed on different dates
+  ## 578 = H6 (all) and HS (dates1), 1092 = H4 (all) and HR (dates2), 2518 = H3 (all) and HO (dates1)
+  # dates1 <- as.Date(c("2015-06-01","2015-06-03","2015-06-08","2015-06-10","2015-06-15","2015-06-17","2015-06-22","2015-06-24","2015-06-29","2015-07-01","2015-07-06","2015-07-08","2015-07-13","2015-07-15","2015-07-20","2015-07-22","2015-07-27","2015-07-29"))
+  # dates2 <- as.Date(c("2015-06-02","2015-06-04","2015-06-09","2015-06-11","2015-06-16","2015-06-18","2015-06-23","2015-06-25","2015-06-30","2015-07-02","2015-07-07","2015-07-09","2015-07-14","2015-07-16","2015-07-21","2015-07-23","2015-07-28","2015-07-30"))
+  # missing <- missing[rep(seq_len(nrow(missing)), each =18),]
+  # missing$Date <- c(dates1,dates2,dates1,dates2,dates1,dates2)
+  # missing$Active <- 1
+  # allact <- rbind(allact,missing)
+  allact <- allact[order(allact$TRANSECT,allact$Date,allact$GridID),]
+  ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
+  act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
+  ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
+  act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
+  
+  ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
+  ## NO CHANGES NEEDED TO EFFORT FOR HMU DATASET AS EDGE TRANSECTS WERE SHORTER (0.22) AND INTERIOR TRANSECTS WERE LONGER (0.44)
+  
+  both <- list(y=y,act=act2)
+  
+  return(both)
+}
+
+
+getSize <- function(capPROJ, SCRcaps, subcap){
+  
+  ## Find body sizes from current dataset
+  bod <- capPROJ[,c("PITTAG","SVL")]
+  ## Eliminate ones not retained for analysis above
+  bod <- bod[(bod$PITTAG %in% SCRcaps$PITTAG),]
+  ## Find mean body size in case multiple measures taken during this study
+  bod <- aggregate(bod[,c("SVL")],list(bod$PITTAG),mean,na.rm = TRUE)
+  bod <- bod[order(bod$Group.1),]
+  if(dim(subset(bod, is.na(x)))[1] != 0) stop("Not all snakes have size")
+  
+  return(bod)
+  
+}
+
+getSizeman <- function(capPROJ, SCRcaps, subcap, time){
+  
+  ## Find body sizes from current dataset
+  bod <- capPROJ[,c("PITTAG","SVL")]
+  ## Eliminate ones not retained for analysis above
+  bod <- bod[(bod$PITTAG %in% SCRcaps$PITTAG),]
+  ## Find mean body size in case multiple measures taken during this study
+  bod <- aggregate(bod[,c("SVL")],list(bod$PITTAG),mean,na.rm = TRUE)
+  
+  ## If some snakes are missing body size so see if there is another record from same area and ballpark time frame
+  Missing <- subset(bod, is.na(x))
+  tf <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR") & Date >= as.Date(time[1]) & Date <= as.Date(time[2]))
+  tf <- tf[tf$PITTAG %in% Missing$Group.1,]
+  tfbod <- aggregate(tf[,c("SVL")],list(tf$PITTAG),mean,na.rm = TRUE)
+  ## 1435 SVL for HMUR9156 on 3rd of March 2015 (measure for the day it was caught for this experiment deemed improbable)
+  ## 1604 SVl for 0A140A4B4D on 24th of May 2015? (last measure in database)
+  tfbod$x <- c(1604,1435)
+  ## Insert found values
+  for(i in 1:nrow(tfbod)){
+    bod[bod$Group.1 == tfbod$Group.1[i] & is.na(bod[2]), "x"] <- tfbod[i,2]
+  }
+  bod <- bod[order(bod$Group.1),]
+  ## If error triggered again then...other creative solutions to follow
+  if(dim(subset(bod, is.na(x)))[1] != 0) stop("Not all snakes have size")
+  
+  return(bod)
+}
