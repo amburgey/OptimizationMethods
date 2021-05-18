@@ -3,7 +3,7 @@ model {
 
   p0 ~ dunif(0,1)
   alpha0 <- logit(p0)
-  sigma ~ dunif(0,100)
+  sigma ~ dunif(0,200)
   alpha1 <- 1/(2*sigma*sigma)
   
   # Posterior conditional distribution for N-n (and hence N):
