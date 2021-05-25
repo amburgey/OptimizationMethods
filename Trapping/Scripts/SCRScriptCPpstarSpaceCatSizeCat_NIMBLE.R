@@ -8,7 +8,10 @@ source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
 source("Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
 source("Trapping/DataPrep/OverlayCPGrid.R")
 
-library(nimble); library(reshape2); library(jagsUI)
+library(nimble); library(reshape2)
+
+Sys.setenv(PATH = paste("C:/Rtools/bin", Sys.getenv("PATH"), sep=";"))
+Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
 
 ## Subset capture data (subcap) and effort/survey data (subsurv)
 CPcaps <- subset(subcap, SITE == "NWFN")
