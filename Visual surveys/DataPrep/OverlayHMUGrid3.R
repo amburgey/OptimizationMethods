@@ -288,7 +288,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   # t <- extent(lines2[[10]])
   # plot(grd_rot, xlim=c(as.numeric(xmin(t))-0.5,as.numeric(xmax(t))+0.5), ylim=c(as.numeric(ymin(t))-5,as.numeric(ymax(t))+5))
   # plot(lines2[[10]], add=TRUE, col="red")
-  # plot(my.list[[10]]$sfHMU.geometry, add=TRUE, col="red")
+  # plot(my.list[[10]], add=TRUE, col="red")
 
   
   ## Checking. Plot snapped captures to transects ----

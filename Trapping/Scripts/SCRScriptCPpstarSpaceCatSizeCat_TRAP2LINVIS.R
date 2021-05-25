@@ -1,58 +1,69 @@
-##### HMU (Habitat Management Unit) is a 55-ha semi-closed (fenced to entry but not exit of snakes) study area
+##### CP (Closed Pop, aka NWFN) is a 5-ha closed (fenced to entry and exit of snakes) study area
+
+## CP was created in 2004 and has been used in several projects, resulting in a rich time series with surveys occurring at various densities of snakes
 
 rm(list=ls())
 
-
-source("Select&PrepVisualData.R")  ## Creation of subcap and subsurv
-source("Visual surveys/DataPrep/OverlayHMUGrid3.R")
-source("Visual surveys/DataPrep/DataPrepHMU3.R")
+source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
+source("Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
+source("Trapping/DataPrep/OverlayCPGrid.R")
 
 library(secr); library(reshape2); library(jagsUI)
 
-## Capture data (subcap) and effort/survey data (subsurv)
-HMUcaps <- subset(subcap, (SITE == "HMUI" | SITE == "HMUR"))
-HMUsurv <- subset(subsurv, (SITE == "HMUI" | SITE == "HMUR"))
+## Subset capture data (subcap) and effort/survey data (subsurv)
+CPcaps <- subset(subcap, SITE == "NWFN")
+CPsurv <- subset(subsurv, SITE == "NWFN")
 
-## Subset to specific NWFN project (options = MWFM VIS 2, NWFN VIS HL 1, NWFN VIS HL 2, PRE NT2 VIS, POST BT2 VIS, POST KB VIS 1, POST KB VIS 2, POST KB VIS 3 EXTRA, POST KB VIS 3, NWFN VISPACE, NWFN SCENT VIS TRAIL)
-HMUcaps <- subset(HMUcaps, PROJECTCODE == "TOX DROP VIS 3")
-HMUsurv <- subset(HMUsurv, PROJECTCODE == "TOX DROP VIS 3")
+## Subset to specific NWFN project
+CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN TRAP 2 LINVIS")
+CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN TRAP 2 LINVIS")
 
-##### SPECIFY DIMENSIONS AND GRID OF HMU #####
+## SECIFY TIME FRAME
+time <- c("06","07")
+time2 <- c("2004-05-01","2004-08-31")
+
+
+##### SPECIFY DIMENSIONS OF CP #####
 cellsize <- c(10,10)  ## dimensions of integration grid cell
-############## NOT WORKING YET DUE TO NO SNAKES EVER CAUGHT ON CERTAIN TRANSECTS, I.E., ALL ZERO DATA
-HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
-## Area (55 ha/550,000 m2): 
-A <- 550000
+CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
+## Area (5 ha/50,000 m2): 
+A <- 50000
 
-##### USE CATEGORICAL GRID CELL LOCATIONS #####
-## Surveys locations
-X <- as.matrix(HMUspecs$tran[,-1])[,2:3]
-J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
-## Subset data based on how it was collected or the size of snakes involved
-capPROJ <- subSnk(SITEcaps=HMUspecs$snks)
+## Subset data based on how it was collected (V = visual, T = trap)
+capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("M"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=c("05","06"))  ## specify month range
+SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
-SCReff <- effSnk(eff=HMUsurv, time=c("05","06"))
+SCReff <- effSnk(eff=CPsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
-#### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-# dat <- prepSCR(SCRcaps, SCReff, grid = HMUspecs$tran)  ## if error here do one below
-dat <- prepSCRman(SCRcaps, SCReff, grid = HMUspecs$tran) ## MANUALLY CHANGE DISTANCES
+##### USE CATEGORICAL GRID CELL LOCATIONS #####
+## Surveys locations
+slocs <- paste(rep(unique(SCReff$TRANSECT),each=13),1:13,sep="")
+fullX <- subset(CPspecs$tran, TranID %in% slocs)
+X <- as.matrix(fullX[,-1])[,2:3]
+J <- nrow(X)
 
-## Observations, already in order of 1-351 CellID locations
+#### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
+## Add GridID to captures so sorting using that instead of location
+colnames(fullX)[1] <- c("Point")
+SCRcaps <- merge(SCRcaps, fullX[,1:2], by = c("Point"))
+# dat <- prepSCR(SCRcaps, SCReff, grid = fullX)
+## If error and need to do manual
+dat <- prepSCRman(SCRcaps, SCReff, grid = fullX)
+
+## Observations, already in order of CellID locations
 y <- dat$y
-colnames(y) <- NULL
 
 ## Uniquely marked individuals
 nind <- nrow(y)
 
 ## Get sizes of individuals
 snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
-# snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=c("2013-04-01","2013-07-31"))[,2] ## if some snake sizes are missing than expand window of time
+# snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
 snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
@@ -62,7 +73,7 @@ if(max(snsz) == -9999) stop('snake size incorrect')
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
 
-## Active/not active for when transects run, already in order of GridID locations
+## Active/not active for when transects run, already in order of 1-J CellID locations
 act <- as.matrix(dat$act[,-1])
 colnames(act) <- NULL
 K <- rowSums(act)
@@ -70,13 +81,14 @@ K <- rowSums(act)
 ## Number of survey occasions
 nocc <- ncol(act)
 
-## Inits for activity centers, take mean grid cell location where each snake was found
-locs <- HMUspecs$tran
-colnames(locs)[2] <- c("CellID")
-sst <- round(unlist(lapply(apply(dat$y,1,function(x) which(x==1)),function(x) max(as.numeric(names(x))))))
-vlocs <- locs[locs$CellID %in% sst,]
-sst <- as.data.frame(sst); colnames(sst) <- c("CellID")
-vsst <- unlist(merge(sst,vlocs, by=c("CellID"))[,1])
+## Inits for activity centers, can't take mean grid cell location where each snake was found as snakes found all over CP
+## Instead take first cell location where captured for each individual
+locs <- subset(CPspecs$tran, TranID %in% slocs)
+vsst <- list()
+for(i in 1:nrow(dat$y)){
+  vsst[i] <- apply(dat$y,1,function(x) which(x==1))[[i]][1]
+  vsst <- unlist(vsst)
+}
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
 
@@ -88,9 +100,9 @@ e2dist <- function (x, y) {
 
 ## Integration grid
 Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
-G <- HMUspecs$intgrd[,2:3]
+G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
+a <- Ggrid[1]*Ggrid[2] #CPspecs$area                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
@@ -120,7 +132,7 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(l in 1:4){  # size category
+  for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
@@ -133,7 +145,7 @@ model {
   
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
-    lambda[l] <- -loglikterm[l] + 1000
+    lambda[l] <- -loglikterm[l] + 10000
     dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
   } #L
 
@@ -156,27 +168,32 @@ model {
     piGroup[l] <- Ngroup[l]/N
   }
 }
-",file = "Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt")
+",file = "Trapping/Models/SCRpstarCATsizeCAT_CP.txt")
 
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 100; ni <- 100+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-#locs=X, 
+# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
 
+# inits <- function(){
+#   list (sigma=runif(1,30,40), n0=c(25,26,68,27), s=vsst, p0=runif(L,.002,.003))
+# }
 inits <- function(){
-  list (sigma=runif(1,45,50), n0=ngroup, s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
 }
 
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob")
 
-out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
+# out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/HMUEDGE_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata")
+# save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATNOSIZEgrid10.Rdata")
 
-### Ran for two days, convergence looks pretty good, cell = 5

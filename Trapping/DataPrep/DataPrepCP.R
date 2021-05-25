@@ -134,7 +134,7 @@ prepSCR <- function(SCRcaps, SCReff, grid){
 prepSCRman <- function(SCRcaps, SCReff, grid){
   
   ## set up observations as count of individuals (rows) and traps (columns) over study
-  y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "Point")
+  y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "GridID")
   ## Make sure snakes ordered by PITTAG in order to match to size
   y <- y[order(y$PITTAG),]
   y <- y[,-1]

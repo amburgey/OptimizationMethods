@@ -22,7 +22,7 @@ model {
   for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
-        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+        #Probability of an individual of size l being missed at grid cell g and trap j multiplied by total effort (K) at that trap
         one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
       } #J
       pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period

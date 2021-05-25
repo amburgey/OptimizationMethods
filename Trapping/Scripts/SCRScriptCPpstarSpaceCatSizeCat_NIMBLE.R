@@ -8,7 +8,7 @@ source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
 source("Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
 source("Trapping/DataPrep/OverlayCPGrid.R")
 
-library(secr); library(reshape2); library(jagsUI)
+library(nimble); library(reshape2); library(jagsUI)
 
 ## Subset capture data (subcap) and effort/survey data (subsurv)
 CPcaps <- subset(subcap, SITE == "NWFN")
@@ -109,15 +109,14 @@ points(X, pch=16, col="red")
 
 
 ########################################################
-##Jags model for a King et al 2016 semicomplete likelihood
+##NIMBLE code for a King et al 2016 semicomplete likelihood
 
-cat("
-model {
+NimModel <- nimbleCode({
 
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
 
-  for(l in 1:L){   # 4 size categories
+  for(l in 1:L){   # size categories
     #prior for intercept
     p0[l] ~ dunif(0,1)
     alpha0[l] <- logit(p0[l])
@@ -127,73 +126,78 @@ model {
     Ngroup[l] <- ngroup[l] + n0[l]
   }
   
-  N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+  N <- sum(Ngroup[1:L])
   
-  #Probability of capture for integration grid points
-  #pdot = probability of being detected at least once (given location)
-
-  for(l in 1:L){  # size category
-    for(g in 1:Gpts){ # Gpts = number of points on integration grid
-      for(j in 1:J){  # J = number of traps
-        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
-      } #J
-      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
-      pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
-    } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+  for(l in 1:L){
+    #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+    one_minus_detprob[l,1:Gpts,1:J] <- 1 - p0[l]*exp(-alpha1*Gdist[1:Gpts,1:J]*Gdist[1:Gpts,1:J])*K[1:J]
+    #Prob of failure to detect each size category across entire study area and time period
+    pdot.temp[l,1:Gpts] <- 1 - prod(one_minus_detprob[l,1:Gpts,1:J])
+    #pdot.temp is very close to zero and will lock model up with out this
+    pdot[l,1:Gpts] <- max(pdot.temp[l,1:Gpts], 1.0E-10)  
+    #prob of detecting a size category at least once in S (a=area of each integration grid)
+    # pstar.temp[l] <- (sum(pdot[l,1:Gpts])*a)/A
+    # pstar[l] <- CorrectPstar(ps = pstar.temp[l])
   
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
     lambda[l] <- -loglikterm[l] + 10000
-    dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
+    dummy[l] ~ dpois(lambda[l])
   } #L
 
-  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+  # prior prob for each grid cell   
   pi[1:Gpts] ~ ddirch(b[1:Gpts])
  
-  for(i in 1:n){  ## n = number of observed individuals
-    ## For use when defining traps on a grid cell
+  for(i in 1:n){  ## observed n
+    ## Activity center grid cell
     s[i] ~ dcat(pi[1:Gpts])
     
     # Model for capture histories of observed individuals:
-    for(j in 1:J){  ## J = number of traps
+    for(j in 1:J){  ## number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I
   
   #derived proportion in each size class
-  for(l in 1:L){
-    piGroup[l] <- Ngroup[l]/N
-  }
-}
-",file = "Trapping/Models/SCRpstarCATsizeCAT_CP.txt")
+    piGroup[1:L] <- Ngroup[1:L]/N
+})
 
 #######################################################
 
+## NIMBLE functions
+# CorrectPstar <- nimbleFunction(
+#   run = function(ps = double(0)){
+#     returnType(double(1))
+#     if(ps>=1) return(1)
+#     if(ps<1) return(ps)
+#   }
+# )
+
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 100+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nchains <- 3; nAdapt=200; nburnin <- 100; niter <- 100+nburnin; nthin <- 1
 
 ## Data and constants
-# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
+constants <- list(J=J, A=A, Gpts=Gpts, nocc=nocc, a=a, n=nind, L=L, size=snsz)
 
-# inits <- function(){
-#   list (sigma=runif(1,30,40), n0=c(25,26,68,27), s=vsst, p0=runif(L,.002,.003))
-# }
-inits <- function(){
-  list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
-}
+data <- list(y=y, Gdist=Gdist, ngroup=ngroup, dummy=rep(0,L), b=rep(1,Gpts), K=K, pstar=c(0.7,0.5,0.2,0.2))
 
-# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob")
+inits <- list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(L,.002,.003))
 
-# out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
-out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
-            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup","pdot","one_minus_detprob")
 
-save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata")
-# save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATNOSIZEgrid10.Rdata")
+## Compile and run in NIMBLE
+start.time <- Sys.time()
+Rmodel <- nimbleModel(code=NimModel, constants=constants, data=data, inits=inits, check=FALSE)
+conf <- configureMCMC(Rmodel, monitors=parameters, control = list(adaptInterval = nAdapt), thin=nthin) 
+
+Rmcmc <- buildMCMC(conf)
+Cmodel <- compileNimble(Rmodel)
+Cmcmc <- compileNimble(Rmcmc, project=Rmodel)
+
+out <- runMCMC(Cmcmc, niter = niter , nburnin = nburnin , nchains = nchains, inits=inits,
+               setSeed = FALSE, progressBar = TRUE, samplesAsCodaMCMC = TRUE)  
+end.time<-Sys.time()
+end.time-start.time
+
 
