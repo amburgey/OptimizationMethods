@@ -32,6 +32,7 @@ A <- 50000
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
+fullX <- CPspecs$tran
 X <- as.matrix(CPspecs$tran[,-1])[,2:3]
 J <- nrow(X)
 
@@ -46,13 +47,15 @@ SCReff <- effSnk(eff=CPsurv, time=time)
 checkDims(SCReff, SCRcaps)
 
 #### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-dat <- prepSCR(SCRcaps, SCReff)
+## Add GridID to captures so sorting using that instead of location
+colnames(fullX)[1] <- c("Point")
+SCRcaps <- merge(SCRcaps, fullX[,1:2], by = c("Point"))
+dat <- prepSCR(SCRcaps, SCReff, grid = fullX)
 ## If error and need to do manual
-# dat <- prepSCRman(SCRcaps, SCReff)
+# dat <- prepSCRman(SCRcaps, SCReff, grid = fullX)
 
-## Observations, already in order of 1-351 CellID locations
+## Observations, already in order of CellID locations
 y <- dat$y
-colnames(y) <- 1:ncol(dat$y)
 
 ## Uniquely marked individuals
 nind <- nrow(y)

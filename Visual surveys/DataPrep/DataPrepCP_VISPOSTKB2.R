@@ -81,21 +81,21 @@ checkDims <- function(SCRseff, SCRcaps){
 
 
 ##### SETUP DATA FOR SCR ANALYSIS FORMAT #####
-prepSCR <- function(SCRcaps, SCReff){
+prepSCR <- function(SCRcaps, SCReff, grid){
   
   ## set up observations as count of individuals (rows) and traps (columns) over study
-  y <- dcast(data=SCRcaps, formula=PITTAG ~ Point, length, fill=0, value.var = "Point")
+  y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "GridID")
   ## Make sure snakes ordered by PITTAG in order to match to size
   y <- y[order(y$PITTAG),]
   y <- y[,-1]
   ## Find names of missing columns
-  Missing <- setdiff(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep=""),colnames(y))
+  Missing <- setdiff(as.character(unique(grid$GridID)),colnames(y))
   
   if(length(Missing)!= 0){
     ## Add them, filled with '0's
     y[Missing] <- 0
     ## Put columns in desired order
-    y <- y[paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")]  
+    y <- y[as.character(grid$GridID)]  
     ## Prep for model
     y <- as.matrix(y)
   }
@@ -112,39 +112,40 @@ prepSCR <- function(SCRcaps, SCReff){
   ## Indicate these were the active times
   act$Active <- c(1)
   ## Create dataframe of all transect-location combinations
-  allact <- melt(data.frame(rep(c(LETTERS,"AA"),each=13),paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")), id.vars = c("rep.c.LETTERS...AA....each...13.","paste.rep.c.LETTERS...AA....each...13...rep.1.13..times...27..."))
+  allact <- melt(data.frame(rep(rev(unique(act$TRANSECT)), each=13), unique(fullX$Point))
+                 , id.vars = c("rep.rev.unique.act.TRANSECT....each...13.", "unique.fullX.Point."))
   colnames(allact) <- c("TRANSECT","Point")
+  ## Add GridID to Points
+  allact <- merge(allact, grid[,1:2], by=c("Point"))
   ## Expand dataframe to be all points and not just at the broad transect level
   allact <- merge(act, allact, by = c("TRANSECT"))
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
-  act2 <- reshape2::dcast(allact, Point ~ Date, fun.aggregate = sum, value.var = "Active")
-  ## Order by Point
-  act2$Point <- as.factor(act2$Point)
-  act2$Point <- factor(act2$Point, levels=c(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
-  act2 <- act2[order(act2$Point),]
+  act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
   ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
-  act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
+  act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
   ## Prep for model
- 
+  
   both <- list(y=y,act=act2)
   
   return(both)
 }
 
 
-prepSCRman <- function(SCRcaps, SCReff){
+prepSCRman <- function(SCRcaps, SCReff, grid){
   
   ## set up observations as count of individuals (rows) and traps (columns) over study
-  y <- dcast(data=SCRcaps, formula=PITTAG ~ Point, length, fill=0, value.var = "Point")
+  y <- dcast(data=SCRcaps, formula=PITTAG ~ GridID, length, fill=0, value.var = "GridID")
+  ## Make sure snakes ordered by PITTAG in order to match to size
+  y <- y[order(y$PITTAG),]
   y <- y[,-1]
   ## Find names of missing columns
-  Missing <- setdiff(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep=""),colnames(y))
+  Missing <- setdiff(as.character(unique(grid$GridID)),colnames(y))
   
   if(length(Missing)!= 0){
     ## Add them, filled with '0's
     y[Missing] <- 0
     ## Put columns in desired order
-    y <- y[paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")]  
+    y <- y[as.character(grid$GridID)]  
     ## Prep for model
     y <- as.matrix(y)
   }
@@ -161,34 +162,18 @@ prepSCRman <- function(SCRcaps, SCReff){
   ## Indicate these were the active times
   act$Active <- c(1)
   ## Create dataframe of all transect-location combinations
-  allact <- melt(data.frame(rep(c(LETTERS,"AA"),each=13),paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
+  allact <- melt(data.frame(rep(rev(unique(act$TRANSECT)), each=13), unique(fullX$Point))
+                 , id.vars = c("rep.rev.unique.act.TRANSECT....each...13.", "unique.fullX.Point."))
   colnames(allact) <- c("TRANSECT","Point")
+  ## Add GridID to Points
+  allact <- merge(allact, grid[,1:2], by=c("Point"))
   ## Expand dataframe to be all points and not just at the broad transect level
   allact <- merge(act, allact, by = c("TRANSECT"))
-  ## Distance is in km, correct effort to represent portions of transect that were not walked
-  
   ## Reshape to be all points by dates and 1=surveyed, 0=not surveyed
-  act2 <- reshape2::dcast(allact, Point ~ Date, fun.aggregate = sum, value.var = "Active")
-  ## Order by Point
-  act2$Point <- as.factor(act2$Point)
-  act2$Point <- factor(act2$Point, levels=c(paste(rep(c(LETTERS,"AA"),each=13),rep(1:13,times=27),sep="")))
-  act2 <- act2[order(act2$Point),]
+  act2 <- reshape2::dcast(allact, GridID ~ Date, fun.aggregate = sum, value.var = "Active")
   ## Two surveyors at each survey so change to 1 and factor in two people later in cost model
-  act2 <- act2 %>% mutate_if(is.numeric, ~1 * (. > 0))
+  act2 <- cbind(act2[,1], act2[,2:ncol(act2)] %>% mutate_if(is.numeric, ~1 * (. > 0))); colnames(act2)[1] <- c("GridID")
   
-  ##### DO THIS STEP MANUALLY, HAVE TO SET WHICH POINTS BASED ON STARTINGNUMBER AND DISTANCE TRAVELED
-  act2[act2$Point == "W1",22] <- 0
-  act2[act2$Point == "W2",22] <- 0
-  act2[act2$Point == "W3",22] <- 0
-  act2[act2$Point == "W4",22] <- 0
-  act2[act2$Point == "W5",22] <- 0
-  act2[act2$Point == "W6",22] <- 0
-  act2[act2$Point == "W7",22] <- 0
-  act2[act2$Point == "W8",22] <- 0
-  act2[act2$Point == "W9",22] <- 0
-  act2[act2$Point == "W10",22] <- 0
-  act2[act2$Point == "W11",22] <- 0
-
   
   both <- list(y=y,act=act2)
   
