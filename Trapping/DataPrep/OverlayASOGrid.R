@@ -40,9 +40,8 @@ overlayCP <- function(ASOcaps, cellsize){
   }
   
   ## Identify which grid cells have traps in them
-  vistran <- setNames(data.frame(matrix(NA, nrow=(27*13), ncol=4)), c("TranID","GridID","x","y"))
-  vistran$TranID <- unique(ASOsurv)
-  vistran$GridID <- c(407:419,392:404,377:389,362:374,347:359,332:344,317:329,302:314,287:299,272:284,257:269,242:254,227:239,212:224,197:209,182:194,167:179,152:164,137:149,122:134,107:119,92:104,77:89,62:74,47:59,32:44,17:29)
+  vistran <- setNames(data.frame(matrix(NA, nrow=(516), ncol=4)), c("TranID","GridID","x","y"))
+  vistran$TranID <- unique(trapcoords$LOCATION)
   for(i in 1:nrow(vistran)){
     vistran[i,3] <- xmin(extent(eff_cts[[vistran[i,2]]]))
     vistran[i,4] <- ymin(extent(eff_cts[[vistran[i,2]]]))

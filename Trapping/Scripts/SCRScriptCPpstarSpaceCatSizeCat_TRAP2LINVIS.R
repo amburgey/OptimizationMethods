@@ -19,8 +19,8 @@ CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN TRAP 2 LINVIS")
 CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN TRAP 2 LINVIS")
 
 ## SECIFY TIME FRAME
-time <- c("06","07")
-time2 <- c("2004-05-01","2004-08-31")
+time <- c("06","08") ## this sampling was just the end of June to beginning of August so not over 2 month rule
+time2 <- c("2005-05-01","2005-08-31")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
@@ -77,6 +77,7 @@ ngroup <- as.vector(table(snsz))
 act <- as.matrix(dat$act[,-1])
 colnames(act) <- NULL
 K <- rowSums(act)
+K <- unique(K)
 
 ## Number of survey occasions
 nocc <- ncol(act)
@@ -107,6 +108,9 @@ Gdist <- e2dist(G, X)                     #distance between integration grid loc
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
 
+## Test converting Gdist from m to km (divide by 100)
+Gdist <- Gdist/100
+
 
 ########################################################
 ##Jags model for a King et al 2016 semicomplete likelihood
@@ -114,7 +118,7 @@ points(X, pch=16, col="red")
 cat("
 model {
 
-  sigma ~ dunif(0,100)
+  sigma ~ dunif(0,10) #dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
 
   for(l in 1:L){   # 4 size categories
@@ -134,14 +138,17 @@ model {
 
   for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
-      for(j in 1:J){  # J = number of traps
-        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
-      } #J
-      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
+      for(k in 1:K){ # K = effort
+        for(j in 1:J){  # J = number of traps
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+          one_minus_detprob[l,g,k,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])#*K[j]
+        } #J
+      } #K
+      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,,]) #Prob of failure to detect each size category across entire study area and time period
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+    pstar.temp[l] <- (sum(pdot[l,1:Gpts])*a)/A
+    pstar[l] <- ifelse(pstar.temp[l] >= 1, 1, pstar.temp[l])   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
   
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
@@ -158,7 +165,7 @@ model {
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K[j])
+      y[i,j] ~ dbin(p[i,j],K)#K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I
@@ -177,22 +184,22 @@ nc <- 3; nAdapt=200; nb <- 100; ni <- 100+nb; nt <- 1  ## hits error at 2000 ite
 # nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
 
 ## Data and constants
-# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
 
-# inits <- function(){
-#   list (sigma=runif(1,30,40), n0=c(25,26,68,27), s=vsst, p0=runif(L,.002,.003))
-# }
 inits <- function(){
-  list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+  list (sigma=runif(1,2,3), n0=c(ngroup+10), s=vsst, p0=runif(L,.002,.003))
 }
+# inits <- function(){
+#   list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+# }
 
-# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob")
+parameters <- c("p0","sigma","pstar","pstar.temp","alpha0","alpha1","N","n0","Ngroup","piGroup","pdot","one_minus_detprob","loglikterm")
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0")
 
-# out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
-out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
-            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+# out <- jags("Archive/SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+            # n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata")
 # save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATNOSIZEgrid10.Rdata")
