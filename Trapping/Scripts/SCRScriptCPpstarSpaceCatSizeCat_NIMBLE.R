@@ -185,7 +185,7 @@ constants <- list(J=J, A=A, Gpts=Gpts, nocc=nocc, a=a, n=nind, L=L, size=snsz)
 
 data <- list(y=y, Gdist=Gdist, ngroup=ngroup, dummy=rep(0,L), b=rep(1,Gpts), K=K, pstar=c(0.7,0.5,0.2,0.2))
 
-inits <- list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(L,.002,.003))
+inits <- list (sigma=runif(1,40,50), n0=(ngroup+30), s=vsst, p0=runif(L,.002,.003))
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup","pdot","one_minus_detprob")
 
