@@ -10,7 +10,7 @@ library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggpl
 
 
 ###### SURVEY DATA ######
-allsurv <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/TRAPinfo.csv")
+allsurv <- read.csv("TRAPinfo.csv")
 
 ## Study areas deemed suitable
 subsurv <- subset(allsurv, SITE %in% c("ASOI","NWFN","HMUI","HMUR","HMU","RTSI"))
@@ -30,7 +30,7 @@ subsurv <- subsurv[!(subsurv$SITE == "NWFN" & subsurv$TRANSID == "51100" & subsu
 
 
 ###### CAPTURE DATA ######
-allcap <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/TRAPcaptures.csv")
+allcap <- read.csv("TRAPcaptures.csv")
 
 ## Study Areas deemed suitable
 subcap <- subset(allcap, SITE %in% c("ASOI","NWFN","HMUI","HMUR","HMU","RTSI"))
@@ -82,7 +82,7 @@ ToCheck$checked <- NA
 
 #### ASOI SWIFT TRAP ARRAY ####
 
-asoi <- read.csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/To Beth_ASOI/TrapRingWeb_coords.csv")
+asoi <- read.csv("Data/TrapRingWeb_coords.csv")
 # asoi2 <- asoi[,4:5]
 # coordinates(asoi2)=~Lon+Lat
 # proj4string(asoi2) <- CRS("+proj=longlat +datum=WGS84")
