@@ -191,7 +191,7 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 
 ## Compile and run in NIMBLE
 start.time <- Sys.time()
-Rmodel <- nimbleModel(code=NimModel, constants=constants, data=data, inits=inits, check=FALSE)
+Rmodel <- nimbleModel(code=NimModel, constants=constants, data=data, inits=inits, check=TRUE, calculate = TRUE)
 conf <- configureMCMC(Rmodel, monitors=parameters, control = list(adaptInterval = nAdapt), thin=nthin) 
 
 Rmcmc <- buildMCMC(conf)

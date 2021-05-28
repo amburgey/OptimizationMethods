@@ -1,7 +1,7 @@
 
 model {
 
-  sigma ~ dunif(0,10) #dunif(0,100)
+  sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
 
   for(l in 1:L){   # 4 size categories
@@ -21,17 +21,14 @@ model {
 
   for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
-      for(k in 1:K){ # K = effort
-        for(j in 1:J){  # J = number of traps
-          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-          one_minus_detprob[l,g,k,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])#*K[j]
-        } #J
-      } #K
-      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,,]) #Prob of failure to detect each size category across entire study area and time period
+      for(j in 1:J){  # J = number of traps
+        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+      } #J
+      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
-    pstar.temp[l] <- (sum(pdot[l,1:Gpts])*a)/A
-    pstar[l] <- ifelse(pstar.temp[l] >= 1, 1, pstar.temp[l])   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
   
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
@@ -48,7 +45,7 @@ model {
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K)#K[j])
+      y[i,j] ~ dbin(p[i,j],K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I

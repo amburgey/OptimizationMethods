@@ -75,7 +75,7 @@ overlayCP <- function(CPcaps, cellsize){
   ## Convert from sfc polygon to Spatial Polygon
   intgrd_rot <- as_Spatial(intgrd_rot, cast=TRUE, IDs=paste0("ID", seq_along(intgrd_rot)))
   
-# Section 7. Create HMU-clipped Integration Grid ----
+# Section 7. Create CP-clipped Integration Grid ----
   clipG <- gIntersection(CP, intgrd_rot, byid = TRUE, drop_lower_td = TRUE)
   # par(mar = c(1,1,1,1))  ## if for some reason the margins are weird
   plot(clipG, col="red")
@@ -86,6 +86,33 @@ overlayCP <- function(CPcaps, cellsize){
   plot(intgrd_cts, col="red", pch=21, cex=0.2)
   intgrd <- geom(intgrd_cts)
 
+  # test <- as.data.frame(X)
+  # coordinates(test) =~ x+y
+  # # plot(clipCP, xlim=c(269028.4,269069.5), ylim=c(1508799,1508820))
+  # plot(clipCP, xlim=c(269006.2,269214.2), ylim=c(1508796,1508972))
+  # plot(intgrd_cts, add=TRUE, col="red", pch=21, cex=0.5)
+  # plot(test, add=TRUE, col="pink", pch=5, cex=0.5)
+  # ## Problem grid points
+  # points(x=269050.2, y=1508808.4, col="blue", pch=3)
+  # points(x=269109.2, y=1508862.5, col="blue", pch=3)
+  # points(x=269168.2, y=1508916.5, col="blue", pch=3)
+  # points(x=268996.2, y=1508867.4, col="blue", pch=3)
+  # points(x=269055.2, y=1508921.5, col="blue", pch=3)
+  # points(x=269114.1, y=1508975.5, col="blue", pch=3)
+  # points(x=268942.1, y=1508926.4, col="blue", pch=3)
+  # points(x=269001.1, y=1508980.4, col="blue", pch=3)
+  # points(x=269060.1, y=1509034.5, col="blue", pch=3)
+  # ## Problem trap points
+  # points(x=269046.0, y=1508809, col="orange", pch=3)
+  # points(x=269105, y=1508863, col="orange", pch=3)
+  # points(x=269163.9, y=1508917, col="orange", pch=3)
+  # points(x=268991.9, y=1508868, col="orange", pch=3)
+  # points(x=269050.9, y=1508922, col="orange", pch=3)
+  # points(x=269109.9, y=1508976, col="orange", pch=3)
+  # points(x=268937.9, y=1508927, col="orange", pch=3)
+  # points(x=268996.9, y=1508981, col="orange", pch=3)
+  # points(x=269055.9, y=1509035, col="orange", pch=3)
+  
 
   # ## Checking. Plot transects ----
   # plot(clipCP)

@@ -6,7 +6,7 @@ model {
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
   
- # Posterior conditional distribution for N-n (and hence N):
+  # Posterior conditional distribution for N-n (and hence N):
   n0 ~ dnegbin(pstar,n)  # number of failures
   N <- n + n0  # successful observations plus failures to observe = total N
   
@@ -17,18 +17,18 @@ model {
   for(g in 1:Gpts){ # Gpts = number of points on integration grid
     for(j in 1:J){  # J = number of traps
       #Probability of being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-      one_minus_detprob[g,j] <- 1 - (p0*exp(-alpha1*Gdist[g,j]*Gdist[g,j]))*K[j] #Gdist given as data
+      one_minus_detprob[g,j] <- (1 - p0*exp(-alpha1*Gdist[g,j]*Gdist[g,j]))*K[j] #Gdist given as data
     } #J
     pdot.temp[g] <- 1 - prod(one_minus_detprob[g,]) #Prob of failure to detect across entire study area and time period
     pdot[g] <- max(pdot.temp[g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
   } #G
   
-  pstar <- (sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)  ##(sum(pdot[1:Gpts])*a)/A
+  pstar <- sum(pdot[1:Gpts]*a[1:Gpts])/A   #(sum(pdot[1:Gpts])*a)/A   #prob of detecting an individual at least once in S (a=area of each integration grid, given as data)
   
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY ##### 
   # Zero trick for initial 1/pstar^n
   loglikterm <- -n * log(pstar)
-  lambda <- -loglikterm + 10000
+  lambda <- -loglikterm + 100000
   dummy ~ dpois(lambda) # dummy = 0; entered as data
   ##### NO CHANGING, TO MAKE JAGS/BUGS LIKELIHOOD FUNCTION PROPERLY #####
 
@@ -42,8 +42,7 @@ model {
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
       y[i,j] ~ dbin(p[i,j],K[j])
-      d[i,j] <- Gdist[s[i],j]  ## Doesn't Gdist already do what the line below does? As we're using categorical grid cells so s[i] are going to be one of G[i,]?
-      # d[i,j] <- pow(pow(s[i,1]-locs[j,1],2) + pow(s[i,2]-locs[j,2],2),0.5)  ### traditional SCR
+      d[i,j] <- Gdist[s[i],j]
       p[i,j] <- p0*exp(-alpha1*d[i,j]*d[i,j])
     }#J
   }#n

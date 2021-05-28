@@ -99,10 +99,10 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                         #spacing (check sensitivity to spacing)
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid[1]*Ggrid[2] #CPspecs$area                              #area of each integration grid
+a <- CPspecs$area #Ggrid[1]*Ggrid[2]      #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
@@ -184,11 +184,11 @@ jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc
 #   list (sigma=runif(1,30,40), n0=c(25,26,68,27), s=vsst, p0=runif(L,.002,.003))
 # }
 inits <- function(){
-  list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+  list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
 }
 
 # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob","lambda")
 
 # out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
