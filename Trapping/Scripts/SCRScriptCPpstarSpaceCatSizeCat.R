@@ -6,7 +6,7 @@ rm(list=ls())
 
 source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
 source("Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
-source("Trapping/DataPrep/OverlayCPGrid.R")
+source("Trapping/DataPrep/OverlayCPGrid.R")  ## Function to create study area grid cells and integration grid cells
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -18,7 +18,7 @@ CPsurv <- subset(subsurv, SITE == "NWFN")
 CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN TRAP 1")
 CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN TRAP 1")
 
-## SECIFY TIME FRAME
+## SECIFY TIME FRAME for analysis and for finding sizes of snakes captured
 time <- c("06","07")
 time2 <- c("2004-05-01","2004-08-31")
 
@@ -31,26 +31,27 @@ A <- 50000
 
 
 #### PREP DATA FOR SCR ANALYSIS ####
-## Subset data based on how it was collected (V = visual, T = trap)
+## Subset data based on how it was collected (V = visual, M = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("M"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (June - July)
 ## Find effort for this set of snakes and time
 SCReff <- effSnk(eff=CPsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
-## Surveys locations
+## Survey locations, subset of the 351 transects that exist in CP
 slocs <- paste(rep(unique(SCReff$TRANSECT),each=13),1:13,sep="")
 fullX <- subset(CPspecs$tran, TranID %in% slocs)
 X <- as.matrix(fullX[,-1])[,2:3]
 J <- nrow(X)
 
-#### FORMAT DATA FOR TRADITIONAL SCR ANALYSIS ####
-## Add GridID to captures so sorting using that instead of location
+#### FORMAT DATA FOR SCR ANALYSIS ####
+## Add GridID to captures so sorting using that instead of transect location
 colnames(fullX)[1] <- c("Point")
 SCRcaps <- merge(SCRcaps, fullX[,1:2], by = c("Point"))
+## Determine if data prep needs manual component, artifact of visual surveys needing effort to be corrected when survey interrupted
 # dat <- prepSCR(SCRcaps, SCReff, grid = fullX)
 ## If error and need to do manual
 dat <- prepSCRman(SCRcaps, SCReff, grid = fullX)
@@ -69,11 +70,13 @@ snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
                       ifelse(snsz >= 950 & snsz < 1150, 3,
                              ifelse(snsz >= 1150, 4, -9999))))
+## Check that all snakes have size
 if(max(snsz) == -9999) stop('snake size incorrect')
+## Number of size categories and vector of snake sizes
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
 
-## Active/not active for when transects run, already in order of 1-J CellID locations
+## Active/not active for when traps run, already in order of 1-J CellID locations
 act <- as.matrix(dat$act[,-1])
 colnames(act) <- NULL
 K <- rowSums(act)
@@ -99,7 +102,7 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- cellsize                         #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                         #spacing 
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
 a <- CPspecs$area #Ggrid[1]*Ggrid[2]      #area of each integration grid
@@ -173,27 +176,37 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 100+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
+## For Size model:
 # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
+## For No Size model:
+jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=max(K), nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
 
+## For Size model:
 # inits <- function(){
-#   list (sigma=runif(1,30,40), n0=c(25,26,68,27), s=vsst, p0=runif(L,.002,.003))
+#   list (sigma=runif(1,30,40), n0=c(ngroup + 30), s=vsst, p0=runif(L,.002,.003))
 # }
+## For No Size model:
 inits <- function(){
   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
 }
 
+## For Size model:
 # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+## For No Size model:
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob","lambda")
 
-# out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+## For Size model:
+# out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, 
+            # n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+## For No Size model:
 out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata")
+## For Size model:
+# save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata")
+## For No Size model:
 # save(out, file="Trapping/Results/NWFNTRAP1_SCRpstartrapCATNOSIZEgrid10.Rdata")
 

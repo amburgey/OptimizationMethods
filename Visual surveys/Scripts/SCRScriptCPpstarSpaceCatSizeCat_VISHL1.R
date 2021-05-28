@@ -6,7 +6,7 @@ rm(list=ls())
 
 source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
 source("Visual surveys/DataPrep/DataPrepCP_VISHL1.R")              ## Functions to reshape survey and capture data
-source("Visual surveys/DataPrep/OverlayCPGrid.R")
+source("Visual surveys/DataPrep/OverlayCPGrid.R")   ## Function to create study area grid cells and integration grid cells
 
 library(secr); library(reshape2); library(jagsUI)
 
@@ -18,29 +18,29 @@ CPsurv <- subset(subsurv, SITE == "NWFN")
 CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS HL 1")
 CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN VIS HL 1")
 
-## SECIFY TIME FRAME
+## SECIFY TIME FRAME for analysis and for finding sizes of snakes captured
 time <- c("11","12")
 time2 <- c("2006-08-01","2007-02-28")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- c(5,5)  ## dimensions of integration grid cell
+cellsize <- c(10,10)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (5 ha/50,000 m2): 
 A <- 50000
 
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
-## Surveys locations
+## Surveys locations, all 351 transect locations
 fullX <- CPspecs$tran
 X <- as.matrix(CPspecs$tran[,-1])[,2:3]
 J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
-## Subset data based on how it was collected (V = visual, T = trap)
+## Subset data based on how it was collected (V = visual, M = trap)
 capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 ## Subset data based on sampling time of interest and order by dates and sites
-SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
+SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Nov - Dec)
 ## Find effort for this set of snakes and time
 SCReff <- effSnk(eff=CPsurv, time=time)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
@@ -68,7 +68,9 @@ snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
                       ifelse(snsz >= 950 & snsz < 1150, 3,
                              ifelse(snsz >= 1150, 4, -9999))))
+## Check that all snakes have size
 if(max(snsz) == -9999) stop('snake size incorrect')
+## Number of size categories and vector of snake sizes
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
 
@@ -99,10 +101,10 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
+Ggrid <- cellsize                                #spacing
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
+a <- CPspecs$area #Ggrid[1]*Ggrid[2]                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
@@ -136,7 +138,7 @@ model {
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+        one_minus_detprob[l,g,j] <- (1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j]))*K[j] #Gdist given as data
       } #J
       pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
@@ -173,30 +175,36 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
+## For Size model:
 # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+## For No Size model:
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
 
-
+## For Size model:
 # inits <- function(){
 #   list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
 # }
+## For No Size model:
 inits <- function(){
   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
 }
 
+## For Size model:
 # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0")
+## For No Size model:
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob","lambda")
 
+## For Size model:
 # out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
 #             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
-out <- jags("Archive/SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+## For No Size model:
+out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 
 # save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATonly3sizes.Rdata")
-save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATNOSIZEgrid10.Rdata")
+# save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATNOSIZEgrid10.Rdata")
 
