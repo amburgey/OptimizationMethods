@@ -26,8 +26,8 @@ time2 <- c("2004-05-01","2004-08-31")
 ##### SPECIFY DIMENSIONS OF CP #####
 cellsize <- c(10,10)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
-## Area (5 ha/50,000 m2): 
-A <- 50000
+## Area (~5 ha/50,000 m2): 
+A <- sum(CPspecs$area)
 
 
 #### PREP DATA FOR SCR ANALYSIS ####
@@ -141,7 +141,7 @@ model {
       pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+    pstar[l] <- (sum(pdot[1:Gpts]*a[1:Gpts])/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
   
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])

@@ -39,6 +39,9 @@ overlayCP <- function(ASOcaps, cellsize){
     eff_cts[[i]] <- gCentroid(grd_rot[i])  ## Warnings about geometries, ignore
   }
   
+  ## Find which
+  polylin1 <- grd_rotID[which(st_intersects(ltran[1], grd_rotID, sparse = FALSE)), ]
+  
   ## Identify which grid cells have traps in them
   vistran <- setNames(data.frame(matrix(NA, nrow=(516), ncol=4)), c("TranID","GridID","x","y"))
   vistran$TranID <- unique(trapcoords$LOCATION)
