@@ -173,7 +173,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1  ## hits error at 2000 iter, 1000 adapt
+nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood

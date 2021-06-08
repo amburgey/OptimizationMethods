@@ -21,7 +21,7 @@ HMUsurv <- subset(HMUsurv, PROJECTCODE == "EDGE EFFECT VIS")
 cellsize <- c(10,10)  ## dimensions of integration grid cell
 HMUspecs <- overlayHMU(HMUcaps, cellsize)  ## ignore warnings, all about projections
 ## Area (55 ha/550,000 m2): 
-A <- 550000
+A <- sum(HMUspecs$area)
 
 ##### USE CATEGORICAL GRID CELL LOCATIONS #####
 ## Surveys locations
@@ -57,7 +57,7 @@ snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
                       ifelse(snsz >= 950 & snsz < 1150, 3,
                              ifelse(snsz >= 1150, 4, -9999))))
-if(max(snsz) == -9999) stop('snake size incorrect')
+if(min(snsz) == -9999) stop('snake size incorrect')
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
 
@@ -89,7 +89,7 @@ e2dist <- function (x, y) {
 Ggrid <- cellsize                                #spacing (check sensitivity to spacing)
 G <- HMUspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
-a <- Ggrid[1]*Ggrid[2]                              #area of each integration grid
+a <- HMUspecs$area                              #area of each integration grid
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 plot(G, pch=16, cex=.5, col="grey")
 points(X, pch=16, col="red")
@@ -100,10 +100,10 @@ points(X, pch=16, col="red")
 
 cat("
 model {
-
+  
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
-
+  
   for(l in 1:L){   # 4 size categories
     #prior for intercept
     p0[l] ~ dunif(0,1)
@@ -119,20 +119,20 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(l in 1:4){  # size category
+  for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+        miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
       } #J
-      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
+      pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
-  
+    pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+    
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
-    lambda[l] <- -loglikterm[l] + 1000
+    lambda[l] <- -loglikterm[l] + 10000
     dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
   } #L
 
@@ -160,12 +160,10 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
-# nc <- 3; nAdapt=20; nb <- 10; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,4), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-#locs=X, 
 
 inits <- function(){
   list (sigma=runif(1,45,50), n0=ngroup, s=vsst, p0=runif(L,.002,.003))
@@ -176,6 +174,4 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_HMU.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/HMUEDGE_SCRpstarvisCATsizeCAT.Rdata")  ## M = 150 (XXXXhrs)
-
-### Ran for two days, convergence looks pretty good, cell = 5
+save(out, file="Visual surveys/Results/HMUEDGE_SCRpstarvisCATsizeCATupdated8June.Rdata")
