@@ -5,7 +5,7 @@
 rm(list=ls())
 
 source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
+source("Trapping/DataPrep/DataPrepCPPREBT1TRAP.R")    ## Functions to reshape survey and capture data
 source("Trapping/DataPrep/OverlayCPGrid.R")
 
 library(secr); library(reshape2); library(jagsUI)
@@ -15,18 +15,18 @@ CPcaps <- subset(subcap, SITE == "NWFN")
 CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
-CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN TRAP 2 LINVIS")
-CPsurv <- subset(CPsurv, PROJECTCODE == "NWFN TRAP 2 LINVIS")
+CPcaps <- subset(CPcaps, PROJECTCODE == "PRE BT1 TRAP")
+CPsurv <- subset(CPsurv, PROJECTCODE == "PRE BT1 TRAP")
 
 ## SECIFY TIME FRAME
-time <- c("06","08") ## this sampling was just the end of June to beginning of August so not over 2 month rule
-time2 <- c("2005-05-01","2005-08-31")
+time <- c("07","08")
+time2 <- c("2008-06-01","2008-09-30")
 
 
 ##### SPECIFY DIMENSIONS OF CP #####
 cellsize <- c(10,10)  ## dimensions of integration grid cell
 CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
-## Area (5 ha/50,000 m2): 
+## Area (~5 ha/50,000 m2): 
 A <- sum(CPspecs$area)
 
 
@@ -62,14 +62,14 @@ y <- dat$y
 nind <- nrow(y)
 
 ## Get sizes of individuals
-snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
-# snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
+# snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
+snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
 snsz <- ifelse(snsz < 850, 1,
                ifelse(snsz >= 850 & snsz < 950, 2,
                       ifelse(snsz >= 950 & snsz < 1150, 3,
                              ifelse(snsz >= 1150, 4, -9999))))
-if(max(snsz) == -9999) stop('snake size incorrect')
+if(min(snsz) == -9999) stop('snake size incorrect')
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
 
@@ -99,7 +99,7 @@ e2dist <- function (x, y) {
 }
 
 ## Integration grid
-Ggrid <- cellsize                         #spacing
+Ggrid <- cellsize                         #spacing (check sensitivity to spacing)
 G <- CPspecs$intgrd[,2:3]
 Gpts <- dim(G)[1]                         #number of integration points
 a <- CPspecs$area                         #area of each integration grid
@@ -110,6 +110,7 @@ points(X, pch=16, col="red")
 
 ########################################################
 ##Jags model for a King et al 2016 semicomplete likelihood
+
 cat("
 model {
 
@@ -175,22 +176,32 @@ model {
 nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
+## For Size model:
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+## For No Size model:
 # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
 
+## For Size model:
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=c(ngroup+10), s=vsst, p0=runif(L,.002,.003))
+  list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
 }
+## For No Size model:
 # inits <- function(){
-#   list (sigma=runif(1,40,50), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+#   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
 # }
 
+## For Size model:
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0")
+## For No Size model:
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob","lambda")
 
+## For Size model:
 out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
-# out <- jags("Archive/SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
-            # n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+## For No Size model:
+# out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
+#             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Trapping/Results/NWFNTRAP2LINVIS_SCRpstartrapCATsizeCAT.Rdata")
-
+## For Size model:
+save(out, file="Trapping/Results/NWFNPREBT1TRAP_SCRpstartrapCATsizeCAT.Rdata")
+## For No Size model:
+# save(out, file="Trapping/Results/NWFNPREBT1TRAP_SCRpstartrapCATNOSIZEgrid10.Rdata")
