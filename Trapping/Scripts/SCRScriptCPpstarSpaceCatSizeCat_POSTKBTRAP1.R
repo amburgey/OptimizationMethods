@@ -173,7 +173,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 200; ni <- 2500+nb; nt <- 1
 
 ## Data and constants
 ## For Size model:
