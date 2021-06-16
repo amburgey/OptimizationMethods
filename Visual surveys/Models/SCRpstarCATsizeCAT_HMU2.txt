@@ -1,9 +1,9 @@
 
 model {
-
-  sigma ~ dunif(0,200)
+  
+  sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
-
+  
   for(l in 1:L){   # 4 size categories
     #prior for intercept
     p0[l] ~ dunif(0,1)
@@ -19,20 +19,20 @@ model {
   #Probability of capture for integration grid points
   #pdot = probability of being detected at least once (given location)
 
-  for(l in 1:4){  # size category
+  for(l in 1:L){  # size category
     for(g in 1:Gpts){ # Gpts = number of points on integration grid
       for(j in 1:J){  # J = number of traps
         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        one_minus_detprob[l,g,j] <- 1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])*K[j] #Gdist given as data
+        miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
       } #J
-      pdot.temp[l,g] <- 1 - prod(one_minus_detprob[l,g,]) #Prob of failure to detect each size category across entire study area and time period
+      pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
     } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts])*a)/A   #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
-  
+    pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+    
     # Zero trick for initial 1/pstar^n
     loglikterm[l] <- -ngroup[l] * log(pstar[l])
-    lambda[l] <- -loglikterm[l] + 1000
+    lambda[l] <- -loglikterm[l] + 10000
     dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
   } #L
 

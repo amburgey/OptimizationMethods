@@ -256,6 +256,8 @@ overlayHMU <- function(HMUcaps, cellsize){
   clipG <- gIntersection(HMU, intgrd_rot, byid = TRUE, drop_lower_td = TRUE)
   # par(mar = c(1,1,1,1))  ## if for some reason the margins are weird
   plot(clipG, col="red")
+  ## Determine area of each integration grid cell
+  area <- area(clipG)
   ## Find centroid of all grid cells
   intgrd_cts <- gCentroid(clipG, byid = TRUE)
   plot(intgrd_cts, col="red", pch=21, cex=0.2)
@@ -310,7 +312,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   
   ## No snake captures at those locations, changes to active (surveyed/not surveyed) made in DataPrepHMU2
   
-  dat <- list(tran = vistran, snks = snkcap, intgrd=intgrd)
+  dat <- list(tran = vistran, snks = snkcap, intgrd=intgrd, area=area)
   
   return(dat)
 }
