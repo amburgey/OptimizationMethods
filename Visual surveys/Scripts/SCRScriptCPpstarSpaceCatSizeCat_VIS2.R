@@ -86,7 +86,7 @@ locs <- CPspecs$tran
 colnames(locs)[2] <- c("CellID")
 vsst <- list()
 for(i in 1:nrow(dat$y)){
-  vsst[i] <- apply(dat$y,1,function(x) which(x==1))[[i]][1]
+  vsst[i] <- apply(dat$y,1,function(x) which(x>=1))[[i]][1]
   vsst <- unlist(vsst)
 }
 
@@ -158,7 +158,7 @@ model {
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K[j])
+      y[i,j] ~ dpois(p[i,j]*K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I

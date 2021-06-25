@@ -101,7 +101,7 @@ prepSCR <- function(SCRcaps, SCReff, grid){
   }
   
   ## Transform any multiple captures at a single location to just 1
-  y <- ifelse(y>=1,1,y)
+  # y <- ifelse(y>=1,1,y)
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths
@@ -151,7 +151,7 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
   }
   
   ## Transform any multiple captures at a single location to just 1
-  y <- ifelse(y>=1,1,y)
+  # y <- ifelse(y>=1,1,y)
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths
