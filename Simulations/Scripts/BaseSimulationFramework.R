@@ -1,60 +1,82 @@
 ## Simulate capture/observation histories of snakes in different sampling scenarios
-## Save data to SimDat folder
+## Save data to simDat folder
 ## Analyze each dataset and save results in Results folder
 
 rm(list=ls())
 
-library(jagsUI)
+## Required libraries
+library(jagsUI);library(secr)
+## Functions for simulating data
+source("Simulations/Scripts/FunctionsForSimulation.R")
 
 
-#### STUDY AREA INFORMATION ----
+#### SCENARIO DETAILS (USER SPECIFIED).----
 
-# CP-sized, fenced area
+## Grid type (open or closed [fenced] area)
+stype <- c("open")
+# stype <- c("closed")
+
+## Type of sampling design
+type <- c("VIS")
+# type <- c("TRAP")
+# type <- c("MIX")
+
+## Study design (full [351 transects], half [18 transects, every other], or mix)
+stde <- c("full")
+samp <- c(1:351)
+# stde <- c("half")
+# samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+# stde <- c("mixed")
+## TBD mixed
+
+## Nights of sampling (full [60], half [30], quarter [14])
+K <- 60
+
+## True number of snakes (normal [120] or low [60] density)
+N <- 120
+
+## Number of snakes per size category (4 groups; <850, >=850 to <950, >=950 to <1150, >=1150)
+## High density - many small scenario
+dens <- c("small")
+Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10)))
+## High density - many large scenario
+# dens <- c("large")
+# Nsnsz <- sample(c(rep(1,times=10),rep(2,times=25),rep(3,times=35),rep(4,times=50)))
+## Low density - many small scenario
+# dens <- c("small")
+# Nsnsz <- sample(c(rep(1,times=25),rep(2,times=17),rep(3,times=13),rep(4,times=5)))
+## Low density - many large scenario
+# dens <- c("large")
+# Nsnsz <- sample(c(rep(1,times=5),rep(2,times=13),rep(3,times=17),rep(4,times=25)))
+
+
+#### STUDY AREA INFORMATION.----
+
+## Study area based on the Closed Population (CP; 5-ha) with transects spaced every 8-m from each other and points on the transects spaced every 16-m
+## Create location points and get coordinates
 totlocs <- secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)
-
-# Define state-space of point process. (i.e., where animals live).
-# Option 1. Delta is the buffer of space between the end of transects and the fence
-delta <- 11.874929
-Xl <- min(totlocs[,1]) - delta
-Xu <- max(totlocs[,1]) + delta
-Yl <- min(totlocs[,2]) - delta
-Yu <- max(totlocs[,2]) + delta
-## Area of CP
-A <- (Xu-Xl)*(Yu-Yl)
-
-# Define state-space of point process. (i.e., where animals live).
-# Option 2. Delta is the buffer of space around the open study area
-# delta <- 20
-# Xl <- min(totlocs[,1]) - delta
-# Xu <- max(totlocs[,1]) + delta
-# Yl <- min(totlocs[,2]) - delta
-# Yu <- max(totlocs[,2]) + delta
-# ## Area of CP
-# A <- (Xu-Xl)*(Yu-Yl)
+## Get dimensions of the study area depending on if it's either a closed or open area based on "stype"
+sdeets <- areatype(totlocs = totlocs, stype = stype)
 
 
-#### SURVEY INFORMATION ----
+#### SURVEY INFORMATION.----
 
+## Create matrix of sampling location options
 X <- as.matrix(totlocs)
-# If applicable, subset locations to those monitored
-# E.g., every 2nd transect
-samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+## If applicable (if surveying less than the full design), subset locations to only those monitored
 X <- X[samp,]
+## Number of sampling points
 J <- nrow(X)
 
 
-#### INTEGRATION GRID ----
+#### INTEGRATION GRID.----
 
-# Function to find distance between each integration grid point and each location of trap/visual survey/camera/etc.
-e2dist <- function (x, y) {
-  i <- sort(rep(1:nrow(y), nrow(x)))
-  dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
-  matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
-}
-
-Ggrid <- 10                                #spacing
-Xlocs <- rep(seq(Xl, Xu, Ggrid), times = length(seq(Yl, Yu, Ggrid)))
-Ylocs <- rep(seq(Yl, Yu, Ggrid), each = length(seq(Xl, Xu, Ggrid)))
+## Spacing of grid cells
+Ggrid <- 10 
+## Find XY locations of all integration grid cell points
+Xlocs <- rep(seq(sdeets$Xl, sdeets$Xu, Ggrid), times = length(seq(sdeets$Yl, sdeets$Yu, Ggrid)))
+Ylocs <- rep(seq(sdeets$Yl, sdeets$Yu, Ggrid), each = length(seq(sdeets$Xl, sdeets$Xu, Ggrid)))
+## Total number of integration grid cell points
 G <- cbind(Xlocs, Ylocs)
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
@@ -64,36 +86,21 @@ points(X, pch=16, col="red")             #add locations of survey points
 
 
 #### INDIVIDUAL-SPECIFIC INFO ----
-
-# Set seed so we get the same values each time for true information about the population
+## Set seed so we get the same values each time for true information about the population
 set.seed(062420)
-# True number of snakes
-N <- 120
-# Number of snakes per size category (4 groups; <850, >=850 to <950, >=950 to <1150, >=1150)
-Nsnsz <- sample(c(1:4),N,replace=TRUE)
 Ngroup <- as.vector(table(Nsnsz))
-# True snake activity centers (AC)
+## True snake activity centers (AC)
 s <- sample(1:Gpts,N,replace=TRUE)
 
 
-#### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
+#### CREATE OVERALL POSTERIOR FROM WHICH TO SAMPLE ----
 
-# Parameters (p0, sigma) that influence detections of snakes will be pulled from real data posterior samples
 
-yTrue <- matrix(NA,dim=c(N,J))
-for(k in 1:K){
-  D<- e2dist(S,locs)
-  pmat<- plogis(alpha0)*exp(-alpha1*D*D)
-  yTrue[,,k]<-rbinom(prod(dim(pmat)),1,pmat)
-}
 
-captured<-which(apply(yTrue,1,sum)>0)
-yarr<-yTrue[captured,,]
-y<- apply(yarr,c(1,2),sum)
+## LOOP To READ IN AND ANALYZE DATA
+
+y <- apply(yarr,c(1,2),sum)
 nind <- length(captured)
-
-
-
 
 ########################################################
 ##Jags model for a King et al 2016 semicomplete likelihood
