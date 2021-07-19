@@ -1,6 +1,6 @@
 ## Simulate capture/observation histories of snakes in different sampling scenarios
 ## Save data to simDat folder
-## Analyze each dataset and save results in Results folder
+## Analyze each dataset using King et al. Semicomplete Likelihood (2016) and save results in Results folder
 
 rm(list=ls())
 
@@ -17,8 +17,8 @@ stype <- c("open")
 # stype <- c("closed")
 
 ## Type of sampling design
-type <- c("VIS")
-# type <- c("TRAP")
+# type <- c("VIS")
+type <- c("TRAP")
 # type <- c("MIX")
 
 ## Study design (full [351 transects], half [18 transects, every other], or mix)
@@ -72,11 +72,10 @@ J <- nrow(X)
 #### INTEGRATION GRID.----
 
 ## Spacing of grid cells
-Ggrid <- 10 
+Ggrid <- 10
 ## Find XY locations of all integration grid cell points
 Xlocs <- rep(seq(sdeets$Xl, sdeets$Xu, Ggrid), times = length(seq(sdeets$Yl, sdeets$Yu, Ggrid)))
 Ylocs <- rep(seq(sdeets$Yl, sdeets$Yu, Ggrid), each = length(seq(sdeets$Xl, sdeets$Xu, Ggrid)))
-## Total number of integration grid cell points
 G <- cbind(Xlocs, Ylocs)
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
@@ -85,7 +84,7 @@ plot(G, pch=16, cex=.5, col="grey")      #plot integration grid
 points(X, pch=16, col="red")             #add locations of survey points
 
 
-#### INDIVIDUAL-SPECIFIC INFO ----
+#### INDIVIDUAL-SPECIFIC INFO.----
 ## Set seed so we get the same values each time for true information about the population
 set.seed(062420)
 Ngroup <- as.vector(table(Nsnsz))
@@ -93,92 +92,99 @@ Ngroup <- as.vector(table(Nsnsz))
 s <- sample(1:Gpts,N,replace=TRUE)
 
 
-#### CREATE OVERALL POSTERIOR FROM WHICH TO SAMPLE ----
+#### CREATE OVERALL POSTERIOR FROM WHICH TO SAMPLE AND SIMULATE OBSERVATIONS.----
+
+nsims <- 10 #1000
+## Create and save datasets matching the previously specified scenarios
+set.seed(07192021)
+createData(type=type,nsims=nsims)
 
 
+#### READ IN DATA AND ANALYZE.----
 
-## LOOP To READ IN AND ANALYZE DATA
-
-y <- apply(yarr,c(1,2),sum)
-nind <- length(captured)
-
-########################################################
-##Jags model for a King et al 2016 semicomplete likelihood
-
-cat("
-model {
+for(i in 1:nsims){
+  y <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,sep=""))
+  nind <- length(captured)
   
-  sigma ~ dunif(0,100)
-  alpha1 <- 1/(2*sigma*sigma)
+  ########################################################
+  ##Jags model for a King et al 2016 semicomplete likelihood
   
-  for(l in 1:L){   # 4 size categories
-    #prior for intercept
-    p0[l] ~ dunif(0,1)
-    alpha0[l] <- logit(p0[l])
+  cat("
+  model {
     
-    # Posterior conditional distribution for N-n (and hence N):
-    n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-    Ngroup[l] <- ngroup[l] + n0[l]
+    sigma ~ dunif(0,100)
+    alpha1 <- 1/(2*sigma*sigma)
+    
+    for(l in 1:L){   # 4 size categories
+      #prior for intercept
+      p0[l] ~ dunif(0,1)
+      alpha0[l] <- logit(p0[l])
+      
+      # Posterior conditional distribution for N-n (and hence N):
+      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
+      Ngroup[l] <- ngroup[l] + n0[l]
+    }
+    
+    N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+    
+    #Probability of capture for integration grid points
+    #pdot = probability of being detected at least once (given location)
+    
+    for(l in 1:L){  # size category
+      for(g in 1:Gpts){ # Gpts = number of points on integration grid
+        for(j in 1:J){  # J = number of traps
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+          miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
+        } #J
+        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+      } #G
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      
+      # Zero trick for initial 1/pstar^n
+      loglikterm[l] <- -ngroup[l] * log(pstar[l])
+      lambda[l] <- -loglikterm[l] + 10000
+      dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
+    } #L
+    
+    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    
+    for(i in 1:n){  ## n = number of observed individuals
+      ## For use when defining traps on a grid cell
+      s[i] ~ dcat(pi[1:Gpts])
+      
+      # Model for capture histories of observed individuals:
+      for(j in 1:J){  ## J = number of traps
+        y[i,j] ~ dbin(p[i,j],K[j])
+        p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
+      }#J
+    }#I
+    
+    #derived proportion in each size class
+    for(l in 1:L){
+      piGroup[l] <- Ngroup[l]/N
+    }
+  }
+  ",file = "Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt")
+  
+  #######################################################
+  
+  # MCMC settings
+  nc <- 5; nAdapt=100; nb <- 10; ni <- 1000+nb; nt <- 1 
+  
+  # Data and constants
+  jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+  
+  # Initial values (same as real data analysis)
+  inits <- function(){
+    list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
   }
   
-  N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+  parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
   
-  #Probability of capture for integration grid points
-  #pdot = probability of being detected at least once (given location)
+  out <- jags("Simulations/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
   
-  for(l in 1:L){  # size category
-    for(g in 1:Gpts){ # Gpts = number of points on integration grid
-      for(j in 1:J){  # J = number of traps
-        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
-      } #J
-      pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
-      pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
-    } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
-    
-    # Zero trick for initial 1/pstar^n
-    loglikterm[l] <- -ngroup[l] * log(pstar[l])
-    lambda[l] <- -loglikterm[l] + 10000
-    dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
-  } #L
-  
-  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
-  pi[1:Gpts] ~ ddirch(b[1:Gpts])
-  
-  for(i in 1:n){  ## n = number of observed individuals
-    ## For use when defining traps on a grid cell
-    s[i] ~ dcat(pi[1:Gpts])
-    
-    # Model for capture histories of observed individuals:
-    for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K[j])
-      p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
-    }#J
-  }#I
-  
-  #derived proportion in each size class
-  for(l in 1:L){
-    piGroup[l] <- Ngroup[l]/N
-  }
+  save(out, file="Simulations/Results/DataSim1TEST.Rdata")
+
 }
-",file = "Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt")
-
-#######################################################
-
-# MCMC settings
-nc <- 5; nAdapt=100; nb <- 10; ni <- 1000+nb; nt <- 1 
-
-# Data and constants
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
-
-# Initial values (same as real data analysis)
-inits <- function(){
-  list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
-}
-
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-
-out <- jags("Simulations/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
-
-save(out, file="Simulations/Results/DataSim1TEST.Rdata")
