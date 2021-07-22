@@ -43,6 +43,8 @@ capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
 SCReff <- effSnk(eff=CPsurv, time=time)
+## Check no duplicates surveys being retained
+SCRcaps <- checkSnks(SCRcaps=SCRcaps)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -158,7 +160,7 @@ model {
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K[j])
+      y[i,j] ~ dpois(p[i,j]*K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I
@@ -195,6 +197,6 @@ out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, i
 #             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 
-save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATupdated5June.Rdata")  ## M = 150 (XXXXhrs)
+save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATdpois.Rdata")
 # save(out, file="Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATNOSIZEgrid5.Rdata")
 

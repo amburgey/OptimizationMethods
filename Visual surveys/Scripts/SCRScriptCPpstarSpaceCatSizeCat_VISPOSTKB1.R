@@ -43,6 +43,8 @@ capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("V"))
 SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
 SCReff <- effSnk(eff=CPsurv, time=time)
+## Check no duplicates surveys being retained
+SCRcaps <- checkSnks(SCRcaps=SCRcaps)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -64,13 +66,22 @@ nind <- nrow(y)
 snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
 # snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
+
+# ## Remove size category 3 (4 already doesn't exist) due to inadequate sample size
+temp <- cbind(snsz, y)
+temp <- subset(temp, snsz < 950)
+snsz <- temp[,1]
 snsz <- ifelse(snsz < 850, 1,
-               ifelse(snsz >= 850 & snsz < 950, 2,
-                      ifelse(snsz >= 950 & snsz < 1150, 3,
-                             ifelse(snsz >= 1150, 4, -9999))))
+               ifelse(snsz >= 850 & snsz < 950, 2, -9999))
 if(max(snsz) == -9999) stop('snake size incorrect')
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
+
+## Recreate y with just snakes retained
+y <- temp[,2:ncol(temp)]
+
+## Uniquely marked individuals from those retained
+nind <- nrow(y)
 
 ## Active/not active for when transects run, already in order of 1-351 CellID locations
 act <- as.matrix(dat$act[,-1])
@@ -85,8 +96,8 @@ nocc <- ncol(act)
 locs <- CPspecs$tran
 colnames(locs)[2] <- c("CellID")
 vsst <- list()
-for(i in 1:nrow(dat$y)){
-  vsst[i] <- apply(dat$y,1,function(x) which(x==1))[[i]][1]
+for(i in 1:nrow(y)){
+  vsst[i] <- apply(y,1,function(x) which(x==1))[[i]][1]
   vsst <- unlist(vsst)
 }
 
@@ -158,7 +169,7 @@ model {
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K[j])
+      y[i,j] ~ dpois(p[i,j]*K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I
@@ -173,7 +184,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
+nc <- 3; nAdapt=200; nb <- 200; ni <- 5000+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
@@ -195,6 +206,6 @@ out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, i
 #             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
 
-save(out, file="Visual surveys/Results/NWFNVISPOSTKB1_SCRpstarvisCATsizeCATupdated5June2sizes.Rdata")
+save(out, file="Visual surveys/Results/NWFNVISPOSTKB1_SCRpstarvisCATsizeCATdpois2sizesLONGER.Rdata")
 # save(out, file="Visual surveys/Results/NWFNVISPOSTKB1_SCRpstarvisCATNOSIZEgrid10.Rdata")
 
