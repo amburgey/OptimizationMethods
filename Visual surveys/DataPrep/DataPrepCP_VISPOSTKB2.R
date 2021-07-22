@@ -67,6 +67,16 @@ effSnk <- function(eff, time){
 }
 
 
+##### CHECK FOR DUPLICATE SURVEYS OR SNAKES THAT SHOULD NOT HAVE BEEN CAPTURED TWICE IN THE SAME NIGHT.----
+
+checkSnks <- function(SCRcaps){
+  ## Check if there are erroneous duplicates
+  if(length(unique(duplicated(SCRcaps[,-2]))) >= 2) stop('fix duplicates')
+  
+  return(SCRcaps)
+}
+
+
 ##### COMPARE DATES BETWEEN CAPTURES AND EFFORT #####
 ## Make sure that the captures of snakes match the dates when surveys occurred
 checkDims <- function(SCRseff, SCRcaps){
@@ -100,8 +110,11 @@ prepSCR <- function(SCRcaps, SCReff, grid){
     y <- as.matrix(y)
   }
   
-  ## Transform any multiple captures at a single location to just 1
-  y <- ifelse(y>=1,1,y)
+  ## Check if there are erroneous duplicates
+  if(length(unique(duplicated(SCRcaps[,-2]))) >= 2) stop('fix duplicates')
+  
+  # ## Transform any multiple captures at a single location to just 1
+  # y <- ifelse(y>=1,1,y)
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths
@@ -150,8 +163,11 @@ prepSCRman <- function(SCRcaps, SCReff, grid){
     y <- as.matrix(y)
   }
   
-  ## Transform any multiple captures at a single location to just 1
-  y <- ifelse(y>=1,1,y)
+  ## Check if there are erroneous duplicates
+  if(length(unique(duplicated(SCRcaps[,-2]))) >= 2) stop('fix duplicates')
+  
+  # ## Transform any multiple captures at a single location to just 1
+  # y <- ifelse(y>=1,1,y)
   
   ## Set up effort matrix (Grid cell by Date and indicate if active or not)
   ## Check if effort should be scaled due to different survey lengths

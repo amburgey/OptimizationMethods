@@ -67,6 +67,16 @@ effSnk <- function(eff, time){
 }
 
 
+##### CHECK FOR DUPLICATE SURVEYS OR SNAKES THAT SHOULD NOT HAVE BEEN CAPTURED TWICE IN THE SAME NIGHT.----
+
+checkSnks <- function(SCRcaps){
+  ## Check if there are erroneous duplicates
+  if(length(unique(duplicated(SCRcaps[,-2]))) >= 2) stop('fix duplicates')
+  
+  return(SCRcaps)
+}
+
+
 ##### COMPARE DATES BETWEEN CAPTURES AND EFFORT #####
 ## Make sure that the captures of snakes match the dates when surveys occurred
 checkDims <- function(SCRseff, SCRcaps){
