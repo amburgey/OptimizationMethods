@@ -41,7 +41,7 @@ e2dist <- function (x, y) {
 
 #### FUNCTION TO CREATE POSTERIOR SAMPLE FROM REAL DATA ANALYSIS AND SIMULATE OBSERVATIONS DEPENDING ON THE METHOD SELECTED.----
 
-createData <- function(type, nsims){
+createData <- function(type, nsims, Ngroup, Nsnz){
   
   
   ## Read in all different model results and combine into a single posterior for each parameter
@@ -131,10 +131,12 @@ createData <- function(type, nsims){
     ## yTrueVIS includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
     capturedV <- list()
     yarrV <- list()
+    ## Bind sizes of snake to encounter histories
+    yTrueVIS <- abind::abind(yTrueVIS,array(Nsnsz, replace(dim(yTrueVIS),2,1)), along=2)
     for(i in 1:nsims){
-      capturedV[[i]] <- which(apply(yTrueVIS[,,i],1,sum)>0)  # snakes that were observed at least once
+      capturedV[[i]] <- which(apply(yTrueVIS[,1:J,i],1,sum)>0)  # snakes that were observed at least once
       yarrV[[i]] <- yTrueVIS[capturedV[[i]],,i]  # subset to observed snakes
-      write.csv(yarrV[[i]], file = paste("Simulations/simDat/",type,N,dens,K,stde,i,sep=""))  # write to file to keep observations
+      write.csv(yarrV[[i]], file = paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))  # write to file to keep observations
     }
   }  ## VIS
   
@@ -219,10 +221,12 @@ createData <- function(type, nsims){
     ## yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
     capturedT <- list()
     yarrT <- list()
+    ## Bind sizes of snake to encounter histories
+    yTrueTRAP <- abind::abind(yTrueTRAP,array(Nsnsz, replace(dim(yTrueTRAP),2,1)), along=2)
     for(i in 1:nsims){
-      capturedT[[i]] <- which(apply(yTrueTRAP[,,i],1,sum)>0)  # snakes that were observed at least once
+      capturedT[[i]] <- which(apply(yTrueTRAP[,1:J,i],1,sum)>0)  # snakes that were observed at least once
       yarrT[[i]] <- yTrueTRAP[capturedT[[i]],,i]  # subset to observed snakes
-      write.csv(yarrT[[i]], file = paste("Simulations/simDat/",type,N,dens,K,stde,i,sep=""))  # write to file to keep observations
+      write.csv(yarrT[[i]], file = paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))  # write to file to keep observations
     }
   }  ## TRAP
   
