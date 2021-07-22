@@ -121,7 +121,7 @@ model {
   
   for(l in 1:L){   # 4 size categories
     #prior for intercept
-    p0[l] ~ dunif(0,1)
+    p0[l] ~ dunif(0,5)
     alpha0[l] <- logit(p0[l])
     
     # Posterior conditional distribution for N-n (and hence N):
