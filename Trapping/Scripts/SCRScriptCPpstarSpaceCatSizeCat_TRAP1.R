@@ -37,6 +37,8 @@ capPROJ <- subSnk(SITEcaps=CPcaps, type=c("TRAPTYPE"), info=c("M"))
 SCRcaps <- subYr(SITEcaps=capPROJ, time=time)  ## this is using 2 months (Feb - Mar)
 ## Find effort for this set of snakes and time
 SCReff <- effSnk(eff=CPsurv, time=time)
+## Check no duplicates surveys being retained, no erroneous snake captures
+SCRcaps <- checkSnks(SCRcaps=SCRcaps)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
