@@ -36,6 +36,8 @@ capPROJ <- subSnk(SITEcaps=HMUspecs$snks)
 SCRcaps <- subYr(SITEcaps=capPROJ, time=c("05","06"))  ## specify month range
 ## Find effort for this set of snakes and time
 SCReff <- effSnk(eff=HMUsurv, time=c("05","06"))
+## Check no duplicates surveys being retained
+SCRcaps <- checkSnks(SCRcaps=SCRcaps)
 ## Check data to make sure no missing effort or captured snakes were on survey dates (throws error if dim mismatch)
 checkDims(SCReff, SCRcaps)
 
@@ -107,7 +109,7 @@ model {
 
   for(l in 1:L){   # 4 size categories
     #prior for intercept
-    p0[l] ~ dunif(0,1)
+    p0[l] ~ dunif(0,5)
     alpha0[l] <- logit(p0[l])
     
     # Posterior conditional distribution for N-n (and hence N):
@@ -146,7 +148,7 @@ model {
     
     # Model for capture histories of observed individuals:
     for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dbin(p[i,j],K[j])
+      y[i,j] ~ dpois(p[i,j]*K[j])
       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
     }#J
   }#I
