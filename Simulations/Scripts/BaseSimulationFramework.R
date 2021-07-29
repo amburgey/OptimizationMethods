@@ -200,10 +200,10 @@ for(i in 1:nsims){
       
       # Posterior conditional distribution for N-n (and hence N):
       n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-      Ngroup[l] <- ngroup[l] + n0[l]
+      #Ngroup[l] <- ngroup[l] + n0[l]
     }
     
-    N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+    #N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
     
     #Probability of capture for integration grid points
     #pdot = probability of being detected at least once (given location)
@@ -211,7 +211,7 @@ for(i in 1:nsims){
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
         for(j in 1:J){  # J = number of traps
-          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+          # Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
           miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K)
         } #J
         pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
@@ -240,9 +240,9 @@ for(i in 1:nsims){
     }#I
     
     #derived proportion in each size class
-    for(l in 1:L){
-      piGroup[l] <- Ngroup[l]/N
-    }
+    #for(l in 1:L){
+      #piGroup[l] <- Ngroup[l]/N
+    #}
   }
   ",file = "Simulations/Models/SCRpstarCATsizeCAT_SimTRAP.txt")
   
@@ -251,14 +251,14 @@ for(i in 1:nsims){
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=100; nb <- 10; ni <- 1000+nb; nt <- 1 
+  nc <- 5; nAdapt=10; nb <- 10; ni <- 100+nb; nt <- 1 
   
   # Data and constants
   jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
   
   # Initial values (same as real data analysis)
   inits <- function(){
-    list (sigma=runif(1,30,40), n0=(ngroup+50), s=vsst, p0=runif(L,.002,.003))
+    list (sigma=runif(1,40,50), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
   }
   
   parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")

@@ -17,7 +17,7 @@ areatype <- function(totlocs, stype){
   if(stype == c("open")){
     ## Define state-space of point process. (i.e., where animals live).
     ## Option 2. Delta is the buffer of space around the open study area
-    delta <- 20
+    delta <- 29
     Xl <- min(totlocs[,1]) - delta
     Xu <- max(totlocs[,1]) + delta
     Yl <- min(totlocs[,2]) - delta
