@@ -206,7 +206,7 @@ for(i in 1:nsims){
     N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
     
     #Probability of capture for integration grid points
-    pdot = probability of being detected at least once (given location)
+    #pdot = probability of being detected at least once (given location)
     
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
