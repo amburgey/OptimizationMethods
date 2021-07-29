@@ -200,13 +200,13 @@ for(i in 1:nsims){
       
       # Posterior conditional distribution for N-n (and hence N):
       n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-      #Ngroup[l] <- ngroup[l] + n0[l]
+      Ngroup[l] <- ngroup[l] + n0[l]
     }
     
-    #N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+    N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
     
     #Probability of capture for integration grid points
-    #pdot = probability of being detected at least once (given location)
+    pdot = probability of being detected at least once (given location)
     
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
@@ -217,7 +217,7 @@ for(i in 1:nsims){
         pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
         pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
-      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      pstar[l] <- 0.8 #(sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
       
       # Zero trick for initial 1/pstar^n
       loglikterm[l] <- -ngroup[l] * log(pstar[l])
@@ -240,9 +240,9 @@ for(i in 1:nsims){
     }#I
     
     #derived proportion in each size class
-    #for(l in 1:L){
-      #piGroup[l] <- Ngroup[l]/N
-    #}
+    for(l in 1:L){
+      piGroup[l] <- Ngroup[l]/N
+    }
   }
   ",file = "Simulations/Models/SCRpstarCATsizeCAT_SimTRAP.txt")
   
