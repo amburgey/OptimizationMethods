@@ -3,7 +3,7 @@
 ## Select what projects to use
 ## Format for SCR analysis
 
-library(lubridate); library(reshape2); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf); library(tidyverse); library(plyr); library(plotKML)
+library(lubridate); library(reshape2); library(plyr); library(dplyr); library(sp); library(ggplot2); library(rgdal); library(raster); library(sf); library(tidyverse); library(plotKML)
 
 source("RenamingGrid.R")  ## only if using NWFN perimeter locations, which we are not currently but keep anyway for ease
 
