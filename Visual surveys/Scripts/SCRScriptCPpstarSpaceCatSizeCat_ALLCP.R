@@ -16,9 +16,124 @@ projects <- c("Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VIS2.R",
 
 for(i in 1:length(projects)){
         ## Read in prep code for project
-        source(projects[1])
-        ## Create and add to a combined dataset
-        
+        ## The first data prep script includes loading functions and subsetting to just NWFN/CP
+        source(projects[[1]])
+        ## Take prepared data and add in order to create combined datasets
+        ## Transect info
+        ## Survey info
+        ## Capture info
         
 }
+
+
+
+#### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
+
+e2dist <- function (x, y) {
+        i <- sort(rep(1:nrow(y), nrow(x)))
+        dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
+        matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
+}
+
+## Integration grid
+Ggrid <- cellsize                         #spacing
+G <- CPspecs$intgrd[,2:3]
+Gpts <- dim(G)[1]                         #number of integration points
+a <- CPspecs$area                         #area of each integration grid
+Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
+plot(G, pch=16, cex=.5, col="grey")
+points(X, pch=16, col="red")
+
+
+
+########################################################
+##Jags model for a King et al 2016 semicomplete likelihood
+
+# cat("
+# model {
+#   
+#   sigma ~ dunif(0,100)
+#   alpha1 <- 1/(2*sigma*sigma)
+#   
+#   for(l in 1:L){   # 4 size categories
+#     #prior for intercept
+#     p0[l] ~ dunif(0,5)
+#     alpha0[l] <- logit(p0[l])
+#     
+#     # Posterior conditional distribution for N-n (and hence N):
+#     n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
+#     Ngroup[l] <- ngroup[l] + n0[l]
+#   }
+#   
+#   N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+#   
+#   #Probability of capture for integration grid points
+#   #pdot = probability of being detected at least once (given location)
+#   
+#   for(l in 1:L){  # size category
+#     for(g in 1:Gpts){ # Gpts = number of points on integration grid
+#       for(j in 1:J){  # J = number of traps
+#         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+#         miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
+#       } #J
+#       pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
+#       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+#     } #G
+#     pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+#     
+#     # Zero trick for initial 1/pstar^n
+#     loglikterm[l] <- -ngroup[l] * log(pstar[l])
+#     lambda[l] <- -loglikterm[l] + 10000
+#     dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
+#   } #L
+#   
+#   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+#   pi[1:Gpts] ~ ddirch(b[1:Gpts])
+#   
+#   for(i in 1:n){  ## n = number of observed individuals
+#     ## For use when defining traps on a grid cell
+#     s[i] ~ dcat(pi[1:Gpts])
+#     
+#     # Model for capture histories of observed individuals:
+#     for(j in 1:J){  ## J = number of traps
+#       y[i,j] ~ dpois(p[i,j]*K[j])
+#       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
+#     }#J
+#   }#I
+#   
+#   #derived proportion in each size class
+#   for(l in 1:L){
+#     piGroup[l] <- Ngroup[l]/N
+#   }
+# }
+# ",file = "Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt")
+# 
+# #######################################################
+# 
+# ## MCMC settings
+# nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
+# 
+# ## Data and constants
+# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+# # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
+# 
+# 
+# inits <- function(){
+#   list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
+# }
+# # inits <- function(){
+# #   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+# # }
+# 
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+# # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0")
+# 
+# out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+#             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+# # out <- jags("Archive/SCRpstarCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
+#             # n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+# 
+# 
+# save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata")
+# # save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCATNOSIZEgrid10.Rdata")
 

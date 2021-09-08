@@ -2,17 +2,17 @@
 
 ## CP was created in 2004 and has been used in several projects, resulting in a rich time series with surveys occurring at various densities of snakes
 
-rm(list=ls())
-
-source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-source("Visual surveys/DataPrep/DataPrepCP_VISHL1.R")              ## Functions to reshape survey and capture data
-source("Visual surveys/DataPrep/OverlayCPGrid.R")   ## Function to create study area grid cells and integration grid cells
-
-library(secr); library(reshape2); library(jagsUI)
-
-## Subset capture data (subcap) and effort/survey data (subsurv)
-CPcaps <- subset(subcap, SITE == "NWFN")
-CPsurv <- subset(subsurv, SITE == "NWFN")
+# rm(list=ls())
+# 
+# source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
+# source("Visual surveys/DataPrep/DataPrepCP_VISHL1.R")              ## Functions to reshape survey and capture data
+# source("Visual surveys/DataPrep/OverlayCPGrid.R")   ## Function to create study area grid cells and integration grid cells
+# 
+# library(secr); library(reshape2); library(jagsUI)
+# 
+# ## Subset capture data (subcap) and effort/survey data (subsurv)
+# CPcaps <- subset(subcap, SITE == "NWFN")
+# CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
 CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VIS HL 1")
@@ -23,18 +23,18 @@ time <- c("11","12")
 time2 <- c("2006-08-01","2007-02-28")
 
 
-##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- c(10,10)  ## dimensions of integration grid cell
-CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
-## Area (5 ha/50,000 m2): 
-A <- sum(CPspecs$area)
+# ##### SPECIFY DIMENSIONS OF CP #####
+# cellsize <- c(10,10)  ## dimensions of integration grid cell
+# CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
+# ## Area (5 ha/50,000 m2): 
+# A <- sum(CPspecs$area)
 
 
-##### USE CATEGORICAL GRID CELL LOCATIONS #####
-## Surveys locations, all 351 transect locations
-fullX <- CPspecs$tran
-X <- as.matrix(CPspecs$tran[,-1])[,2:3]
-J <- nrow(X)
+# ##### USE CATEGORICAL GRID CELL LOCATIONS #####
+# ## Surveys locations, all 351 transect locations
+# fullX <- CPspecs$tran
+# X <- as.matrix(CPspecs$tran[,-1])[,2:3]
+# J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
 ## Subset data based on how it was collected (V = visual, M = trap)
@@ -94,119 +94,119 @@ for(i in 1:nrow(dat$y)){
   vsst <- unlist(vsst)
 }
 
-#### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
-
-e2dist <- function (x, y) {
-  i <- sort(rep(1:nrow(y), nrow(x)))
-  dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
-  matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
-}
-
-## Integration grid
-Ggrid <- cellsize                         #spacing
-G <- CPspecs$intgrd[,2:3]
-Gpts <- dim(G)[1]                         #number of integration points
-a <- CPspecs$area                         #area of each integration grid
-Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
-plot(G, pch=16, cex=.5, col="grey")
-points(X, pch=16, col="red")
-
-
-########################################################
-##Jags model for a King et al 2016 semicomplete likelihood
-
-cat("
-model {
-  
-  sigma ~ dunif(0,100)
-  alpha1 <- 1/(2*sigma*sigma)
-  
-  for(l in 1:L){   # 4 size categories
-    #prior for intercept
-    p0[l] ~ dunif(0,5)
-    alpha0[l] <- logit(p0[l])
-    
-    # Posterior conditional distribution for N-n (and hence N):
-    n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-    Ngroup[l] <- ngroup[l] + n0[l]
-  }
-  
-  N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
-  
-  #Probability of capture for integration grid points
-  #pdot = probability of being detected at least once (given location)
-  
-  for(l in 1:L){  # size category
-    for(g in 1:Gpts){ # Gpts = number of points on integration grid
-      for(j in 1:J){  # J = number of traps
-        #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-        miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
-      } #J
-      pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
-      pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
-    } #G
-    pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
-    
-    # Zero trick for initial 1/pstar^n
-    loglikterm[l] <- -ngroup[l] * log(pstar[l])
-    lambda[l] <- -loglikterm[l] + 10000
-    dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
-  } #L
-  
-  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
-  pi[1:Gpts] ~ ddirch(b[1:Gpts])
-  
-  for(i in 1:n){  ## n = number of observed individuals
-    ## For use when defining traps on a grid cell
-    s[i] ~ dcat(pi[1:Gpts])
-    
-    # Model for capture histories of observed individuals:
-    for(j in 1:J){  ## J = number of traps
-      y[i,j] ~ dpois(p[i,j]*K[j])
-      p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
-    }#J
-  }#I
-  
-  #derived proportion in each size class
-  for(l in 1:L){
-    piGroup[l] <- Ngroup[l]/N
-  }
-}
-",file = "Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt")
-
-#######################################################
-
-## MCMC settings
-nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
-
-## Data and constants
-## For Size model:
-jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
-## For No Size model:
-# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
-
-## For Size model:
-inits <- function(){
-  list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
-}
-## For No Size model:
-# inits <- function(){
-#   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+# #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
+# 
+# e2dist <- function (x, y) {
+#   i <- sort(rep(1:nrow(y), nrow(x)))
+#   dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
+#   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
 # }
+# 
+# ## Integration grid
+# Ggrid <- cellsize                         #spacing
+# G <- CPspecs$intgrd[,2:3]
+# Gpts <- dim(G)[1]                         #number of integration points
+# a <- CPspecs$area                         #area of each integration grid
+# Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
+# plot(G, pch=16, cex=.5, col="grey")
+# points(X, pch=16, col="red")
 
-## For Size model:
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-## For No Size model:
-# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob","lambda")
 
-## For Size model:
-out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
-            n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
-## For No Size model:
-# out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
+# ########################################################
+# ##Jags model for a King et al 2016 semicomplete likelihood
+# 
+# cat("
+# model {
+#   
+#   sigma ~ dunif(0,100)
+#   alpha1 <- 1/(2*sigma*sigma)
+#   
+#   for(l in 1:L){   # 4 size categories
+#     #prior for intercept
+#     p0[l] ~ dunif(0,5)
+#     alpha0[l] <- logit(p0[l])
+#     
+#     # Posterior conditional distribution for N-n (and hence N):
+#     n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
+#     Ngroup[l] <- ngroup[l] + n0[l]
+#   }
+#   
+#   N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+#   
+#   #Probability of capture for integration grid points
+#   #pdot = probability of being detected at least once (given location)
+#   
+#   for(l in 1:L){  # size category
+#     for(g in 1:Gpts){ # Gpts = number of points on integration grid
+#       for(j in 1:J){  # J = number of traps
+#         #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+#         miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j])
+#       } #J
+#       pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
+#       pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+#     } #G
+#     pstar[l] <- (sum(pdot[l,1:Gpts]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+#     
+#     # Zero trick for initial 1/pstar^n
+#     loglikterm[l] <- -ngroup[l] * log(pstar[l])
+#     lambda[l] <- -loglikterm[l] + 10000
+#     dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
+#   } #L
+#   
+#   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+#   pi[1:Gpts] ~ ddirch(b[1:Gpts])
+#   
+#   for(i in 1:n){  ## n = number of observed individuals
+#     ## For use when defining traps on a grid cell
+#     s[i] ~ dcat(pi[1:Gpts])
+#     
+#     # Model for capture histories of observed individuals:
+#     for(j in 1:J){  ## J = number of traps
+#       y[i,j] ~ dpois(p[i,j]*K[j])
+#       p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
+#     }#J
+#   }#I
+#   
+#   #derived proportion in each size class
+#   for(l in 1:L){
+#     piGroup[l] <- Ngroup[l]/N
+#   }
+# }
+# ",file = "Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt")
+# 
+# #######################################################
+# 
+# ## MCMC settings
+# nc <- 3; nAdapt=200; nb <- 100; ni <- 2500+nb; nt <- 1
+# 
+# ## Data and constants
+# ## For Size model:
+# jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup) # ## semicomplete likelihood
+# ## For No Size model:
+# # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, nocc=nocc, a=a, n=nind, dummy=0, b=rep(1,Gpts))
+# 
+# ## For Size model:
+# inits <- function(){
+#   list (sigma=runif(1,30,40), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
+# }
+# ## For No Size model:
+# # inits <- function(){
+# #   list (sigma=runif(1,30,40), n0=(nind+30), s=vsst, p0=runif(1,.002,.003))
+# # }
+# 
+# ## For Size model:
+# parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+# ## For No Size model:
+# # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","pdot","one_minus_detprob","lambda")
+# 
+# ## For Size model:
+# out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CP.txt", data=jags.data, inits=inits, parallel=TRUE,
 #             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
-
-
-save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata")
-# save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATNOSIZEgrid10.Rdata")
-
+# ## For No Size model:
+# # out <- jags("Archive/SCRpstarCAT_CPtest.txt", data=jags.data, inits=inits, parallel=TRUE,
+# #             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
+# 
+# 
+# save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata")
+# # save(out, file="Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATNOSIZEgrid10.Rdata")
+# 
