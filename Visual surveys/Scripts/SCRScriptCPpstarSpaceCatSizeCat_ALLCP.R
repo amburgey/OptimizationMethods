@@ -4,6 +4,9 @@ rm(list=ls())
 
 library(secr); library(reshape2); library(jagsUI)
 
+source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
+source("Visual surveys/DataPrep/OverlayCPGrid.R")
+
 projects <- c("Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VIS2.R",
         "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL1.R",
         "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL2.R",
@@ -14,17 +17,45 @@ projects <- c("Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VIS2.R",
         "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB3.R",
         "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISVISTRAP.R")
 
-for(i in 1:length(projects)){
+noccall <- as.data.frame(matrix(NA, nrow = length(projects), ncol = 1))
+Kall <- as.data.frame(matrix(NA, nrow = 351, ncol = length(projects)))
+nindall <- as.data.frame(matrix(NA, nrow = length(projects), ncol = 1))
+yall <- as.data.frame(matrix(NA, nrow = 1, ncol = 351));colnames(yall)=seq(1:ncol(yall))
+snszall <- as.data.frame(matrix(NA, nrow = 1, ncol = 1));colnames(snszall)=seq(1:ncol(snszall))
+Lall <- as.data.frame(matrix(NA, nrow = length(projects), ncol = 1))
+ngroupall <- as.data.frame(matrix(NA, nrow = 1, ncol = 1));colnames(ngroupall)=seq(1:ncol(ngroupall))
+vsstall <- as.data.frame(matrix(NA, nrow = 1, ncol = 1));colnames(vsstall)=seq(1:ncol(vsstall))
+
+for(p in 1:length(projects)){
         ## Read in prep code for project
         ## The first data prep script includes loading functions and subsetting to just NWFN/CP
-        source(projects[[1]])
+        source(projects[[p]])
         ## Take prepared data and add in order to create combined datasets
-        ## Transect info
         ## Survey info
-        ## Capture info
-        
+        noccall[p,1] <- nocc
+        Kall[,p] <- K
+        ## Capture info (will differ in number of individuals but will always be 351 columns)
+        colnames(y) <- seq(1:ncol(y))
+        yall <- rbind(yall, y)
+        nindall[p,1] <- nind
+        ## Snake size info
+        snsz <- as.data.frame(snsz); colnames(snsz) = seq(1:ncol(snsz))
+        snszall <- rbind(snszall, snsz)
+        Lall[p,1] <- L
+        ngroup <- as.data.frame(ngroup); colnames(ngroup) = seq(1:ncol(ngroup))
+        ngroupall <- rbind(ngroupall, ngroup)
+        ## Inits
+        vsst <- as.data.frame(vsst); colnames(vsst) = seq(1:ncol(vsst))
+        vsstall <- rbind(vsstall, vsst)
+
 }
 
+## Remove initial row of NAs needed to create dataframe
+yall <- yall[-1,]
+snszall <- snszall[-1,]
+ngroupall <- ngroupall[-1,]
+vsstall <- vsstall[-1,]
+## Convert single column dataframes to vectors
 
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
