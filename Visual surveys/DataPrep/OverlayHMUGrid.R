@@ -72,6 +72,7 @@ overlayHMU <- function(HMUcaps, cellsize){
   hmutran[[18]] <- SpatialLines(list(Lines(Line(cbind(c(HMUtran[18,4],HMUtran[18,7]),c(HMUtran[18,5],HMUtran[18,8]))), ID = "HP09")), proj4string = CRS("+proj=utm +zone=55"))
   
   ## Make sure all transects pass through cells
+  test <- vector()
   for(i in 1:length(hmutran)){
     test[i] <- gIntersects(hmutran[[i]],clipHMU)
   }
