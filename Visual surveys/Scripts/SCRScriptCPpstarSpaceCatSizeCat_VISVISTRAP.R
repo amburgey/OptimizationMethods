@@ -5,14 +5,14 @@
 # rm(list=ls())
 # 
 # source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up)
-# source("Visual surveys/DataPrep/DataPrepCP_VISVISTRAP.R")              ## Functions to reshape survey and capture data
+source("Visual surveys/DataPrep/DataPrepCP_VISVISTRAP.R")              ## Functions to reshape survey and capture data
 # source("Visual surveys/DataPrep/OverlayCPGrid.R")
 # 
 # library(secr); library(reshape2); library(jagsUI)
 # 
-# ## Subset capture data (subcap) and effort/survey data (subsurv)
-# CPcaps <- subset(subcap, SITE == "NWFN")
-# CPsurv <- subset(subsurv, SITE == "NWFN")
+## Subset capture data (subcap) and effort/survey data (subsurv)
+CPcaps <- subset(subcap, SITE == "NWFN")
+CPsurv <- subset(subsurv, SITE == "NWFN")
 
 ## Subset to specific NWFN project
 CPcaps <- subset(CPcaps, PROJECTCODE == "NWFN VISTRAP VIS")
@@ -88,7 +88,7 @@ locs <- CPspecs$tran
 colnames(locs)[2] <- c("CellID")
 vsst <- list()
 for(i in 1:nrow(dat$y)){
-  vsst[i] <- apply(dat$y,1,function(x) which(x==1))[[i]][1]
+  vsst[i] <- apply(dat$y,1,function(x) which(x>=1))[[i]][1]
   vsst <- unlist(vsst)
 }
 
