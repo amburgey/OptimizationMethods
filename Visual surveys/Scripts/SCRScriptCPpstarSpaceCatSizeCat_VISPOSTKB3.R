@@ -82,10 +82,10 @@ L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
 
 ## Recreate y with just snakes retained
-y <- temp[,2:ncol(temp)]
+# y <- temp[,2:ncol(temp)]
 
 ## Uniquely marked individuals from those retained
-nind <- nrow(y)
+# nind <- nrow(y)
 
 ## Active/not active for when transects run, already in order of 1-351 CellID locations
 act <- as.matrix(dat$act[,-1])
