@@ -66,13 +66,17 @@ nind <- nrow(y)
 # snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
 snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
 ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
+snsz <- ifelse(snsz < 850, 1,
+               ifelse(snsz >= 850 & snsz < 950, 2,
+                      ifelse(snsz >= 950 & snsz < 1150, 3,
+                             ifelse(snsz >= 1150, 4, -9999))))
 ## Remove size category 1 due to inadequate sample size
-temp <- cbind(snsz, y)
-temp <- subset(temp, snsz >= 850)
-snsz <- temp[,1]
-snsz <- ifelse(snsz >= 850 & snsz < 950, 1,
-               ifelse(snsz >= 950 & snsz < 1150, 2,
-                      ifelse(snsz >= 1150, 3, -9999)))
+# temp <- cbind(snsz, y)
+# temp <- subset(temp, snsz >= 850)
+# snsz <- temp[,1]
+# snsz <- ifelse(snsz >= 850 & snsz < 950, 1,
+#                ifelse(snsz >= 950 & snsz < 1150, 2,
+#                       ifelse(snsz >= 1150, 3, -9999)))
 if(max(snsz) == -9999) stop('snake size incorrect')
 L <- length(unique(snsz))
 ngroup <- as.vector(table(snsz))
