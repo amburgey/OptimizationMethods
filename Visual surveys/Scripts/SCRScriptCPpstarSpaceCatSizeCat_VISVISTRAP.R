@@ -23,18 +23,18 @@ time <- c("02","03")
 time2 <- c("2015-01-01","2015-04-30")
 
 
-##### SPECIFY DIMENSIONS OF CP #####
-cellsize <- c(10,10)  ## dimensions of integration grid cell
-CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
-## Area (5 ha/50,000 m2): 
-A <- sum(CPspecs$area)
+# ##### SPECIFY DIMENSIONS OF CP #####
+# cellsize <- c(10,10)  ## dimensions of integration grid cell
+# CPspecs <- overlayCP(CPcaps, cellsize)  ## ignore warnings, all about projections
+# ## Area (5 ha/50,000 m2): 
+# A <- sum(CPspecs$area)
 
 
-##### USE CATEGORICAL GRID CELL LOCATIONS #####
-## Surveys locations
-fullX <- CPspecs$tran
-X <- as.matrix(CPspecs$tran[,-1])[,2:3]
-J <- nrow(X)
+# ##### USE CATEGORICAL GRID CELL LOCATIONS #####
+# ## Surveys locations
+# fullX <- CPspecs$tran
+# X <- as.matrix(CPspecs$tran[,-1])[,2:3]
+# J <- nrow(X)
 
 #### PREP DATA FOR SCR ANALYSIS ####
 ## Subset data based on how it was collected (V = visual, T = trap)
