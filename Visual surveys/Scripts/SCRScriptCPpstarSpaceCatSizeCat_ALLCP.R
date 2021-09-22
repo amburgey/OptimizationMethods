@@ -100,7 +100,7 @@ model {
       alpha0[l] <- logit(p0[l])
         
       # Posterior conditional distribution for N-n (and hence N):
-      n0[t,l] ~ dnegbin(pstar[l],ngroupall[t,l])  # number of failures by project and size category
+      n0[t,l] ~ dnegbin(pstar[l,t],ngroupall[t,l])  # number of failures by project and size category
       Ngroup[t,l] <- ngroup[t,l] + n0[t,l]
     }
 
@@ -168,5 +168,5 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CPALL.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata")
+save(out, file="Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRID.Rdata")
 
