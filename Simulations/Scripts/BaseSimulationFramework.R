@@ -109,7 +109,7 @@ for(i in 1:nsims){
   y <- as.matrix(ysnsz[,-ncol(ysnsz)]) ## observations
   nind <- nrow(y)  ## number of observed individuals
   ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
-  snsz <- ysnz[,ncol(ysnsz)]
+  snsz <- ysnsz[,ncol(ysnsz)]
   L <- length(unique(snsz))
   ngroup <- as.vector(table(snsz))
   
