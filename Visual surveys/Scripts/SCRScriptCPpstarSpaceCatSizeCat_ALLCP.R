@@ -100,7 +100,7 @@ model {
       alpha0[l] <- logit(p0[l])
         
       # Posterior conditional distribution for N-n (and hence N):
-      n0[t,l] ~ dnegbin(pstar[l,t],ngroupall[t,l])  # number of failures by project and size category
+      n0[t,l] ~ dnegbin(pstar[l,t],ngroup[t,l])  # number of failures by project and size category
       Ngroup[t,l] <- ngroup[t,l] + n0[t,l]
     }
 
