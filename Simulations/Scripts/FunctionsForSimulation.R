@@ -41,7 +41,7 @@ e2dist <- function (x, y) {
 
 #### FUNCTION TO CREATE POSTERIOR SAMPLE FROM REAL DATA ANALYSIS AND SIMULATE OBSERVATIONS DEPENDING ON THE METHOD SELECTED.----
 
-createData <- function(type, nsims, Ngroup, Nsnz){
+createData <- function(type, nsims, Ngroup, Nsnsz){
   
   
   ## Read in all different model results and combine into a single posterior for each parameter
