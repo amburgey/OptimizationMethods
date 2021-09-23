@@ -217,7 +217,7 @@ for(i in 1:nsims){
         pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
         pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
-      pstar[l] <- 0.8 #(sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
       
       # Zero trick for initial 1/pstar^n
       loglikterm[l] <- -ngroup[l] * log(pstar[l])
@@ -251,7 +251,7 @@ for(i in 1:nsims){
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=10; nb <- 10; ni <- 100+nb; nt <- 1 
+  nc <- 5; nAdapt=200; nb <- 100; ni <- 25000+nb; nt <- 1 
   
   # Data and constants
   jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
