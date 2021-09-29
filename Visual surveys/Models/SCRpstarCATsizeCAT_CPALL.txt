@@ -3,18 +3,22 @@ model {
 
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
+  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)
+  pi[1:Gpts] ~ ddirch(b[1:Gpts])
   
-  for(t in 1:nproj){
-    for(l in 1:L){   # 4 size categories
-      #prior for intercept
-      p0[l] ~ dunif(0,5)
-      alpha0[l] <- logit(p0[l])
-        
+  for(l in 1:L){   # 4 size categories
+    #prior for intercept
+    p0[l] ~ dunif(0,5)
+    alpha0[l] <- logit(p0[l])
+      
+    for(t in 1:nproj){
       # Posterior conditional distribution for N-n (and hence N):
       n0[t,l] ~ dnegbin(pstar[l,t],ngroup[t,l])  # number of failures by project and size category
       Ngroup[t,l] <- ngroup[t,l] + n0[t,l]
     }
+  }
 
+  for(t in 1:nproj){
     N[t] <- sum(Ngroup[t,1:L])  # successful observations plus failures to observe of each size = total N
 
     #Probability of capture for integration grid points
@@ -36,12 +40,7 @@ model {
       lambda[l,t] <- -loglikterm[l,t] + 10000
       dummy[l,t] ~ dpois(lambda[l,t]) # dummy = 0; entered as data
     } #L
-  } #T
 
-  # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)
-  pi[1:Gpts] ~ ddirch(b[1:Gpts])
-
-  for(t in 1:nproj){
     for(i in 1:nFound[t]){  ## n = number of observed individuals
       ## For use when defining traps on a grid cell
       s[i,t] ~ dcat(pi[1:Gpts])
