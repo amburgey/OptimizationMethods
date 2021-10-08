@@ -63,6 +63,7 @@ for(t in 1:nproj){
 ## Convert to vectors
 noccall <- as.vector(unlist(noccall)) ## don't need for model but use for error checking
 nindall <- as.vector(unlist(nindall))
+ngroupall <- t(ngroupall)
 
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
