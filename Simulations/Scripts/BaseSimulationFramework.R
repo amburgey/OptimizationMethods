@@ -99,17 +99,17 @@ s <- sample(1:Gpts,N,replace=TRUE)
 nsims <- 1 #1000
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)
-createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnz=Nsnz)
+createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz)
 
 
 #### READ IN DATA AND ANALYZE.----
 
 for(i in 1:nsims){
-  ysnz <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
-  y <- as.matrix(ysnz[,-ncol(ysnz)]) ## observations
+  ysnsz <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
+  y <- as.matrix(ysnsz[,-ncol(ysnsz)]) ## observations
   nind <- nrow(y)  ## number of observed individuals
   ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
-  snsz <- ysnz[,ncol(ysnz)]
+  snsz <- ysnsz[,ncol(ysnsz)]
   L <- length(unique(snsz))
   ngroup <- as.vector(table(snsz))
   
