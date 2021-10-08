@@ -258,7 +258,7 @@ for(i in 1:nsims){
   
   # Initial values (same as real data analysis)
   inits <- function(){
-    list (sigma=runif(1,40,50), n0=(ngroup+10), s=vsst, p0=runif(L,.002,.003))
+    list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
   }
   
   parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
