@@ -36,7 +36,7 @@ model {
       pstar[l,t] <- (sum(pdot[l,1:Gpts,t]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
 
       # Zero trick for initial 1/pstar^n
-      loglikterm[l,t] <- -ngroup[t,l] * log(pstar[l,t])
+      loglikterm[l,t] <- -ngroup[t.l] * log(pstar[l,t])
       lambda[l,t] <- -loglikterm[l,t] + 10000
       dummy[l,t] ~ dpois(lambda[l,t]) # dummy = 0; entered as data
     } #L
