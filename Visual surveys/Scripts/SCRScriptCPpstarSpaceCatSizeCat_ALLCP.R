@@ -8,56 +8,55 @@ source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned u
 source("Visual surveys/DataPrep/OverlayCPGrid.R")
 
 projects <- c("Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VIS2.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL1.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL2.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPREBT2.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTBT2.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB1.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB2.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB3.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISVISTRAP.R")
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL1.R")#,
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL2.R",
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPREBT2.R",
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTBT2.R",
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB1.R",
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB2.R",
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB3.R",
+        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISVISTRAP.R")
 
 nproj <- length(projects)
 
 noccall <- matrix(NA, nrow = nproj, ncol = 1)
 Kall <- matrix(NA, nrow = 351, ncol = nproj)
 nindall <- matrix(NA, nrow = nproj, ncol = 1)
-yall <- array(c(NA,NA,NA), dim=c(108,351,nproj))
+yall <- array(c(NA,NA,NA), dim=c(108,351,nproj)) ## maximize number of individuals is 108 so the biggest number of rows ever needed
 snszall <- matrix(NA, nrow = 108, ncol = nproj)
 # Lall <- as.data.frame(matrix(NA, nrow = nproj, ncol = 1))
 ngroupall <- matrix(NA, nrow = 4, ncol = nproj)
 vsstall <- matrix(NA, nrow = 108, ncol = nproj)
 
 for(t in 1:nproj){
-        ## Read in prep code for project
-        ## The first data prep script includes loading functions and subsetting to just NWFN/CP
-        source(projects[[t]])
-        ## Take prepared data and add in order to create combined datasets
-        ## Survey info
-        noccall[t,1] <- nocc
-        Kall[,t] <- K
-        ## Capture info (will differ in number of individuals but will always be 351 columns)
-        colnames(y) <- seq(1:ncol(y))
-        for(r in 1:nrow(y)){
-                for(c in 1:ncol(y)){
-                        yall[r,c,t] <- y[r,c]
-                }
-        }
-        # yall <- simplify2array(lapply(list(test,test2), as.matrix))
-        nindall[t,1] <- nind
-        ## Snake size info
-        for(r in 1:length(snsz)){
-                snszall[r,t] <- snsz[r]
-        }
-        Lall <- L
-        for(r in 1:length(ngroup)){
-                ngroupall[r,t] <- ngroup[r]
-        }
-        ## Inits
-        for(r in 1:length(vsst)){
-                vsstall[r,t] <- vsst[r]
-        }
-
+  ## Read in prep code for project
+  ## The first data prep script includes loading functions and subsetting to just NWFN/CP
+  source(projects[[t]])
+  ## Take prepared data and add in order to create combined datasets
+  ## Survey info
+  noccall[t,1] <- nocc
+  Kall[,t] <- K
+  ## Capture info (will differ in number of individuals but will always be 351 columns)
+  colnames(y) <- seq(1:ncol(y))
+  for(r in 1:nrow(y)){
+    for(c in 1:ncol(y)){
+      yall[r,c,t] <- y[r,c]
+    }
+  }
+  # yall <- simplify2array(lapply(list(test,test2), as.matrix))
+  nindall[t,1] <- nind
+  ## Snake size info
+  for(r in 1:length(snsz)){
+    snszall[r,t] <- snsz[r]
+  }
+  Lall <- L
+  for(r in 1:length(ngroup)){
+    ngroupall[r,t] <- ngroup[r]
+  }
+  ## Inits
+  for(r in 1:length(vsst)){
+    vsstall[r,t] <- vsst[r]
+  }
 }
 
 ## Convert to vectors
@@ -126,7 +125,7 @@ model {
       pstar[l,t] <- (sum(pdot[l,1:Gpts,t]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
 
       # Zero trick for initial 1/pstar^n
-      loglikterm[l,t] <- -ngroup[l,t] * log(pstar[l,t])
+      loglikterm[l,t] <- -ngroup[t,l] * log(pstar[l,t])
       lambda[l,t] <- -loglikterm[l,t] + 10000
       dummy[l,t] ~ dpois(lambda[l,t]) # dummy = 0; entered as data
     } #L

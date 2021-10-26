@@ -10,32 +10,52 @@ library(jagsUI);library(secr)
 source("Simulations/Scripts/FunctionsForSimulation.R")
 
 
+
 #### SCENARIO DETAILS (USER SPECIFIED).----
 
-## Grid type (open or closed [fenced] area)
-stype <- c("open")
-# stype <- c("closed")
+## Question 1. Is your study area (open or closed [fenced])?
+# stype <- c("open")
+stype <- c("closed")
 
-## Type of sampling design
+## Question 2. What type of sampling will you do?
 # type <- c("VIS")
-type <- c("TRAP")
+# nmeth <- 1
+# type <- c("TRAP")
+# nmeth <- 1
+type <- c("VISTRAP")
+nmeth <- 2
 # type <- c("MIX")
 
-## Study design (full [351 transects], half [18 transects, every other], or mix)
-stde <- c("full")
-samp <- c(1:351)
+## Question 3. How many transects will you survey? 
+## Full [351 transects]
+# stde <- c("full")
+# samp <- c(1:351)
+## Half [14 transects, every other]
 # stde <- c("half")
 # samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
-# stde <- c("mixed")
-## TBD mixed
+## Third [9 transects, every third]
+# stde <- c("third")
+# samp <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
+## Half of two methods (e.g., VISTRAP)
+# stde <- c("halfhalf")
+# samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+# samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
+## Third of two methods (e.g., VISTRAP)
+stde <- c("thirdthird")
+samp1 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
+samp2 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
+## CAMERA STUFF TBD
 
-## Nights of sampling (full [60], half [30], quarter [14])
+## Question 4. How many nights of sampling will you do? 
+## (full [60], half [30], quarter [14])
 K <- 60
 
+## Question 5. How many snakes are there in the population?
 ## True number of snakes (normal [120] or low [60] density)
 N <- 120
 
-## Number of snakes per size category (4 groups; <850, >=850 to <950, >=950 to <1150, >=1150)
+## Question 6. How many snakes are there per size category and are there more small or large snakes?
+## 4 groups; <850, >=850 to <950, >=950 to <1150, >=1150
 ## High density - many small scenario
 dens <- c("small")
 Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10)))
@@ -58,8 +78,6 @@ Ngroup <- as.vector(table(Nsnsz))
 totlocs <- secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)
 ## Get dimensions of the study area depending on if it's either a closed or open area based on "stype"
 sdeets <- areatype(totlocs = totlocs, stype = stype)
-## Area
-A <- sdeets$A
 
 
 #### SURVEY INFORMATION.----
@@ -67,24 +85,52 @@ A <- sdeets$A
 ## Create matrix of sampling location options
 X <- as.matrix(totlocs)
 ## If applicable (if surveying less than the full design), subset locations to only those monitored
-X <- X[samp,]
-## Number of sampling points
-J <- nrow(X)
+if(type == c("VIS") | type == c("TRAP")){
+  X <- X[samp,]
+  ## Number of sampling points
+  J <- nrow(X)
+}
+if(type == c("VISTRAP")){
+  X1 <- X[samp1,]
+  X2 <- X[samp2,]
+  X <- X[sort(c(samp1,samp2)),]
+  ## Number of sampling points
+  J1 <- nrow(X1)
+  J2 <- nrow(X2)
+  J <- sum(J1 + J2)
+}
 
 
 #### INTEGRATION GRID.----
 
 ## Spacing of grid cells
 Ggrid <- 10
-## Find XY locations of all integration grid cell points
+## Find XY locations of all integration grid cell points using the general constraints of Xl, Xu, Yl, Yu
 Xlocs <- rep(seq(sdeets$Xl, sdeets$Xu, Ggrid), times = length(seq(sdeets$Yl, sdeets$Yu, Ggrid)))
 Ylocs <- rep(seq(sdeets$Yl, sdeets$Yu, Ggrid), each = length(seq(sdeets$Xl, sdeets$Xu, Ggrid)))
 G <- cbind(Xlocs, Ylocs)
 Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
+A <- Gpts * a                             #area of study area
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
-plot(G, pch=16, cex=.5, col="grey")      #plot integration grid
-points(X, pch=16, col="red")             #add locations of survey points
+## Create status by point matrix to indicate what kind of method implemented at which point if using multiple
+if(nmeth != 1){
+  stat <- matrix(NA, nrow=nmeth, ncol=dim(X)[1])
+  for(i in 1:length()){
+    
+  }
+}
+
+
+
+#### VISUALIZE SETUP.----
+plot(G, pch=16, cex=.5, col="grey")       #plot integration grid
+points(X, pch=16, col="red")              #add locations of survey points
+## If combined methods, see which points have which method
+if(type == c("VISTRAP")){
+  points(X1, add=TRUE, col="blue", lwd=2)
+  points(X2, add=TRUE, col="green", lwd=2)
+}
 
 
 #### INDIVIDUAL-SPECIFIC INFO.----
@@ -229,7 +275,7 @@ for(i in 1:nsims){
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(i in 1:n){  ## n = number of observed individuals
-      ## For use when defining traps on a grid cell
+      # For use when defining traps on a grid cell
       s[i] ~ dcat(pi[1:Gpts])
       
       # Model for capture histories of observed individuals:
@@ -239,19 +285,78 @@ for(i in 1:nsims){
       }#J
     }#I
     
-    #derived proportion in each size class
+    # derived proportion in each size class
     for(l in 1:L){
       piGroup[l] <- Ngroup[l]/N
     }
   }
   ",file = "Simulations/Models/SCRpstarCATsizeCAT_SimTRAP.txt")
   
-  ### COMBO model ###
+  ### TRAP and VIS COMBO model ###
+  
+  cat("
+  model {
+    
+    sigma ~ dunif(0,100)
+    alpha1 <- 1/(2*sigma*sigma)
+    
+    for(l in 1:L){   # 4 size categories
+      #prior for intercept
+      p0[l] ~ dunif(0,5)
+      alpha0[l] <- logit(p0[l])
+      
+      # Posterior conditional distribution for N-n (and hence N):
+      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
+      Ngroup[l] <- ngroup[l] + n0[l]
+    }
+    
+    N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+    
+    #Probability of capture for integration grid points
+    #pdot = probability of being detected at least once (given location)
+    
+    for(l in 1:L){  # size category
+      for(g in 1:Gpts){ # Gpts = number of points on integration grid
+        for(j in 1:J){  # J = number of traps
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+          miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K)
+        } #J
+        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+      } #G
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      
+      # Zero trick for initial 1/pstar^n
+      loglikterm[l] <- -ngroup[l] * log(pstar[l])
+      lambda[l] <- -loglikterm[l] + 10000
+      dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
+    } #L
+    
+    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    
+    for(i in 1:n){  ## n = number of observed individuals
+      ## For use when defining traps on a grid cell
+      s[i] ~ dcat(pi[1:Gpts])
+      
+      # Model for capture histories of observed individuals:
+      for(j in 1:J){  ## J = number of traps
+        y[i,j] ~ dpois(p[i,j]*K)
+        p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
+      }#J
+    }#I
+    
+    #derived proportion in each size class
+    for(l in 1:L){
+      piGroup[l] <- Ngroup[l]/N
+    }
+  }
+  ",file = "Simulations/Models/SCRpstarCATsizeCAT_SimVISTRAP.txt")
   
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=200; nb <- 100; ni <- 25000+nb; nt <- 1 
+  nc <- 5; nAdapt=200; nb <- 100; ni <- 500+nb; nt <- 1 
   
   # Data and constants
   jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)

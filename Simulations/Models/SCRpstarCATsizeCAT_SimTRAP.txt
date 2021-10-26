@@ -40,7 +40,7 @@
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(i in 1:n){  ## n = number of observed individuals
-      ## For use when defining traps on a grid cell
+      # For use when defining traps on a grid cell
       s[i] ~ dcat(pi[1:Gpts])
       
       # Model for capture histories of observed individuals:
@@ -50,7 +50,7 @@
       }#J
     }#I
     
-    #derived proportion in each size class
+    # derived proportion in each size class
     for(l in 1:L){
       piGroup[l] <- Ngroup[l]/N
     }
