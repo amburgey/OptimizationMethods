@@ -2,7 +2,7 @@
 
 library(tidyverse); library(lubridate); library(ggplot2)
 
-data <- read_csv("/Users/Staci Amburgey/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VIScaptures.csv")
+data <- read_csv("/Users/Staci Amburgey/OneDrive - UW/Documents/USGS/BrownTreesnakes/Optim Monitoring Methods/Data/VIScaptures.csv")
 
 alldata <- data %>%
   dplyr::select(Date,SITE,PITTAG,NEW,SVL,SEX,TRANSECT,LOCATION,TRAPTYPE) %>%
