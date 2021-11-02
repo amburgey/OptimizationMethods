@@ -62,7 +62,7 @@ for(t in 1:nproj){
 ## Convert to vectors
 noccall <- as.vector(unlist(noccall)) ## don't need for model but use for error checking
 nindall <- as.vector(unlist(nindall))
-ngroupall <- t(ngroupall)
+ngroupall <- ngroupall
 
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
@@ -90,6 +90,7 @@ points(X, pch=16, col="red")
 cat("
 model {
 
+  #prior for spatial decay
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)
@@ -101,18 +102,20 @@ model {
     alpha0[l] <- logit(p0[l])
       
     for(t in 1:nproj){
+      # Prior for N
       # Posterior conditional distribution for N-n (and hence N):
-      n0[t,l] ~ dnegbin(pstar[l,t],ngroup[t,l])  # number of failures by project and size category
-      Ngroup[t,l] <- ngroup[t,l] + n0[t,l]
-    }
-  }
+      n0[l,t] ~ dnegbin(pstar[l,t],ngroup[l,t])  # number of failures by project and size category
+      Ngroup[l,t] <- ngroup[l,t] + n0[l,t]
+    } #T
+  } #L
 
   for(t in 1:nproj){
-    N[t] <- sum(Ngroup[t,1:L])  # successful observations plus failures to observe of each size = total N
-
+    N[t] <- sum(Ngroup[1:L,t])  # successful observations plus failures to observe of each size = total N
+  }
     #Probability of capture for integration grid points
     #pdot = probability of being detected at least once (given location)
 
+  for(t in 1:nproj){
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
         for(j in 1:J){  # J = number of traps
@@ -125,7 +128,7 @@ model {
       pstar[l,t] <- (sum(pdot[l,1:Gpts,t]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
 
       # Zero trick for initial 1/pstar^n
-      loglikterm[l,t] <- -ngroup[t,l] * log(pstar[l,t])
+      loglikterm[l,t] <- -ngroup[l,t] * log(pstar[l,t])
       lambda[l,t] <- -loglikterm[l,t] + 10000
       dummy[l,t] ~ dpois(lambda[l,t]) # dummy = 0; entered as data
     } #L
@@ -143,7 +146,7 @@ model {
 
     #derived proportion in each size class
     for(l in 1:L){
-      piGroup[t,l] <- Ngroup[t,l]/N[t]
+      piGroup[l,t] <- Ngroup[l,t]/N[t]
     }#L
   }#T
 }
