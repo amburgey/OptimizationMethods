@@ -42,8 +42,8 @@ nmeth <- 2
 # samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
 ## Third of two methods (e.g., VISTRAP)
 stde <- c("thirdthird")
-samp1 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
-samp2 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
+samp1 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
+samp2 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
 ## CAMERA STUFF TBD
 
 ## Question 4. How many nights of sampling will you do? 
@@ -91,12 +91,12 @@ if(type == c("VIS") | type == c("TRAP")){
   J <- nrow(X)
 }
 if(type == c("VISTRAP")){
-  X1 <- X[samp1,]
-  X2 <- X[samp2,]
+  X1 <- X[samp1,]  ## VIS
+  X2 <- X[samp2,]  ## TRAP
   X <- X[sort(c(samp1,samp2)),]
   ## Number of sampling points
-  J1 <- nrow(X1)
-  J2 <- nrow(X2)
+  J1 <- nrow(X1)  ## VIS
+  J2 <- nrow(X2)  ## TRAP
   J <- sum(J1 + J2)
 }
 
@@ -115,12 +115,13 @@ A <- Gpts * a                             #area of study area
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 ## Create status by point matrix to indicate what kind of method implemented at which point if using multiple
 if(nmeth != 1){
-  stat <- matrix(NA, nrow=nmeth, ncol=dim(X)[1])
-  for(i in 1:length()){
-    
-  }
+  x1 <- as.data.frame(samp1); colnames(x1) <- c("Loc")
+  x1$Type <- 1
+  x2 <- as.data.frame(samp2); colnames(x2) <- c("Loc")
+  x2$Type <- 2
+  stat <- rbind(x1,x2)
+  stat <- stat[order(stat$Loc),][,2]
 }
-
 
 
 #### VISUALIZE SETUP.----
@@ -128,8 +129,8 @@ plot(G, pch=16, cex=.5, col="grey")       #plot integration grid
 points(X, pch=16, col="red")              #add locations of survey points
 ## If combined methods, see which points have which method
 if(type == c("VISTRAP")){
-  points(X1, add=TRUE, col="blue", lwd=2)
-  points(X2, add=TRUE, col="green", lwd=2)
+  points(X1, col="blue", lwd=2)  ## VIS
+  points(X2, col="green", lwd=2)  ## TRAP
 }
 
 
@@ -145,19 +146,35 @@ s <- sample(1:Gpts,N,replace=TRUE)
 nsims <- 1 #1000
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)
-createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz)
+createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat)
 
 
 #### READ IN DATA AND ANALYZE.----
 
 for(i in 1:nsims){
-  ysnsz <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
-  y <- as.matrix(ysnsz[,-ncol(ysnsz)]) ## observations
-  nind <- nrow(y)  ## number of observed individuals
-  ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
-  snsz <- ysnsz[,ncol(ysnsz)]
-  L <- length(unique(snsz))
-  ngroup <- as.vector(table(snsz))
+  
+  if(type != c("VISTRAP")){
+    ysnsz <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
+    y <- as.matrix(ysnsz[,-ncol(ysnsz)]) ## observations
+    nind <- nrow(y)  ## number of observed individuals
+    ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
+    snsz <- ysnsz[,ncol(ysnsz)]
+    L <- length(unique(snsz))
+    ngroup <- as.vector(table(snsz))
+  }
+  
+  if(type == c("VISTRAP")){
+    yVsnsz <- read.csv(paste("Simulations/simDat/",type,"VIS",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
+    yTsnsz <- read.csv(paste("Simulations/simDat/",type,"TRAP",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
+    yV <- as.matrix(ysnszV[,-ncol(ysnszV)]) ## observations
+    yT <- as.matrix(ysnszT[,-ncol(ysnszT)]) ## observations
+    nindV <- nrow(yV)  ## number of observed individuals visually detected
+    nindT <- nrow(yT)  ## number of observed individuals trapped
+    ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
+    snsz <- ysnsz[,ncol(ysnsz)]  ## FIGURE OUT HOW TO COMBINE SNAKES OBSERVED IN BOTH DATASETS
+    L <- length(unique(snsz))x
+    ngroup <- as.vector(table(snsz))
+  }
   
   ## Initial values for activity centers, take first location where snake found
   vsst <- list()

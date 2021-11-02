@@ -40,7 +40,7 @@ e2dist <- function (x, y) {
 
 #### FUNCTION TO CREATE POSTERIOR SAMPLE FROM REAL DATA ANALYSIS AND SIMULATE OBSERVATIONS DEPENDING ON THE METHOD SELECTED.----
 
-createData <- function(type, nsims, Ngroup, Nsnsz){
+createData <- function(type, nsims, Ngroup, Nsnsz, stat){
   
   
   ## Read in all different model results and combine into a single posterior for each parameter
@@ -280,48 +280,6 @@ createData <- function(type, nsims, Ngroup, Nsnsz){
     
     sigmaMV <- sigmaV[-1]  # remove initial NA from empty vector
     p0MV <- list(sample(pV01[-1]),sample(pV02[-1]),sample(pV03[-1]),sample(pV04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
-    
-    ## Quick plot to compare encounter probabilities of different snake categories
-    cV1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
-    cV2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
-    cV3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
-    cV4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
-    
-    hist(p0MV[[1]], col = cV1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
-    hist(p0MV[[2]], col = cV2, add = TRUE, breaks = 25)
-    hist(p0MV[[3]], col = cV3, add = TRUE, breaks = 25)
-    hist(p0MV[[4]], col = cV3, add = TRUE, breaks = 25)
-    
-    
-    #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
-    
-    ## VISUAL SURVEYS - Generate observations
-    yTrueVIS <- array(NA,dim=c(N,J1,nsims))
-    p0V <- vector()
-    
-    for(z in 1:nsims){  
-      sigmaV <- sigmaMV[sample(0:length(sigmaMV), 1)]   ## pull value from posterior
-      alpha1V <- 1/(2*sigmaV*sigmaV)
-      for(l in 1:length(Ngroup)){
-        p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
-      }
-      pmatV <- p0V[Nsnsz]*exp(-alpha1V*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
-      for(n in 1:N){
-        yTrueVIS[n,,z] <- rpois(J1,pmatV[n,]*K)  # observations of each snake at each trap based on encounter probability and effort
-      }
-    }
-    
-    ## yTrueVIS includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
-    capturedV <- list()
-    yarrV <- list()
-    ## Bind sizes of snake to encounter histories
-    yTrueVIS <- abind::abind(yTrueVIS,array(Nsnsz, replace(dim(yTrueVIS),2,1)), along=2)
-    for(i in 1:nsims){
-      capturedV[[i]] <- which(apply(yTrueVIS[,1:J1,i],1,sum)>0)  # snakes that were observed at least once
-      yarrV[[i]] <- yTrueVIS[capturedV[[i]],,i]  # subset to observed snakes
-      write.csv(yarrV[[i]], file = paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))  # write to file to keep observations
-    }   ## VIS
-  
   
     #### TRAPPING REAL DATA RESULTS ####
     ## Only showing NWFN so far
@@ -370,11 +328,20 @@ createData <- function(type, nsims, Ngroup, Nsnsz){
     p0MT <- list(sample(pT01[-1]),sample(pT02[-1]),sample(pT03[-1]),sample(pT04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
     
     ## Quick plot to compare encounter probabilities of different snake categories
+    ## Quick plot to compare encounter probabilities of different snake categories
+    cV1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
+    cV2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
+    cV3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
+    cV4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
     cT1 <- rgb(238,170,189,max = 255, alpha = 80, names = "lt.pink")
     cT2 <- rgb(239,146,173,max = 255, alpha = 80, names = "lt.pink2")
     cT3 <- rgb(244,106,146,max = 255, alpha = 80, names = "md.pink")
     cT4 <- rgb(241,61,113,max = 255, alpha = 80, names = "dk.pink")
     
+    hist(p0MV[[1]], col = cV1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
+    hist(p0MV[[2]], col = cV2, add = TRUE, breaks = 25)
+    hist(p0MV[[3]], col = cV3, add = TRUE, breaks = 25)
+    hist(p0MV[[4]], col = cV3, add = TRUE, breaks = 25)
     hist(p0MT[[1]], col = cT1, add = TRUE, breaks = 25)
     hist(p0MT[[2]], col = cT2, add = TRUE, breaks = 25)
     hist(p0MT[[3]], col = cT3, add = TRUE, breaks = 25)
@@ -382,31 +349,65 @@ createData <- function(type, nsims, Ngroup, Nsnsz){
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
     
-    ## TRAPPING - Generate observations
-    yTrueTRAP <- array(NA,dim=c(N,J2,nsims))
+    ## VISUAL SURVEYS - Generate observations
+    yTrueVIS <- array(NA,dim=c(N,J1,nsims), dimnames = list(1:N,samp1,1:nsims))
+    yTrueTRAP <- array(NA,dim=c(N,J2,nsims), dimnames = list(1:N,samp2,1:nsims))
+    yTrueVT <- array(NA,dim=c(N,J,nsims))
+    p0V <- vector()
     p0T <- vector()
     
     for(z in 1:nsims){  
+      sigmaV <- sigmaMV[sample(0:length(sigmaMV), 1)]   ## pull value from posterior
       sigmaT <- sigmaMT[sample(0:length(sigmaMT), 1)]   ## pull value from posterior
+      alpha1V <- 1/(2*sigmaV*sigmaV)
       alpha1T <- 1/(2*sigmaT*sigmaT)
+      
       for(l in 1:length(Ngroup)){
+        p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
         p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
       }
-      pmatT <- p0T[Nsnsz]*exp(-alpha1T*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
+      
+      pmatV <- p0V*exp(-alpha1V*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all location
+      pmatT <- p0T*exp(-alpha1T*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all location
+      
+      locID <- sort(c(samp1,samp2))
+      '%!in%' <- function(x,y)!('%in%'(x,y))
+      
       for(n in 1:N){
-        yTrueTRAP[n,,z] <- rbinom(J2,K,pmatT[n,])  # observations of each snake at each trap based on encounter probability and effort
+        for(j in 1:J){
+          
+          if(locID[j] %in% samp1){
+            yTrueVT[n,j,z] <- rpois(1,pmatV[n,j]*K)
+          }
+          if(locID[j] %!in% samp2){
+            yTrueVT[n,j,z] <- rbinom(1,K,pmatT[n,j])
+          }
+          
+          # yTrueVIS[n,,z] <- rpois(J1,pmatV[n,]*K)  # observations of each snake at each trap based on encounter probability and effort
+          # yTrueTRAP[n,,z] <- rbinom(J2,K,pmatT[n,])  # observations of each snake at each trap based on encounter probability and effort
+          # yTrueAll <- abind::abind(yTrueVIS, yTrueTRAP, along = 2)  # combine two data types together into one dataframe
+          # yTrueAll <- yTrueAll[order(yTrueAll[,as.character(c(14:39,53:78,92:117,131:156,170:195,209:234,248:273,287:312,326:351)),]),,] # order by transect location
+          # yTrueAll <- sort(yTrueAll, as.character(c(14:39,53:78,92:117,131:156,170:195,209:234,248:273,287:312,326:351)))
+        }
       }
     }
     
-    ## yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
+    ## yTrueVIS includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
+    capturedV <- list()
     capturedT <- list()
+    yarrV <- list()
     yarrT <- list()
     ## Bind sizes of snake to encounter histories
+    yTrueVIS <- abind::abind(yTrueVIS,array(Nsnsz, replace(dim(yTrueVIS),2,1)), along=2)
     yTrueTRAP <- abind::abind(yTrueTRAP,array(Nsnsz, replace(dim(yTrueTRAP),2,1)), along=2)
+    
     for(i in 1:nsims){
+      capturedV[[i]] <- which(apply(yTrueVIS[,1:J1,i],1,sum)>0)  # snakes that were observed at least once
+      yarrV[[i]] <- yTrueVIS[capturedV[[i]],,i]  # subset to observed snakes
+      write.csv(yarrV[[i]], file = paste("Simulations/simDat/",type,"VIS",N,dens,K,stde,i,".csv",sep=""))  # write to file to keep observations
       capturedT[[i]] <- which(apply(yTrueTRAP[,1:J2,i],1,sum)>0)  # snakes that were observed at least once
       yarrT[[i]] <- yTrueTRAP[capturedT[[i]],,i]  # subset to observed snakes
-      write.csv(yarrT[[i]], file = paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))  # write to file to keep observations
-    } ## TRAP
+      write.csv(yarrT[[i]], file = paste("Simulations/simDat/",type,"TRAP",N,dens,K,stde,i,".csv",sep=""))  # write to file to keep observations
+    }   ## VISTRAP
   }
 }
