@@ -1,0 +1,70 @@
+
+  model {
+    
+    sigma ~ dunif(0,100)
+    alpha1 <- 1/(2*sigma*sigma)
+    
+    for(l in 1:L){      # 4 size categories
+      #prior for intercept
+      p0V[l] ~ dunif(0,5)  # VIS
+      p0T[l] ~ dunif(0,5)  # TRAP
+        
+      # Posterior conditional distribution for N-n (and hence N):
+      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
+      Ngroup[l] <- ngroup[l] + n0[l]
+    }
+    
+    N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
+    
+    #Probability of capture for integration grid points
+    #pdot = probability of being detected at least once (given location)
+    
+    for(l in 1:L){  # size category
+      for(g in 1:Gpts){ # Gpts = number of points on integration grid
+        for(j in 1:J){  # J = number of traps (currently equal number per method)
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+          miss_allKV[l,g,j] <- pow((1 - p0V[l]*exp(-alpha1*GdistV[g,j]*GdistV[g,j])),K)  # prob missed by visual searches
+          miss_allKT[l,g,j] <- pow((1 - p0T[l]*exp(-alpha1*GdistT[g,j]*GdistT[g,j])),K)  # prob missed by trapping
+        } #J
+        pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,]*miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+      } #G
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      
+      # Zero trick for initial 1/pstar^n
+      loglikterm[l] <- -ngroup[l] * log(pstar[l])
+      lambda[l] <- -loglikterm[l] + 10000
+      dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
+    } #L
+    
+    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
+    
+    for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
+      ## For use when defining traps on a grid cell
+      sV[i] ~ dcat(pi[1:Gpts])
+      
+      # Model for capture histories of observed individuals from visual surveys:
+      for(j in 1:J){  ## J = number of visual surveys
+        yV[i,j] ~ dpois(pV[i,j]*K)
+        pV[i,j] <- p0V[sizeV[i]]*exp(-alpha1*GdistV[sV[i],j]*GdistV[sV[i],j])
+      }#JV
+    }
+    
+    for(i in 1:nT){  ## nV = number of individuals observed via visual surveys
+      ## For use when defining traps on a grid cell
+      sT[i] ~ dcat(pi[1:Gpts])
+      
+      # Model for capture histories of individuals from traps:
+      for(j in 1:J){  ## J = number of traps
+        yT[i,j] ~ dpois(pT[i,j]*K)
+        pT[i,j] <- p0T[sizeT[i]]*exp(-alpha1*GdistT[sT[i],j]*GdistT[sT[i],j])
+      }#JT
+    }#I
+    
+    #derived proportion in each size class
+    for(l in 1:L){
+      piGroup[l] <- Ngroup[l]/N
+    }
+  }
+  

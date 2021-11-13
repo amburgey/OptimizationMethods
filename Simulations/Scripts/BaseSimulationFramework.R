@@ -26,7 +26,7 @@ type <- c("VISTRAP")
 nmeth <- 2
 # type <- c("MIX")
 
-## Question 3. How many transects will you survey? 
+## Question 3. How many transects will you survey?
 ## Full [351 transects]
 # stde <- c("full")
 # samp <- c(1:351)
@@ -94,6 +94,10 @@ if(type == c("VISTRAP")){
   X1 <- X[samp1,]  ## VIS
   X2 <- X[samp2,]  ## TRAP
   X <- X[sort(c(samp1,samp2)),]
+  ## Get numeric ID for grid cell subsetting for integration grid below
+  newX <- cbind(X,seq(1:nrow(X)))
+  newX1 <- newX[rownames(X1),][,3]
+  newX2 <- newX[rownames(X2),][,3]
   ## Number of sampling points
   J1 <- nrow(X1)  ## VIS
   J2 <- nrow(X2)  ## TRAP
@@ -115,12 +119,19 @@ A <- Gpts * a                             #area of study area
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
 ## Create status by point matrix to indicate what kind of method implemented at which point if using multiple
 if(nmeth != 1){
+  GdistV <- Gdist[,newX1]
+  GdistT <- Gdist[,newX2]
   x1 <- as.data.frame(samp1); colnames(x1) <- c("Loc")
   x1$Type <- 1
   x2 <- as.data.frame(samp2); colnames(x2) <- c("Loc")
   x2$Type <- 2
   stat <- rbind(x1,x2)
   stat <- stat[order(stat$Loc),][,2]
+  statV <- stat
+  statV[statV == 2] <- 0
+  statT <- stat
+  statT[statT == 1] <- 0
+  statT[statT == 2] <- 1
 }
 
 
@@ -164,23 +175,46 @@ for(i in 1:nsims){
   }
   
   if(type == c("VISTRAP")){
-    yVsnsz <- read.csv(paste("Simulations/simDat/",type,"VIS",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
-    yTsnsz <- read.csv(paste("Simulations/simDat/",type,"TRAP",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
-    yV <- as.matrix(ysnszV[,-ncol(ysnszV)]) ## observations
-    yT <- as.matrix(ysnszT[,-ncol(ysnszT)]) ## observations
-    nindV <- nrow(yV)  ## number of observed individuals visually detected
-    nindT <- nrow(yT)  ## number of observed individuals trapped
+    yVsnsz <- read.csv(paste("Simulations/simDat/",type,"VIS",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove numeric column
+    yTsnsz <- read.csv(paste("Simulations/simDat/",type,"TRAP",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove numeric column
+    yV <- as.matrix(yVsnsz[,-((ncol(yVsnsz)-1):ncol(yVsnsz))]) ## observations
+    yT <- as.matrix(yTsnsz[,-((ncol(yTsnsz)-1):ncol(yTsnsz))]) ## observations
+    nindV <- nrow(yV)  ## number of individuals visually detected
+    nindT <- nrow(yT)  ## number of individuals captured in traps
     ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
-    snsz <- ysnsz[,ncol(ysnsz)]  ## FIGURE OUT HOW TO COMBINE SNAKES OBSERVED IN BOTH DATASETS
-    L <- length(unique(snsz))x
+    snszV <- yVsnsz[,((ncol(yVsnsz)-1):ncol(yVsnsz))]
+    snszT <- yTsnsz[,((ncol(yTsnsz)-1):ncol(yTsnsz))]
+    ## All snakes ever observed and their sizes
+    snsz <- merge(snszV, snszT, all = TRUE)
+    snsz <- snsz[order(snsz$V119),][,1]
+    snszV <- yVsnsz[,(ncol(yVsnsz)-1)]  ## snake size of visually detected
+    snszT <- yTsnsz[,(ncol(yTsnsz)-1)]  ## snake size of trapped individuals
+    L <- max(c(unique(snszV),unique(snszT)))
     ngroup <- as.vector(table(snsz))
+    ngroupV <- as.vector(table(snszV))
+    ngroupT <- as.vector(table(snszT))
   }
   
   ## Initial values for activity centers, take first location where snake found
-  vsst <- list()
-  for(i in 1:nrow(y)){
-    vsst[i] <- apply(y,1,function(x) which(x>=1))[[i]][1]
-    vsst <- unlist(vsst)
+  if(type != c("VISTRAP")){
+    vsst <- list()
+    for(i in 1:nrow(y)){
+      vsst[i] <- apply(y,1,function(x) which(x>=1))[[i]][1]
+      vsst <- unlist(vsst)
+    }
+  }
+  
+  if(type == c("VISTRAP")){
+    vsstV <- list()
+    vsstT <- list()
+    for(i in 1:nrow(yV)){
+      vsstV[i] <- apply(yV,1,function(x) which(x>=1))[[i]][1]
+      vsstV <- unlist(vsstV)
+    }
+    for(i in 1:nrow(yT)){
+      vsstT[i] <- apply(yT,1,function(x) which(x>=1))[[i]][1]
+      vsstT <- unlist(vsstT)
+    }
   }
   
   
@@ -317,11 +351,11 @@ for(i in 1:nsims){
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
     
-    for(l in 1:L){   # 4 size categories
+    for(l in 1:L){      # 4 size categories
       #prior for intercept
-      p0[l] ~ dunif(0,5)
-      alpha0[l] <- logit(p0[l])
-      
+      p0V[l] ~ dunif(0,5)  # VIS
+      p0T[l] ~ dunif(0,5)  # TRAP
+        
       # Posterior conditional distribution for N-n (and hence N):
       n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
       Ngroup[l] <- ngroup[l] + n0[l]
@@ -334,11 +368,12 @@ for(i in 1:nsims){
     
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J){  # J = number of traps
+        for(j in 1:J){  # J = number of traps (currently equal number per method)
           #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-          miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K)
+          miss_allKV[l,g,j] <- pow((1 - p0V[l]*exp(-alpha1*GdistV[g,j]*GdistV[g,j])),K)  # prob missed by visual searches
+          miss_allKT[l,g,j] <- pow((1 - p0T[l]*exp(-alpha1*GdistT[g,j]*GdistT[g,j])),K)  # prob missed by trapping
         } #J
-        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
+        pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,]*miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
         pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
       pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
@@ -352,15 +387,26 @@ for(i in 1:nsims){
     # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
-    for(i in 1:n){  ## n = number of observed individuals
+    for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
       ## For use when defining traps on a grid cell
-      s[i] ~ dcat(pi[1:Gpts])
+      sV[i] ~ dcat(pi[1:Gpts])
       
-      # Model for capture histories of observed individuals:
+      # Model for capture histories of observed individuals from visual surveys:
+      for(j in 1:J){  ## J = number of visual surveys
+        yV[i,j] ~ dpois(pV[i,j]*K)
+        pV[i,j] <- p0V[sizeV[i]]*exp(-alpha1*GdistV[sV[i],j]*GdistV[sV[i],j])
+      }#JV
+    }
+    
+    for(i in 1:nT){  ## nV = number of individuals observed via visual surveys
+      ## For use when defining traps on a grid cell
+      sT[i] ~ dcat(pi[1:Gpts])
+      
+      # Model for capture histories of individuals from traps:
       for(j in 1:J){  ## J = number of traps
-        y[i,j] ~ dpois(p[i,j]*K)
-        p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
-      }#J
+        yT[i,j] ~ dpois(pT[i,j]*K)
+        pT[i,j] <- p0T[sizeT[i]]*exp(-alpha1*GdistT[sT[i],j]*GdistT[sT[i],j])
+      }#JT
     }#I
     
     #derived proportion in each size class
@@ -373,17 +419,33 @@ for(i in 1:nsims){
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=200; nb <- 100; ni <- 500+nb; nt <- 1 
+  nc <- 5; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1 
   
+  ## When only a single method used
   # Data and constants
-  jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+  # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
   
+  ## When two methods used
+  # Data and constants
+  jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J=J1, A=A, K=K, a=a, nV=nindV, nT=nindT, dummy=rep(0,L), b=rep(1,Gpts), sizeV=snszV, sizeT=snszT, L=L, ngroup=ngroup)#, statT=statT, statV=statV)
+  
+  ## When only a single method used
+  # Initial values (same as real data analysis)
+  # inits <- function(){
+  #   list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
+  # }
+  
+  ## When two methods used
   # Initial values (same as real data analysis)
   inits <- function(){
-    list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
+    list (sigma=runif(1,50,60), n0=(ngroup+100), sV=vsstV, sT=vsstT, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
   }
   
-  parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+  ## When only a single method used
+  # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+  
+  ## When two methods used
+  parameters <- c("p0V","p0T","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
   
   out <- jags(paste("Simulations/Models/SCRpstarCATsizeCAT_Sim",type,".txt",sep=""), data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
   
