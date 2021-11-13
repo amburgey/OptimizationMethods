@@ -44,7 +44,7 @@ model {
       dummy[l,t] ~ dpois(lambda[l,t]) # dummy = 0; entered as data
     } #L
 
-    for(i in 1:nFound[t]){  ## n = number of observed individuals
+    for(i in 1:nFound[t]){  ## nmax = maximum number of observed individuals across all projects
       ## For use when defining traps on a grid cell
       s[i,t] ~ dcat(pi[1:Gpts])
 

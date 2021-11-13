@@ -63,6 +63,18 @@ for(t in 1:nproj){
 noccall <- as.vector(unlist(noccall)) ## don't need for model but use for error checking
 nindall <- as.vector(unlist(nindall))
 ngroupall <- ngroupall
+vsstall[is.na(vsstall)] <- 0
+snszall[is.na(snszall)] <- 0
+## Create vector of captured or no captured individuals to correctly index model by different number of snakes/project
+# nFound <- vsstall
+# nFound[!is.na(nFound)] <- 1  ## animal that was captured
+# nFound[is.na(nFound)] <- 0  ## no animal captured
+# ## Expand snszall to include 0s instead of NAs for individuals not found
+# snszall[is.na(snszall)] <- 0  ## no animal captured
+# SnakeCap <- matrix(NA, max(nindall), nproj)
+# for(t in 1:nproj){
+#   SnakeCap[1:nindall[t],t] <- seq(1:nindall[t])
+# }
 
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
@@ -133,7 +145,7 @@ model {
       dummy[l,t] ~ dpois(lambda[l,t]) # dummy = 0; entered as data
     } #L
 
-    for(i in 1:nFound[t]){  ## n = number of observed individuals
+    for(i in 1:nFound[t]){  ## nmax = maximum number of observed individuals across all projects
       ## For use when defining traps on a grid cell
       s[i,t] ~ dcat(pi[1:Gpts])
 
@@ -156,13 +168,13 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=10; nb <- 1; ni <- 100+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
 
 ## Data and constants
-jags.data <- list (y=yall, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=Kall, a=a, nFound=nindall, dummy=matrix(0,nrow=Lall,ncol=nproj), b=rep(1,Gpts), size=snszall, L=Lall, ngroup=ngroupall, nproj=nproj) # ## semicomplete likelihood
+jags.data <- list (y=yall, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=Kall, nFound=nindall, a=a, dummy=matrix(0,nrow=Lall,ncol=nproj), b=rep(1,Gpts), size=snszall, L=Lall, ngroup=ngroupall, nproj=nproj) # ## semicomplete likelihood, #nFound=nFound, nmax=max(nindall), 
 
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=(ngroupall+10), s=vsstall, p0=runif(L,.002,.003))
+  list (sigma=runif(1,30,40), n0=(ngroupall+10), p0=runif(L,.002,.003)) #s=vsstall, 
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
@@ -170,5 +182,5 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CPALL.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRID.Rdata")
+save(out, file="Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsst.Rdata")
 
