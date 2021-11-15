@@ -90,13 +90,13 @@ asoi <- read.csv("Data/TrapRingWeb_coords.csv")
 # asoiUTM <- spTransform(asoi2, CRS("+proj=utm +zone=55 +ellps=WGS84"))
 asoi2 <- asoi[,6:7]
 coordinates(asoi2)=~UTM.X+UTM.Y
-proj4string(asoi2) <- CRS("+proj=utm +zone=55 +ellps=WGS84")
+proj4string(asoi2) <- CRS("+proj=utm +zone=55 +ellps=WGS84 +datum=WGS84")
 
 asoisw <- subset(subcap, SITE == "ASOI" & PROJECTCODE == "SWIFT TRAP ARRAY")[,c("TRANSECT","LOCATION")]
 
 acaps <- merge(asoisw, asoi, by=c("LOCATION"))
 coordinates(acaps) =~ UTM.X + UTM.Y
-proj4string(acaps) <- CRS("+proj=utm +zone=55 +ellps=WGS84")
+proj4string(acaps) <- CRS("+proj=utm +zone=55 +ellps=WGS84 +datum=WGS84")
 
 asoi2 <- as.data.frame(asoi2)
 acaps <- as.data.frame(acaps)
