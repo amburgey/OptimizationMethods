@@ -181,18 +181,20 @@ for(i in 1:nsims){
     yT <- as.matrix(yTsnsz[,-((ncol(yTsnsz)-1):ncol(yTsnsz))]) ## observations
     nindV <- nrow(yV)  ## number of individuals visually detected
     nindT <- nrow(yT)  ## number of individuals captured in traps
+    nind <- length(unique(c(yVsnsz[,ncol(yVsnsz)],yTsnsz[,ncol(yTsnsz)])))  ## number of individuals detected overall
     ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
     snszV <- yVsnsz[,((ncol(yVsnsz)-1):ncol(yVsnsz))]
     snszT <- yTsnsz[,((ncol(yTsnsz)-1):ncol(yTsnsz))]
     ## All snakes ever observed and their sizes
     snsz <- merge(snszV, snszT, all = TRUE)
     snsz <- snsz[order(snsz$V119),][,1]
-    snszV <- yVsnsz[,(ncol(yVsnsz)-1)]  ## snake size of visually detected
-    snszT <- yTsnsz[,(ncol(yTsnsz)-1)]  ## snake size of trapped individuals
-    L <- max(c(unique(snszV),unique(snszT)))
+    L <- length(unique(snsz))
+    # snszV <- yVsnsz[,(ncol(yVsnsz)-1)]  ## snake size of visually detected
+    # snszT <- yTsnsz[,(ncol(yTsnsz)-1)]  ## snake size of trapped individuals
+    # L <- max(c(unique(snszV),unique(snszT)))
     ngroup <- as.vector(table(snsz))
-    ngroupV <- as.vector(table(snszV))
-    ngroupT <- as.vector(table(snszT))
+    # ngroupV <- as.vector(table(snszV))
+    # ngroupT <- as.vector(table(snszT))
   }
   
   ## Initial values for activity centers, take first location where snake found
@@ -207,14 +209,31 @@ for(i in 1:nsims){
   if(type == c("VISTRAP")){
     vsstV <- list()
     vsstT <- list()
-    for(i in 1:nrow(yV)){
-      vsstV[i] <- apply(yV,1,function(x) which(x>=1))[[i]][1]
-      vsstV <- unlist(vsstV)
+    # vsst <- list()
+    # for(i in 1:nindV){
+    #   vsstV[i] <- apply(yV,1,function(x) which(x>=1))[[i]][1]
+    #   vsstV <- unlist(vsstV)
+    # }
+    # for(i in 1:nindT){
+    #   vsstT[i] <- apply(yT,1,function(x) which(x>=1))[[i]][1]
+    #   vsstT <- unlist(vsstT)
+    # }
+    for(i in 1:nindV){
+      vsstV[i] <- apply(yVsnsz,1,function(x) which(x>=1))[[i]][1]
     }
-    for(i in 1:nrow(yT)){
-      vsstT[i] <- apply(yT,1,function(x) which(x>=1))[[i]][1]
-      vsstT <- unlist(vsstT)
+    for(i in 1:nindT){
+      vsstT[i] <- apply(yTsnsz,1,function(x) which(x>=1))[[i]][1]
     }
+    vsstV <- unlist(vsstV)
+    vsstT <- unlist(vsstT)
+    v <- cbind(yVsnsz[,ncol(yVsnsz)],vsstV)
+    t <- cbind(yTsnsz[,ncol(yTsnsz)],vsstT)
+    vt <- merge(v,t, all = TRUE)
+    vsst <- apply(vt[,2:3], 1, max, na.rm = TRUE)
+    indV <- cbind(vt[,1:2],seq(1:nrow(vt)))
+    indV <- na.omit(indV)[,ncol(indV)]
+    indT <- cbind(vt[,c(1,3)],seq(1:nrow(vt)))
+    indT <- na.omit(indT)[,ncol(indT)]
   }
   
   
@@ -373,7 +392,7 @@ for(i in 1:nsims){
           miss_allKV[l,g,j] <- pow((1 - p0V[l]*exp(-alpha1*GdistV[g,j]*GdistV[g,j])),K)  # prob missed by visual searches
           miss_allKT[l,g,j] <- pow((1 - p0T[l]*exp(-alpha1*GdistT[g,j]*GdistT[g,j])),K)  # prob missed by trapping
         } #J
-        pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,]*miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
+        pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,],miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
         pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
       pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
@@ -387,25 +406,24 @@ for(i in 1:nsims){
     # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
-    for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
+    for(i in 1:n){
       ## For use when defining traps on a grid cell
-      sV[i] ~ dcat(pi[1:Gpts])
-      
+      s[i] ~ dcat(pi[1:Gpts])
+    }
+    
+    for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
       # Model for capture histories of observed individuals from visual surveys:
       for(j in 1:J){  ## J = number of visual surveys
         yV[i,j] ~ dpois(pV[i,j]*K)
-        pV[i,j] <- p0V[sizeV[i]]*exp(-alpha1*GdistV[sV[i],j]*GdistV[sV[i],j])
+        pV[i,j] <- p0V[size[indV[i]]]*exp(-alpha1*GdistV[s[indV[i]],j]*GdistV[s[indV[i]],j])
       }#JV
     }
     
     for(i in 1:nT){  ## nV = number of individuals observed via visual surveys
-      ## For use when defining traps on a grid cell
-      sT[i] ~ dcat(pi[1:Gpts])
-      
       # Model for capture histories of individuals from traps:
       for(j in 1:J){  ## J = number of traps
         yT[i,j] ~ dpois(pT[i,j]*K)
-        pT[i,j] <- p0T[sizeT[i]]*exp(-alpha1*GdistT[sT[i],j]*GdistT[sT[i],j])
+        pT[i,j] <- p0T[size[indT[i]]]*exp(-alpha1*GdistT[s[indT[i]],j]*GdistT[s[indT[i]],j])
       }#JT
     }#I
     
@@ -427,7 +445,7 @@ for(i in 1:nsims){
   
   ## When two methods used
   # Data and constants
-  jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J=J1, A=A, K=K, a=a, nV=nindV, nT=nindT, dummy=rep(0,L), b=rep(1,Gpts), sizeV=snszV, sizeT=snszT, L=L, ngroup=ngroup)#, statT=statT, statV=statV)
+  jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J=J1, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
   
   ## When only a single method used
   # Initial values (same as real data analysis)
@@ -438,7 +456,7 @@ for(i in 1:nsims){
   ## When two methods used
   # Initial values (same as real data analysis)
   inits <- function(){
-    list (sigma=runif(1,50,60), n0=(ngroup+100), sV=vsstV, sT=vsstT, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
+    list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
   }
   
   ## When only a single method used
