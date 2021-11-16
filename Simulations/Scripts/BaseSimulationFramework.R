@@ -24,7 +24,6 @@ stype <- c("closed")
 # nmeth <- 1
 type <- c("VISTRAP")
 nmeth <- 2
-# type <- c("MIX")
 
 ## Question 3. How many transects will you survey?
 ## Full [351 transects]
@@ -44,7 +43,6 @@ nmeth <- 2
 stde <- c("thirdthird")
 samp1 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
 samp2 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
-## CAMERA STUFF TBD
 
 ## Question 4. How many nights of sampling will you do? 
 ## (full [60], half [30], quarter [14])
@@ -84,7 +82,7 @@ sdeets <- areatype(totlocs = totlocs, stype = stype)
 
 ## Create matrix of sampling location options
 X <- as.matrix(totlocs)
-## If applicable (if surveying less than the full design), subset locations to only those monitored
+## If applicable (i.e., if surveying less than the full design), subset locations to only those monitored
 if(type == c("VIS") | type == c("TRAP")){
   X <- X[samp,]
   ## Number of sampling points
@@ -94,7 +92,7 @@ if(type == c("VISTRAP")){
   X1 <- X[samp1,]  ## VIS
   X2 <- X[samp2,]  ## TRAP
   X <- X[sort(c(samp1,samp2)),]
-  ## Get numeric ID for grid cell subsetting for integration grid below
+  ## Get numeric ID of grid cell for subsetting the integration grid below
   newX <- cbind(X,seq(1:nrow(X)))
   newX1 <- newX[rownames(X1),][,3]
   newX2 <- newX[rownames(X2),][,3]
@@ -117,21 +115,10 @@ Gpts <- dim(G)[1]                         #number of integration points
 a <- Ggrid^2                              #area of each integration grid
 A <- Gpts * a                             #area of study area
 Gdist <- e2dist(G, X)                     #distance between integration grid locations and traps
-## Create status by point matrix to indicate what kind of method implemented at which point if using multiple
+## Create separate distance matrices if using multiple methods
 if(nmeth != 1){
   GdistV <- Gdist[,newX1]
   GdistT <- Gdist[,newX2]
-  x1 <- as.data.frame(samp1); colnames(x1) <- c("Loc")
-  x1$Type <- 1
-  x2 <- as.data.frame(samp2); colnames(x2) <- c("Loc")
-  x2$Type <- 2
-  stat <- rbind(x1,x2)
-  stat <- stat[order(stat$Loc),][,2]
-  statV <- stat
-  statV[statV == 2] <- 0
-  statT <- stat
-  statT[statT == 1] <- 0
-  statT[statT == 2] <- 1
 }
 
 
@@ -189,12 +176,7 @@ for(i in 1:nsims){
     snsz <- merge(snszV, snszT, all = TRUE)
     snsz <- snsz[order(snsz$V119),][,1]
     L <- length(unique(snsz))
-    # snszV <- yVsnsz[,(ncol(yVsnsz)-1)]  ## snake size of visually detected
-    # snszT <- yTsnsz[,(ncol(yTsnsz)-1)]  ## snake size of trapped individuals
-    # L <- max(c(unique(snszV),unique(snszT)))
     ngroup <- as.vector(table(snsz))
-    # ngroupV <- as.vector(table(snszV))
-    # ngroupT <- as.vector(table(snszT))
   }
   
   ## Initial values for activity centers, take first location where snake found
@@ -209,31 +191,22 @@ for(i in 1:nsims){
   if(type == c("VISTRAP")){
     vsstV <- list()
     vsstT <- list()
-    # vsst <- list()
-    # for(i in 1:nindV){
-    #   vsstV[i] <- apply(yV,1,function(x) which(x>=1))[[i]][1]
-    #   vsstV <- unlist(vsstV)
-    # }
-    # for(i in 1:nindT){
-    #   vsstT[i] <- apply(yT,1,function(x) which(x>=1))[[i]][1]
-    #   vsstT <- unlist(vsstT)
-    # }
     for(i in 1:nindV){
-      vsstV[i] <- apply(yVsnsz,1,function(x) which(x>=1))[[i]][1]
+      vsstV[i] <- apply(yVsnsz,1,function(x) which(x>=1))[[i]][1]  ## locations from VIS
     }
     for(i in 1:nindT){
-      vsstT[i] <- apply(yTsnsz,1,function(x) which(x>=1))[[i]][1]
+      vsstT[i] <- apply(yTsnsz,1,function(x) which(x>=1))[[i]][1]  ## locations from TRAP
     }
     vsstV <- unlist(vsstV)
     vsstT <- unlist(vsstT)
     v <- cbind(yVsnsz[,ncol(yVsnsz)],vsstV)
     t <- cbind(yTsnsz[,ncol(yTsnsz)],vsstT)
-    vt <- merge(v,t, all = TRUE)
-    vsst <- apply(vt[,2:3], 1, max, na.rm = TRUE)
+    vt <- merge(v,t, all = TRUE)   ## get locations for all snakes across both VIS and TRAP
+    vsst <- apply(vt[,2:3], 1, max, na.rm = TRUE)  ## take only one location for each snake (max grid cell)
     indV <- cbind(vt[,1:2],seq(1:nrow(vt)))
-    indV <- na.omit(indV)[,ncol(indV)]
+    indV <- na.omit(indV)[,ncol(indV)]   ## get snake identities for ones found in VIS
     indT <- cbind(vt[,c(1,3)],seq(1:nrow(vt)))
-    indT <- na.omit(indT)[,ncol(indT)]
+    indT <- na.omit(indT)[,ncol(indT)]   ## get snake identities for ones found in TRAP
   }
   
   

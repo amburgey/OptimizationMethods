@@ -328,7 +328,6 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat){
     p0MT <- list(sample(pT01[-1]),sample(pT02[-1]),sample(pT03[-1]),sample(pT04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
     
     ## Quick plot to compare encounter probabilities of different snake categories
-    ## Quick plot to compare encounter probabilities of different snake categories
     cV1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
     cV2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
     cV3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
@@ -376,30 +375,6 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat){
       }
     }
       
-      # for(n in 1:N){
-      #   for(j in 1:J){
-      #     ## Simulate a single observation dataset that includes both visual detections and trap captures depending on which method was deployed where
-      #     if(stat[j] == 1){
-      #       yTrueVT[n,j,z] <- rpois(1,pmatV[n,j]*K)
-      #     }
-      #     if(stat[j] == 2){
-      #       yTrueVT[n,j,z] <- rbinom(1,K,pmatT[n,j])
-      #     }
-      #   }
-      # }
-    
-    # ## yTrueVT includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
-    # capturedVT <- list()
-    # yarrVT <- list()
-    # ## Bind sizes of snake to encounter histories
-    # yTrueVT <- abind::abind(yTrueVT,array(Nsnsz, replace(dim(yTrueVT),2,1)), along=2)
-    # 
-    # for(z in 1:nsims){
-    #   capturedVT[[z]] <- which(apply(yTrueVT[,1:J,z],1,sum)>0)  # snakes that were observed at least once
-    #   yarrVT[[z]] <- yTrueVT[capturedVT[[z]],,z]  # subset to observed snakes
-    #   write.csv(yarrVT[[z]], file = paste("Simulations/simDat/",type,"Both",N,dens,K,stde,z,".csv",sep=""))  # write to file to keep observations
-    # }  
-    
     ## yTrueVIS and yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
     capturedV <- list()
     capturedT <- list()
@@ -412,11 +387,6 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat){
     yTrueVIS <- abind::abind(yTrueVIS,array(seq(1:N), replace(dim(yTrueVIS),2,1)), along=2)
     yTrueTRAP <- abind::abind(yTrueTRAP,array(seq(1:N), replace(dim(yTrueTRAP),2,1)), along=2)
     
-    # for(z in 1:nsims){
-    #   capturedVT[[z]] <- which(apply(yTrueVT[,1:J,z],1,sum)>0)  # snakes that were observed at least once
-    #   yarrVT[[z]] <- yTrueVT[capturedVT[[z]],,z]  # subset to observed snakes
-    #   write.csv(yarrVT[[z]], file = paste("Simulations/simDat/",type,"Both",N,dens,K,stde,z,".csv",sep=""))  # write to file to keep observations
-    # }  
     for(z in 1:nsims){
       capturedV[[z]] <- which(apply(yTrueVIS[,1:J1,z],1,sum)>0)  # snakes that were observed at least once
       capturedT[[z]] <- which(apply(yTrueTRAP[,1:J2,z],1,sum)>0)  # snakes that were observed at least once
