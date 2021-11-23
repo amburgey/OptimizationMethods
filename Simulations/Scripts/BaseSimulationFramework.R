@@ -18,20 +18,20 @@ source("Simulations/Scripts/FunctionsForSimulation.R")
 stype <- c("closed")
 
 ## Question 2. What type of sampling will you do?
-# type <- c("VIS")
-# nmeth <- 1
+type <- c("VIS")
+nmeth <- 1
 # type <- c("TRAP")
 # nmeth <- 1
-type <- c("VISTRAP")
-nmeth <- 2
+# type <- c("VISTRAP")
+# nmeth <- 2
 
 ## Question 3. How many transects will you survey?
 ## Full [351 transects]
 # stde <- c("full")
 # samp <- c(1:351)
 ## Half [14 transects, every other]
-# stde <- c("half")
-# samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+stde <- c("half")
+samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
 ## Third [9 transects, every third]
 # stde <- c("third")
 # samp <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
@@ -40,9 +40,9 @@ nmeth <- 2
 # samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
 # samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
 ## Third of two methods (e.g., VISTRAP)
-stde <- c("thirdthird")
-samp1 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
-samp2 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
+# stde <- c("thirdthird")
+# samp1 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
+# samp2 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
 
 ## Question 4. How many nights of sampling will you do? 
 ## (full [60], half [30], quarter [14])
@@ -141,7 +141,7 @@ s <- sample(1:Gpts,N,replace=TRUE)
 
 #### CREATE OVERALL POSTERIOR FROM WHICH TO SAMPLE AND SIMULATE OBSERVATIONS.----
 
-nsims <- 1 #1000
+nsims <- 10 #1000
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)
 createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat)
@@ -182,8 +182,8 @@ for(i in 1:nsims){
   ## Initial values for activity centers, take first location where snake found
   if(type != c("VISTRAP")){
     vsst <- list()
-    for(i in 1:nrow(y)){
-      vsst[i] <- apply(y,1,function(x) which(x>=1))[[i]][1]
+    for(w in 1:nrow(y)){
+      vsst[w] <- apply(y,1,function(x) which(x>=1))[[w]][1]
       vsst <- unlist(vsst)
     }
   }
@@ -191,11 +191,11 @@ for(i in 1:nsims){
   if(type == c("VISTRAP")){
     vsstV <- list()
     vsstT <- list()
-    for(i in 1:nindV){
-      vsstV[i] <- apply(yVsnsz,1,function(x) which(x>=1))[[i]][1]  ## locations from VIS
+    for(w in 1:nindV){
+      vsstV[w] <- apply(yVsnsz,1,function(x) which(x>=1))[[w]][1]  ## locations from VIS
     }
-    for(i in 1:nindT){
-      vsstT[i] <- apply(yTsnsz,1,function(x) which(x>=1))[[i]][1]  ## locations from TRAP
+    for(w in 1:nindT){
+      vsstT[w] <- apply(yTsnsz,1,function(x) which(x>=1))[[w]][1]  ## locations from TRAP
     }
     vsstV <- unlist(vsstV)
     vsstT <- unlist(vsstT)
@@ -414,32 +414,32 @@ for(i in 1:nsims){
   
   ## When only a single method used
   # Data and constants
-  # jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+  jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
   
   ## When two methods used
   # Data and constants
-  jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J=J1, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+  # jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J=J1, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
   
   ## When only a single method used
-  # Initial values (same as real data analysis)
-  # inits <- function(){
-  #   list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
-  # }
-  
-  ## When two methods used
   # Initial values (same as real data analysis)
   inits <- function(){
-    list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
+    list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
   }
   
+  ## When two methods used
+  # Initial values (same as real data analysis)
+  # inits <- function(){
+  #   list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
+  # }
+  
   ## When only a single method used
-  # parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+  parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
   
   ## When two methods used
-  parameters <- c("p0V","p0T","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
+  # parameters <- c("p0V","p0T","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
   
   out <- jags(paste("Simulations/Models/SCRpstarCATsizeCAT_Sim",type,".txt",sep=""), data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
   
-  save(out, file=paste("Simulations/Results/RESULTS_",type,N,dens,K,stde,i,".Rdata",sep=""))
+  save(out, file=paste("Simulations/Results/RESULTS_",stype,type,N,dens,K,stde,i,".Rdata",sep=""))
 
 }
