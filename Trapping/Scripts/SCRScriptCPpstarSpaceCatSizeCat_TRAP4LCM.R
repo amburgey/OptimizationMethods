@@ -57,6 +57,8 @@ dat <- prepSCRman(SCRcaps, SCReff, grid = fullX)
 
 ## Observations, already in order of CellID locations
 y <- dat$y
+## for running combined analysis of all projects, add missing sampling occasions
+y <- cbind(as.data.frame(matrix(0,nrow=61,ncol=13)),y)
 
 ## Uniquely marked individuals
 nind <- nrow(y)
