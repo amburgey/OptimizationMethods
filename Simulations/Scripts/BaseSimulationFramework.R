@@ -18,9 +18,9 @@ source("Simulations/Scripts/FunctionsForSimulation.R")
 stype <- c("closed")
 
 ## Question 2. What type of sampling will you do?
-type <- c("VIS")
+# type <- c("VIS")
 nmeth <- 1
-# type <- c("TRAP")
+type <- c("TRAP")
 # nmeth <- 1
 # type <- c("VISTRAP")
 # nmeth <- 2
