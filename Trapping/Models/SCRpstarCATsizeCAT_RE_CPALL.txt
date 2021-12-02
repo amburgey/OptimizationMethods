@@ -29,7 +29,7 @@ model {
   for(t in 1:nproj){
     for(l in 1:L){  # size category
     
-    eta[t,l] ~ dnorm(0, tau_p)
+    eta[l,t] ~ dnorm(0, tau_p)
     logit(p0[l,t]) <- alpha0 + eta[l,t]
     
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
