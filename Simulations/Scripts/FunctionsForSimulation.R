@@ -48,54 +48,58 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat){
   if(type == "VIS"){
     
     #### VISUAL SURVEY REAL DATA RESULTS ####
+    load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
     ## Only showing NWFN so far
-    mdlsVIS <- c("Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
-                 "Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
-                 "Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATdpois.Rdata",
-                 "Visual surveys/Results/NWFNVISPREBT2_SCRpstarvisCATsizeCATdpoisLONGER.Rdata",
-                 "Visual surveys/Results/NWFNVISPOSTBT2_SCRpstarvisCATsizeCATdpoisLONGER.Rdata",
-                 "Visual surveys/Results/NWFNVISPOSTKB1_SCRpstarvisCATsizeCATdpois2sizesLONGER.Rdata",
-                 "Visual surveys/Results/NWFNVISPOSTKB2_SCRpstarvisCATsizeCATdpois.Rdata",
-                 "Visual surveys/Results/NWFNVISPOSTKB3_SCRpstarvisCATsizeCATdpois3sizesLONGER.Rdata",
-                 "Visual surveys/Results/NWFNVISTRAPVIS_SCRpstarvisCATsizeCATdpoisLONGER.Rdata")
+    # mdlsVIS <- c("Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
+    #              "Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
+    #              "Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATdpois.Rdata",
+    #              "Visual surveys/Results/NWFNVISPREBT2_SCRpstarvisCATsizeCATdpoisLONGER.Rdata",
+    #              "Visual surveys/Results/NWFNVISPOSTBT2_SCRpstarvisCATsizeCATdpoisLONGER.Rdata",
+    #              "Visual surveys/Results/NWFNVISPOSTKB1_SCRpstarvisCATsizeCATdpois2sizesLONGER.Rdata",
+    #              "Visual surveys/Results/NWFNVISPOSTKB2_SCRpstarvisCATsizeCATdpois.Rdata",
+    #              "Visual surveys/Results/NWFNVISPOSTKB3_SCRpstarvisCATsizeCATdpois3sizesLONGER.Rdata",
+    #              "Visual surveys/Results/NWFNVISTRAPVIS_SCRpstarvisCATsizeCATdpoisLONGER.Rdata")
     
     ## Parameters (p0, sigma) that influence detection of snakes will be pulled from real data posterior samples
     
     ## Initialize empty vectors for creating posterior samples
-    temp <- matrix()
-    temp2 <- matrix()
-    sigma <- matrix()
-    p01 <- matrix()
-    p02 <- matrix()
-    p03 <- matrix()
-    p04 <- matrix()
+    # temp <- matrix()
+    # temp2 <- matrix()
+    # sigma <- matrix()
+    # p01 <- matrix()
+    # p02 <- matrix()
+    # p03 <- matrix()
+    # p04 <- matrix()
     
     ## Currently this is contingent on the order of the models above staying the same
-    for(m in 1:length(mdlsVIS)){
-      load(mdlsVIS[m])
-      temp <- out$sims.list$sigma
-      sigma <- append(sigma, temp)
-      temp2 <- out$sims.list$p0
-      ## Some models couldn't estimate all 4 size categories so removed those sizes - need to add posteriors to vectors depending on what was estimated
-      if(dim(temp2)[2] == 4){
-        p01 <- append(p01,temp2[,1])
-        p02 <- append(p02,temp2[,2])
-        p03 <- append(p03,temp2[,3])
-        p04 <- append(p04,temp2[,4])
-      }
-      if(dim(temp2)[2] == 3 & m == 8){
-        p02 <- append(p02,temp2[,1])
-        p03 <- append(p03,temp2[,2])
-        p04 <- append(p04,temp2[,3])
-      }
-      if(dim(temp2)[2] == 2 & m == 6){
-        p01 <- append(p01,temp2[,1])
-        p02 <- append(p02,temp2[,2])
-      }
-    }
+    # for(m in 1:length(mdlsVIS)){
+    #   load(mdlsVIS[m])
+    #   temp <- out$sims.list$sigma
+    #   sigma <- append(sigma, temp)
+    #   temp2 <- out$sims.list$p0
+    #   ## Some models couldn't estimate all 4 size categories so removed those sizes - need to add posteriors to vectors depending on what was estimated
+    #   if(dim(temp2)[2] == 4){
+    #     p01 <- append(p01,temp2[,1])
+    #     p02 <- append(p02,temp2[,2])
+    #     p03 <- append(p03,temp2[,3])
+    #     p04 <- append(p04,temp2[,4])
+    #   }
+    #   if(dim(temp2)[2] == 3 & m == 8){
+    #     p02 <- append(p02,temp2[,1])
+    #     p03 <- append(p03,temp2[,2])
+    #     p04 <- append(p04,temp2[,3])
+    #   }
+    #   if(dim(temp2)[2] == 2 & m == 6){
+    #     p01 <- append(p01,temp2[,1])
+    #     p02 <- append(p02,temp2[,2])
+    #   }
+    # }
     
-    sigmaMV <- sigma[-1]  # remove initial NA from empty vector
-    p0MV <- list(sample(p01[-1]),sample(p02[-1]),sample(p03[-1]),sample(p04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
+    # sigmaMV <- sigma[-1]  # remove initial NA from empty vector
+    # p0MV <- list(sample(p01[-1]),sample(p02[-1]),sample(p03[-1]),sample(p04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
+    
+    sigmaMV <- out$sims.list$sigma
+    p0MV <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
     
     ## Quick plot to compare encounter probabilities of different snake categories
     c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -103,10 +107,15 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat){
     c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
     c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
     
-    hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
+    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
+    # hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
+    # hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
+    # hist(p0MV[[4]], col = c3, add = TRUE, breaks = 25)
+    
+    hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
     hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
     hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
-    hist(p0MV[[4]], col = c3, add = TRUE, breaks = 25)
+    hist(p0MV[[4]], col = c4, add = TRUE, breaks = 25)
     
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
@@ -143,6 +152,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat){
   if(type == "TRAP"){
     
     #### TRAPPING REAL DATA RESULTS ####
+    # load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
     ## Only showing NWFN so far
     mdlsTRAP <- c("Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata",
                  "Trapping/Results/NWFNTRAP2LINVIS_SCRpstartrapCATsizeCAT.Rdata",
