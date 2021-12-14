@@ -9,14 +9,14 @@ source("Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up)
 source("Trapping/DataPrep/OverlayCPGrid.R")
 
 projects <- c("Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP1.R",
-        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP2LINVIS.R")#,
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP3.R",
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP4LCM.R",
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISTRAPTRAP.R",
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_POSTBT2TRAP.R",
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_POSTKBTRAP1.R",
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_POSTKBTRAP2.R",
-        # "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_PREBT1TRAP.R")
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP2LINVIS.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP3.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_TRAP4LCM.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISTRAPTRAP.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_POSTBT2TRAP.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_POSTKBTRAP1.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_POSTKBTRAP2.R",
+        "Trapping/Scripts/SCRScriptCPpstarSpaceCatSizeCat_PREBT1TRAP.R")
 
 nproj <- length(projects)
 
@@ -96,14 +96,13 @@ model {
   #prior for spatial decay
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
-  tau_p ~ dnorm(0,4)
+  # prior for intercept and random effect of project
+  alpha0 ~ dnorm(0,0.1)
+  tau_p ~ dunif(0,4)
   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)
   pi[1:Gpts] ~ ddirch(b[1:Gpts])
   
   for(l in 1:L){   # 4 size categories
-    #prior for intercept
-    alpha0[l] ~ dnorm(0,0.1)
-      
     for(t in 1:nproj){
       # Prior for N
       # Posterior conditional distribution for N-n (and hence N):
@@ -121,7 +120,8 @@ model {
   for(t in 1:nproj){
     for(l in 1:L){  # size category
     
-    eta[t,l] ~ dnorm(0, tau_p)
+    # random effect of study
+    eta[l,t] ~ dnorm(0, tau_p)
     logit(p0[l,t]) <- alpha0 + eta[l,t]
     
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
@@ -163,13 +163,13 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 1000; ni <- 10000+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=yall, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=Kall, nFound=nindall, a=a, dummy=matrix(0,nrow=Lall,ncol=nproj), b=rep(1,Gpts), size=snszall, L=Lall, ngroup=ngroupall, nproj=nproj) # ## semicomplete likelihood, #nFound=nFound, nmax=max(nindall), 
 
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=(ngroupall+10), p0=runif(L,.002,.003)) #s=vsstall, 
+  list (sigma=runif(1,30,40), n0=(ngroupall+10), nrow=L, ncol=nproj) #s=vsstall, 
 }
 
 parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup","eta")
