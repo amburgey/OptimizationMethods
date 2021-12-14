@@ -105,13 +105,14 @@ model {
   #prior for spatial decay
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
-  # prior for intercept and random effect of project
-  alpha0 ~ dnorm(0,0.1)
-  tau_p ~ dunif(0,4)
   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)
   pi[1:Gpts] ~ ddirch(b[1:Gpts])
   
   for(l in 1:L){   # 4 size categories
+    #prior for intercept
+    p0[l] ~ dunif(0,5)
+    alpha0[l] <- logit(p0[l])
+      
     for(t in 1:nproj){
       # Prior for N
       # Posterior conditional distribution for N-n (and hence N):
@@ -128,15 +129,10 @@ model {
 
   for(t in 1:nproj){
     for(l in 1:L){  # size category
-        
-    # random effect of study
-    eta[l,t] ~ dnorm(0, tau_p)
-    logit(p0[l,t]) <- alpha0 + eta[l,t]
-    
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
         for(j in 1:J){  # J = number of traps
           #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
-          miss_allK[l,g,j,t] <- pow((1 - p0[l,t]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j,t])
+          miss_allK[l,g,j,t] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j,t])
         } #J
         pdot.temp[l,g,t] <- 1 - prod(miss_allK[l,g,,t]) #Prob of detect each size category across entire study area and time period
         pdot[l,g,t] <- max(pdot.temp[l,g,t], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
@@ -156,7 +152,7 @@ model {
       # Model for capture histories of observed individuals:
       for(j in 1:J){  ## J = number of traps
         y[i,j,t] ~ dpois(p[i,j,t]*K[j,t])
-        p[i,j,t] <- p0[size[i,t],t]*exp(-alpha1*Gdist[s[i,t],j]*Gdist[s[i,t],j])
+        p[i,j,t] <- p0[size[i,t]]*exp(-alpha1*Gdist[s[i,t],j]*Gdist[s[i,t],j])
       }#J
     }#I
 
@@ -167,7 +163,7 @@ model {
   }#T
 }
 
-",file = "Visual surveys/Models/SCRpstarCATsizeCAT_RE_CPALL.txt")
+",file = "Visual surveys/Models/SCRpstarCATsizeCAT_CPALL.txt")
 
 #######################################################
 
@@ -178,13 +174,13 @@ nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
 jags.data <- list (y=yall, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=Kall, nFound=nindall, a=a, dummy=matrix(0,nrow=Lall,ncol=nproj), b=rep(1,Gpts), size=snszall, L=Lall, ngroup=ngroupall, nproj=nproj) # ## semicomplete likelihood, #nFound=nFound, nmax=max(nindall), 
 
 inits <- function(){
-  list (sigma=runif(1,30,40), n0=(ngroupall+10), nrow=L, ncol=nproj) #s=vsstall, 
+  list (sigma=runif(1,30,40), n0=(ngroupall+10), p0=runif(L,.002,.003)) #s=vsstall, 
 }
 
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup","eta")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
 
-out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_RE_CPALL.txt", data=jags.data, inits=inits, parallel=TRUE,
+out <- jags("Visual surveys/Models/SCRpstarCATsizeCAT_CPALL.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLRE.Rdata")
+save(out, file="Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")
 
