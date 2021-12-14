@@ -217,7 +217,25 @@ pTRAPsub <- ggplot(data = subset(datTRAP, Type == c("sigma") | Type == c("p0") |
   geom_linerange(data=subset(datTRAP, Type == c("sigma") | Type == c("p0") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
   # scale_fill_manual(values=c("#00AFBB","#eda306","#dce035","#0e07a9","#84eca4","#be713d","#2aa012","#fe5ea4")) +
   theme(legend.position = "none") +
-  geom_hline(data = dTMean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1")
+  geom_hline(data = dTMean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1") +
+  xlab("Project")
+
+
+dVMean <- datVIS %>%
+  group_by(Type) %>%
+  filter(Type == "sigma" | Type == "p0" | Type == "N") %>%
+  summarise(Mean = mean(Mean))
+
+pVISsub <- ggplot(data = subset(datVIS, Type == c("sigma") | Type == c("p0") | Type == c("N")), aes(x=ParModel, y=Mean)) + 
+  geom_point(aes(shape=Model, fill=Model), size=2) +
+  facet_wrap(vars(Type), scales = "free", nrow = length(unique(datVIS$Type))) +
+  scale_shape_manual(values=c(21,17,23,19,21,17,23,19,21)) +
+  scale_fill_manual(values=cols) +
+  geom_linerange(data=subset(datVIS, Type == c("sigma") | Type == c("p0") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
+  # scale_fill_manual(values=c("#00AFBB","#eda306","#dce035","#0e07a9","#84eca4","#be713d","#2aa012","#fe5ea4")) +
+  theme(legend.position = "none") +
+  geom_hline(data = dVMean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1") +
+  xlab("Project")
 
 
 
