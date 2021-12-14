@@ -7,11 +7,11 @@ rm(list=ls())
 library(HDInterval); library(dplyr); library(stringr)
 
 
-nsims <- 7#100
+nsims <- 10#100
 
 #### Scenario.----
 
-scen <- c("closedVIS120small60half")  ## for testing
+scen <- c("closedVIS120small60half","closedTRAP120small60half")  ## for testing
 # scen <- c("closedVIS120small60full","closedVIS120small60half","closedVIS120small60third",
 #   "closedVIS120small30full","closedVIS120small30half","closedVIS120small30third",
 #   "closedVIS120small14full","closedVIS120small14half","closedVIS120small14third",
