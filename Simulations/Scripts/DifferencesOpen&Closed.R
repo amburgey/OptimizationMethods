@@ -1,8 +1,9 @@
 ### Compare closed to open SCR analysis
+### Redo when have 100 simulations
 
 library(ggplot2); library(HDInterval)
 
-nsims <- 10
+nsims <- 11
 
 ## read in "closed" pop analysis
 resC <- matrix(NA, nrow = nsims, ncol = 6, dimnames = list(seq(1:nsims),c("MnN","Mnp01","Mnp02","Mnp03","Mnp04","sigma")))
@@ -42,11 +43,13 @@ newdf <- cbind(newdf, as.data.frame(rep(c("closed","open"), each = 6)))
 newdf <- cbind(newdf, as.data.frame(c("Abundance",rep("p0",times=4),"sigma","Abundance",rep("p0",times=4),"sigma")))
 colnames(newdf)[5:7] <- c("Par","Type","ParGroup")
 
+## Plot mean and 1 stdeviation within the mean to see if overlap between analyses
 
 p1 <- ggplot(newdf, aes(x=Par, y = Mn, shape = Type, color = ParGroup)) + 
   geom_point() +
   facet_wrap(. ~ ParGroup, scales = "free") +
-  geom_pointrange(aes(ymin = `2.5HDI`, ymax = `97.5HDI`))
+  # geom_pointrange(aes(ymin = `2.5HDI`, ymax = `97.5HDI`)) +
+  geom_errorbar(aes(ymin = Mn - SD, ymax = Mn + SD))
 
 
 
