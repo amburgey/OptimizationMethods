@@ -172,7 +172,7 @@ model {
 #######################################################
 
 ## MCMC settings
-nc <- 3; nAdapt=1000; nb <- 1; ni <- 10000+nb; nt <- 1
+nc <- 3; nAdapt=1000; nb <- 1000; ni <- 10000+nb; nt <- 1
 
 ## Data and constants
 jags.data <- list (y=yall, Gpts=Gpts, Gdist=Gdist, J=J, locs=X, A=A, K=Kall, nFound=nindall, a=a, dummy=matrix(0,nrow=Lall,ncol=nproj), b=rep(1,Gpts), size=snszall, L=Lall, ngroup=ngroupall, nproj=nproj) # ## semicomplete likelihood, #nFound=nFound, nmax=max(nindall), 
