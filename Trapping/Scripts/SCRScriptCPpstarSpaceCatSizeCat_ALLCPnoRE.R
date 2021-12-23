@@ -142,7 +142,7 @@ model {
 
       # Model for capture histories of observed individuals:
       for(j in 1:J){  ## J = number of traps
-        y[i,j,t] ~ dpois(p[i,j,t]*K[j,t])
+        y[i,j,t] ~ dbin(p[i,j,t],K[j,t])
         p[i,j,t] <- p0[size[i,t]]*exp(-alpha1*Gdist[s[i,t],j]*Gdist[s[i,t],j])
       }#J
     }#I
