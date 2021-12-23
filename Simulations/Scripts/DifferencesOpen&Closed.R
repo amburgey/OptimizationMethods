@@ -38,7 +38,7 @@ newdf[,1] <- apply(res, 1, mean)
 newdf[,2] <- apply(res, 1, sd)
 newdf[,3] <- apply(res, 1, hdi)[1,]
 newdf[,4] <- apply(res, 1, hdi)[2,]
-newdf <- cbind(newdf, as.data.frame(c("N.c","p01.c","p02.c","p03.c","p04.c","sigma.c","N.o","p01.o","p02.o","p03.o","p04.o","sigma.o")))
+newdf <- cbind(newdf, as.data.frame(c("Abundance.c","p01.c","p02.c","p03.c","p04.c","sigma.c","Abundance.o","p01.o","p02.o","p03.o","p04.o","sigma.o")))
 newdf <- cbind(newdf, as.data.frame(rep(c("closed","open"), each = 6)))
 newdf <- cbind(newdf, as.data.frame(c("Abundance",rep("p0",times=4),"sigma","Abundance",rep("p0",times=4),"sigma")))
 colnames(newdf)[5:7] <- c("Par","Study Area Type","Parameter")
