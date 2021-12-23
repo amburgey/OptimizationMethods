@@ -96,13 +96,14 @@ model {
   #prior for spatial decay
   sigma ~ dunif(0,100)
   alpha1 <- 1/(2*sigma*sigma)
-  # prior for intercept and random effect of project
-  alpha0 ~ dnorm(0,0.1)
+  # prior for precision random effect of project
   tau_p ~ dunif(0,4)
   # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)
   pi[1:Gpts] ~ ddirch(b[1:Gpts])
   
   for(l in 1:L){   # 4 size categories
+    alpha0[l] ~ dnorm(0,0.1)
+  
     for(t in 1:nproj){
       # Prior for N
       # Posterior conditional distribution for N-n (and hence N):
@@ -121,8 +122,8 @@ model {
     for(l in 1:L){  # size category
     
     # random effect of study
-    eta[l,t] ~ dnorm(0, tau_p)
-    logit(p0[l,t]) <- alpha0 + eta[l,t]
+    eta[t] ~ dnorm(0, tau_p)
+    logit(p0[l,t]) <- alpha0[l] + eta[t]
     
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
         for(j in 1:J){  # J = number of traps
@@ -172,7 +173,7 @@ inits <- function(){
   list (sigma=runif(1,30,40), n0=(ngroupall+10), nrow=L, ncol=nproj) #s=vsstall, 
 }
 
-parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup","eta")
+parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup","tau_p","eta")
 
 out <- jags("Trapping/Models/SCRpstarCATsizeCAT_RE_CPALL.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
