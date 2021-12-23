@@ -1,7 +1,7 @@
 ### Summarize results from the analysis of real datasets
 ### Analyses from Closed Population (CP), maybe Habitat Management Unit (HMU), and others
 
-library(jagsUI);library(ggplot2);library(RColorBrewer);library(tidyverse)
+library(jagsUI);library(ggplot2);library(RColorBrewer);library(tidyverse);library(ggpubr)
 
 #### VISUAL SURVEYS ####
 ## Only showing NWFN so far
@@ -109,6 +109,23 @@ pVISsub <- ggplot(data = subset(datVIS, Type == c("sigma") | Type == c("p0") | T
   # scale_fill_manual(values=c("#00AFBB","#eda306","#dce035","#0e07a9","#84eca4","#be713d","#2aa012","#fe5ea4")) +
   theme(legend.position = "none") +
   geom_hline(data = dVMean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1")
+
+### Code for appendix - compare N and sigma across projects
+
+dV2Mean <- datVIS %>%
+  group_by(Type) %>%
+  filter(Type == "sigma" | Type == "N") %>%
+  summarise(Mean = mean(Mean))
+
+pVISapp1 <- ggplot(data = subset(datVIS, Type == c("sigma") | Type == c("N")), aes(x=ParModel, y=Mean)) + 
+  geom_point(aes(shape=Model, fill=Model), size=2) +
+  facet_wrap(vars(Type), scales = "free", nrow = 2) +
+  scale_shape_manual(values=c(21,17,23,19,21,17,23,19,21)) +
+  scale_fill_manual(values=cols) +
+  geom_linerange(data=subset(datVIS, Type == c("sigma") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
+  theme(legend.position = "none", axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size = 14)) + 
+  ggtitle("Visual Surveys") +
+  geom_hline(data = dV2Mean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1")
   
 
 
@@ -221,21 +238,30 @@ pTRAPsub <- ggplot(data = subset(datTRAP, Type == c("sigma") | Type == c("p0") |
   xlab("Project")
 
 
-dVMean <- datVIS %>%
+### Code for appendix - compare N and sigma across projects
+
+dT2Mean <- datTRAP %>%
   group_by(Type) %>%
-  filter(Type == "sigma" | Type == "p0" | Type == "N") %>%
+  filter(Type == "sigma" | Type == "N") %>%
   summarise(Mean = mean(Mean))
 
-pVISsub <- ggplot(data = subset(datVIS, Type == c("sigma") | Type == c("p0") | Type == c("N")), aes(x=ParModel, y=Mean)) + 
+pTRAPapp1 <- ggplot(data = subset(datTRAP, Type == c("sigma") | Type == c("N")), aes(x=ParModel, y=Mean)) + 
   geom_point(aes(shape=Model, fill=Model), size=2) +
-  facet_wrap(vars(Type), scales = "free", nrow = length(unique(datVIS$Type))) +
+  facet_wrap(vars(Type), scales = "free", nrow = 2) +
   scale_shape_manual(values=c(21,17,23,19,21,17,23,19,21)) +
   scale_fill_manual(values=cols) +
-  geom_linerange(data=subset(datVIS, Type == c("sigma") | Type == c("p0") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
-  # scale_fill_manual(values=c("#00AFBB","#eda306","#dce035","#0e07a9","#84eca4","#be713d","#2aa012","#fe5ea4")) +
-  theme(legend.position = "none") +
-  geom_hline(data = dVMean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1") +
-  xlab("Project")
+  geom_linerange(data=subset(datTRAP, Type == c("sigma") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, size = 14)) + 
+  ggtitle("Trapping Surveys") +
+  xlab("Project") +
+  geom_hline(data = dT2Mean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1")
+
+
+### Create combined plot for appendix
+
+png(file="VISTRAPsigma&Ncomparison.png",width=8,height=8.5,units="in",res=600)
+ggarrange(pVISapp1, pTRAPapp1, nrow = 2, ncol = 1, labels = "AUTO")
+dev.off()
 
 
 
