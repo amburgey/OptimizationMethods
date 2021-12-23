@@ -49,8 +49,7 @@ p1 <- ggplot(newdf, aes(x=Par, y = Mn, shape = `Study Area Type`, color = Parame
   geom_point(size = 6, stroke = 2) +
   scale_shape_manual(values = c(19,21)) +
   facet_wrap(. ~ Parameter, scales = "free") +
-  # geom_pointrange(aes(ymin = `2.5HDI`, ymax = `97.5HDI`)) +
-  geom_errorbar(aes(ymin = Mn - SD, ymax = Mn + SD), width = 0.2, size = 0.9) + 
+  geom_errorbar(aes(ymin = `2.5HDI`, ymax = `97.5HDI`), width = 0.2, size = 0.9) +
   ylab("Mean Estimate") +
   scale_color_manual(values = c("#f48d79","#02adb5","#ab0902")) +
   theme(axis.text = element_text(size = 12), axis.title.y = element_text(size = 14), 
