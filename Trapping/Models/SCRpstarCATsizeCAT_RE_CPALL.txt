@@ -27,10 +27,11 @@ model {
     #pdot = probability of being detected at least once (given location)
 
   for(t in 1:nproj){
+    eta[t] ~ dnorm(0, tau_p)
+      
     for(l in 1:L){  # size category
     
     # random effect of study
-    eta[t] ~ dnorm(0, tau_p)
     logit(p0[l,t]) <- alpha0[l] + eta[t]
     
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
