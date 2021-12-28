@@ -223,8 +223,11 @@ for(i in 1:nsims){
   cat("
   model {
     
+    #prior for spatial decay
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
+    #prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(l in 1:L){   # 4 size categories
       #prior for intercept
@@ -258,9 +261,6 @@ for(i in 1:nsims){
       dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
     } #L
     
-    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
-    
     for(i in 1:n){  ## n = number of observed individuals
       ## For use when defining traps on a grid cell
       s[i] ~ dcat(pi[1:Gpts])
@@ -284,8 +284,11 @@ for(i in 1:nsims){
   cat("
   model {
     
+    #prior for spatial decay
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
+    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(l in 1:L){   # 4 size categories
       #prior for intercept
@@ -319,9 +322,6 @@ for(i in 1:nsims){
       dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
     } #L
     
-    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
-    
     for(i in 1:n){  ## n = number of observed individuals
       # For use when defining traps on a grid cell
       s[i] ~ dcat(pi[1:Gpts])
@@ -345,8 +345,11 @@ for(i in 1:nsims){
   cat("
   model {
     
+    #prior for spatial decay
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
+    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(l in 1:L){      # 4 size categories
       #prior for intercept
@@ -380,9 +383,6 @@ for(i in 1:nsims){
       lambda[l] <- -loglikterm[l] + 10000
       dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
     } #L
-    
-    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
-    pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(i in 1:n){
       ## For use when defining traps on a grid cell

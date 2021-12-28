@@ -48,7 +48,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
   if(type == "VIS"){
     
     #### VISUAL SURVEY REAL DATA RESULTS ####
-    load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
+    load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLRE.Rdata")  # unified analysis of all datasets
     ## Only showing NWFN so far
     # mdlsVIS <- c("Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
     #              "Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
@@ -100,6 +100,10 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     
     sigmaMV <- out$sims.list$sigma
     p0MV <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
+    alpha0V <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
+    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
+    tau_muV <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
+    tau_sdV <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
     
     ## Quick plot to compare encounter probabilities of different snake categories
     c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -127,8 +131,11 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     for(z in 1:nsims){  
       sigmaV <- sigmaMV[sample(0:length(sigmaMV), 1)]   ## pull value from posterior
       alpha1V <- 1/(2*sigmaV*sigmaV)
+      tau_pV <- rnorm(1,tau_muV,tau_sdV)
       for(l in 1:length(Ngroup)){
-        p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
+        p0V[l] <- alpha0V[[l]][sample(0:length(alpha0V[[l]]),1)] + tau_pV
+        print(p0V)
+        # p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
       }
       pmatV <- p0V[Nsnsz]*exp(-alpha1V*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
       for(n in 1:N){
@@ -152,7 +159,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
   if(type == "TRAP"){
     
     #### TRAPPING REAL DATA RESULTS ####
-    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
+    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLRE.Rdata")  # unified analysis of all datasets
     ## Only showing NWFN so far
     # mdlsTRAP <- c("Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata",
     #              "Trapping/Results/NWFNTRAP2LINVIS_SCRpstartrapCATsizeCAT.Rdata",
@@ -200,6 +207,10 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     
     sigmaMT <- out$sims.list$sigma
     p0MT <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
+    alpha0T <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
+    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
+    tau_muT <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
+    tau_sdT <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
     
     ## Quick plot to compare encounter probabilities of different snake categories
     c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -227,8 +238,11 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     for(z in 1:nsims){  
       sigmaT <- sigmaMT[sample(0:length(sigmaMT), 1)]   ## pull value from posterior
       alpha1T <- 1/(2*sigmaT*sigmaT)
+      tau_pT <- rnorm(1,tau_muT,tau_sdT)
       for(l in 1:length(Ngroup)){
-        p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
+        p0T[l] <- alpha0T[[l]][sample(0:length(alpha0T[[l]]),1)] + tau_pT
+        print(p0T)
+        # p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
       }
       pmatT <- p0T[Nsnsz]*exp(-alpha1T*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
       for(n in 1:N){
@@ -252,7 +266,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
   if(type == "VISTRAP"){
     
     #### VISUAL SURVEY REAL DATA RESULTS ####
-    load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
+    load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLRE.Rdata")  # unified analysis of all datasets
     # mdlsVIS <- c("Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
     #              "Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
     #              "Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATdpois.Rdata",
@@ -303,9 +317,13 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     
     sigmaMV <- out$sims.list$sigma
     p0MV <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
+    alpha0V <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
+    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
+    tau_muV <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
+    tau_sdV <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
     
     #### TRAPPING REAL DATA RESULTS ####
-    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
+    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLRE.Rdata")  # unified analysis of all datasets
     ## Only showing NWFN so far
     # mdlsTRAP <- c("Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata",
     #               "Trapping/Results/NWFNTRAP2LINVIS_SCRpstartrapCATsizeCAT.Rdata",
@@ -353,6 +371,10 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
 
     sigmaMT <- out$sims.list$sigma
     p0MT <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
+    alpha0T <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
+    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
+    tau_muT <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
+    tau_sdT <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
     
     ## Quick plot to compare encounter probabilities of different snake categories
     cV1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -396,10 +418,16 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
       sigmaT <- sigmaMT[sample(0:length(sigmaMT), 1)]   ## pull value from posterior
       alpha1V <- 1/(2*sigmaV*sigmaV)
       alpha1T <- 1/(2*sigmaT*sigmaT)
+      tau_pV <- rnorm(1,tau_muV,tau_sdV)
+      tau_pT <- rnorm(1,tau_muT,tau_sdT)
       
       for(l in 1:length(Ngroup)){
-        p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
-        p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
+        p0V[l] <- alpha0V[[l]][sample(0:length(alpha0V[[l]]),1)] + tau_pV
+        p0T[l] <- alpha0T[[l]][sample(0:length(alpha0T[[l]]),1)] + tau_pT
+        print(p0V)
+        print(p0T)
+        # p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
+        # p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
       }
       
       pmatV <- p0V*exp(-alpha1V*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all location
