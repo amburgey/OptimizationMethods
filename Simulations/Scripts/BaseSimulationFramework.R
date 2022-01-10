@@ -232,7 +232,6 @@ for(i in 1:nsims){
     for(l in 1:L){   # 4 size categories
       #prior for intercept
       p0[l] ~ dunif(0,5)
-      alpha0[l] <- logit(p0[l])
       
       # Posterior conditional distribution for N-n (and hence N):
       n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
