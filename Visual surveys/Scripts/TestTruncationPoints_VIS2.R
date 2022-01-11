@@ -37,12 +37,14 @@ J <- nrow(X)
 
 ## SPECIFY TIME FRAME
 ## Options: 
-## Full (no truncation) = Dec 19 2005 to Oct 12 2006
-time <- c("01","12")
+## Full (10 month) = Dec 19 2005 to Oct 12 2006
+# time <- c("01","12")
 ## Half (5 month) = Feb 1 2006 to May 31 2006
 # time <- c("02","05")
-## Quarter (2 month) = Feb 1 2006 to Mar 31 206
+## Quarter (2 month) = Feb 1 2006 to Mar 31 2006
 # time <- c("02","03")
+## Eighth (1 month) = Feb 1 2006 to Feb 28 2006
+time <- c("02","02")
 
 
 #### PREP DATA FOR SCR ANALYSIS ####
@@ -69,18 +71,6 @@ y <- dat$y
 
 ## Uniquely marked individuals
 nind <- nrow(y)
-
-# ## Get sizes of individuals
-# # snsz <- getSize(capPROJ, SCRcaps, subcap)[,2]  ## if all snakes have a measurement during that project
-# snsz <- getSizeman(capPROJ, SCRcaps, subcap, time=time2)[,2] ## if some snake sizes are missing than expand window of time
-# ## Categorize by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
-# snsz <- ifelse(snsz < 850, 1,
-#                ifelse(snsz >= 850 & snsz < 950, 2,
-#                       ifelse(snsz >= 950 & snsz < 1150, 3,
-#                              ifelse(snsz >= 1150, 4, -9999))))
-# if(max(snsz) == -9999) stop('snake size incorrect')
-# L <- length(unique(snsz))
-# ngroup <- as.vector(table(snsz))
 
 ## Active/not active for when transects run, already in order of 1-351 CellID locations
 act <- as.matrix(dat$act[,-1])
@@ -184,5 +174,5 @@ parameters <- c("p0","sigma","pstar","alpha1","N","n0")
 out <- jags("Visual surveys/Models/SCRpstarCAT_CPTruncationPoints.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCAT_FULLTIME.Rdata")
+save(out, file="Visual surveys/Results/NWFNVIS2_SCRpstarvisCAT_EIGHTHTIME.Rdata")
 
