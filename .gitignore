@@ -3,11 +3,14 @@
 .RData
 .Ruserdata
 
+# Simulated Data
+/Simulations/simDat
+
 # Results
 /Results
 /Visual\ surveys/Results
 /Trapping/Results
-#/Simulations/simDat
+/Simulations/Results
 
 # Unused files
 NWFNlocationsKey.xlsx
