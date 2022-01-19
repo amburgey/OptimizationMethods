@@ -121,6 +121,12 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
     hist(p0MV[[4]], col = c4, add = TRUE, breaks = 25)
     
+    # par(mfrow = c(4, 1))
+    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
+    # hist(p0MV[[2]], col = c2, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
+    # hist(p0MV[[3]], col = c3, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
+    # hist(p0MV[[4]], col = c4, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
+    
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
     
@@ -227,6 +233,12 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     hist(p0MT[[2]], col = c2, add = TRUE, breaks = 25)
     hist(p0MT[[3]], col = c3, add = TRUE, breaks = 25)
     hist(p0MT[[4]], col = c4, add = TRUE, breaks = 25)
+    
+    # par(mfrow = c(4, 1))
+    # hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
+    # hist(p0MT[[2]], col = c2, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
+    # hist(p0MT[[3]], col = c3, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
+    # hist(p0MT[[4]], col = c4, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
     
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
