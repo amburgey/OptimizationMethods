@@ -1,7 +1,7 @@
 ### Summarize results from the analysis of real datasets
 ### Analyses from Closed Population (CP), maybe Habitat Management Unit (HMU), and others
 
-library(jagsUI);library(ggplot2);library(RColorBrewer);library(tidyverse);library(ggpubr)
+library(jagsUI);library(ggplot2);library(RColorBrewer);library(tidyverse);library(ggpubr);library(HDInterval)
 
 #### VISUAL SURVEYS ####
 ## Only showing NWFN so far
@@ -32,6 +32,8 @@ for(i in 1:length(mdlsVIS)){
   datVIS[key,7] <- i
   datVIS[key,8] <- yearsVIS[i]
   datVIS[key,9] <- out$mean$N/areas[i]
+  datVIS[key,10] <- hdi(out$sims.list$sigma)[[1]]
+  datVIS[key,11] <- hdi(out$sims.list$sigma)[[2]]
   key <- key + 1
   for(j in 1:length(out$mean$pstar)){
     datVIS[key,1] <- out$mean$pstar[j]
@@ -43,6 +45,8 @@ for(i in 1:length(mdlsVIS)){
     datVIS[key,7] <- paste(i,j,sep=".")
     datVIS[key,8] <- yearsVIS[i]
     datVIS[key,9] <- out$mean$N/areas[i]
+    datVIS[key,10] <- hdi(out$sims.list$pstar)[[1]]
+    datVIS[key,11] <- hdi(out$sims.list$pstar)[[2]]
     key <- key + 1
   }
   for(j in 1:length(out$mean$p0)){
@@ -55,6 +59,8 @@ for(i in 1:length(mdlsVIS)){
     datVIS[key,7] <- paste(i,j,sep=".")
     datVIS[key,8] <- yearsVIS[i]
     datVIS[key,9] <- out$mean$N/areas[i]
+    datVIS[key,10] <- hdi(out$sims.list$p0)[[1]]
+    datVIS[key,11] <- hdi(out$sims.list$p0)[[2]]
     key <- key + 1
   }
   datVIS[key,1] <- out$mean$N
@@ -66,6 +72,8 @@ for(i in 1:length(mdlsVIS)){
   datVIS[key,7] <- i
   datVIS[key,8] <- yearsVIS[i]
   datVIS[key,9] <- out$mean$N/areas[i]
+  datVIS[key,10] <- hdi(out$sims.list$N)[[1]]
+  datVIS[key,11] <- hdi(out$sims.list$N)[[2]]
   key <- key + 1
   for(j in 1:length(out$mean$Ngroup)){
     datVIS[key,1] <- out$mean$Ngroup[j]
@@ -77,10 +85,12 @@ for(i in 1:length(mdlsVIS)){
     datVIS[key,7] <- paste(i,j,sep=".")
     datVIS[key,8] <- yearsVIS[i]
     datVIS[key,9] <- out$mean$N/areas[i]
+    datVIS[key,10] <- hdi(out$sims.list$Ngroup)[[1]]
+    datVIS[key,11] <- hdi(out$sims.list$Ngroup)[[2]]
     key <- key + 1
   }
 }
-colnames(datVIS) <- c("Mean","Q2.5","Q97.5","Parameter","Type","Model","ParModel","Year","Density")
+colnames(datVIS) <- c("Mean","Q2.5","Q97.5","Parameter","Type","Model","ParModel","Year","Density","HDPI2.5","HDPI97.5")
 ## Remove NA rows when a reduced number of size categories were used
 datVIS <- na.omit(datVIS)
 
@@ -117,13 +127,14 @@ dV2Mean <- datVIS %>%
   filter(Type == "sigma" | Type == "N") %>%
   summarise(Mean = mean(Mean))
 
+
 pVISapp1 <- ggplot(data = subset(datVIS, Type == c("sigma") | Type == c("N")), aes(x=ParModel, y=Mean)) + 
   geom_point(aes(shape=Model, fill=Model), size=2) +
-  facet_wrap(vars(Type), scales = "free", nrow = 2) +
+  facet_wrap(vars(Type), scales = "free", nrow = 2, labeller = label_parsed) +
   scale_shape_manual(values=c(21,17,23,19,21,17,23,19,21)) +
   scale_fill_manual(values=cols) +
-  geom_linerange(data=subset(datVIS, Type == c("sigma") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
-  theme(legend.position = "none", axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size = 14)) + 
+  geom_linerange(data=subset(datVIS, Type == c("sigma") | Type == c("N")), aes(ymin=HDPI2.5, ymax=HDPI97.5)) +
+  theme(legend.position = "none", axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size = 14), strip.text.x = element_text(size = 12)) + 
   ggtitle("Visual Surveys") +
   geom_hline(data = dV2Mean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1")
   
@@ -158,6 +169,8 @@ for(i in 1:length(mdlsTRAP)){
   datTRAP[key,7] <- i
   datTRAP[key,8] <- yearsTRAP[i]
   datTRAP[key,9] <- out$mean$N/areas[i]
+  datTRAP[key,10] <- hdi(out$sims.list$sigma)[[1]]
+  datTRAP[key,11] <- hdi(out$sims.list$sigma)[[2]]
   key <- key + 1
   for(j in 1:length(out$mean$pstar)){
     datTRAP[key,1] <- out$mean$pstar[j]
@@ -169,6 +182,8 @@ for(i in 1:length(mdlsTRAP)){
     datTRAP[key,7] <- paste(i,j,sep=".")
     datTRAP[key,8] <- yearsTRAP[i]
     datTRAP[key,9] <- out$mean$N/areas[i]
+    datTRAP[key,10] <- hdi(out$sims.list$pstar)[[1]]
+    datTRAP[key,11] <- hdi(out$sims.list$pstar)[[2]]
     key <- key + 1
   }
   for(j in 1:length(out$mean$p0)){
@@ -181,6 +196,8 @@ for(i in 1:length(mdlsTRAP)){
     datTRAP[key,7] <- paste(i,j,sep=".")
     datTRAP[key,8] <- yearsTRAP[i]
     datTRAP[key,9] <- out$mean$N/areas[i]
+    datTRAP[key,10] <- hdi(out$sims.list$p0)[[1]]
+    datTRAP[key,11] <- hdi(out$sims.list$p0)[[2]]
     key <- key + 1
   }
   datTRAP[key,1] <- out$mean$N
@@ -192,6 +209,8 @@ for(i in 1:length(mdlsTRAP)){
   datTRAP[key,7] <- i
   datTRAP[key,8] <- yearsTRAP[i]
   datTRAP[key,9] <- out$mean$N/areas[i]
+  datTRAP[key,10] <- hdi(out$sims.list$N)[[1]]
+  datTRAP[key,11] <- hdi(out$sims.list$N)[[2]]
   key <- key + 1
   for(j in 1:length(out$mean$Ngroup)){
     datTRAP[key,1] <- out$mean$Ngroup[j]
@@ -203,10 +222,12 @@ for(i in 1:length(mdlsTRAP)){
     datTRAP[key,7] <- paste(i,j,sep=".")
     datTRAP[key,8] <- yearsTRAP[i]
     datTRAP[key,9] <- out$mean$N/areas[i]
+    datTRAP[key,10] <- hdi(out$sims.list$Ngroup)[[1]]
+    datTRAP[key,11] <- hdi(out$sims.list$Ngroup)[[2]]
     key <- key + 1
   }
 }
-colnames(datTRAP) <- c("Mean","Q2.5","Q97.5","Parameter","Type","Model","ParModel","Year","Density")
+colnames(datTRAP) <- c("Mean","Q2.5","Q97.5","Parameter","Type","Model","ParModel","Year","Density","HDPI2.5","HDPI97.5")
 ## Remove NA rows when a reduced number of size categories were used
 datTRAP <- na.omit(datTRAP)
 
@@ -247,11 +268,11 @@ dT2Mean <- datTRAP %>%
 
 pTRAPapp1 <- ggplot(data = subset(datTRAP, Type == c("sigma") | Type == c("N")), aes(x=ParModel, y=Mean)) + 
   geom_point(aes(shape=Model, fill=Model), size=2) +
-  facet_wrap(vars(Type), scales = "free", nrow = 2) +
+  facet_wrap(vars(Type), scales = "free", nrow = 2, labeller = label_parsed) +
   scale_shape_manual(values=c(21,17,23,19,21,17,23,19,21)) +
   scale_fill_manual(values=cols) +
-  geom_linerange(data=subset(datTRAP, Type == c("sigma") | Type == c("N")), aes(ymin=Q2.5, ymax=Q97.5)) +
-  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, size = 14)) + 
+  geom_linerange(data=subset(datTRAP, Type == c("sigma") | Type == c("N")), aes(ymin=HDPI2.5, ymax=HDPI97.5)) +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5, size = 14), strip.text.x = element_text(size = 12)) + 
   ggtitle("Trapping Surveys") +
   xlab("Project") +
   geom_hline(data = dT2Mean, aes(yintercept = Mean), alpha=0.4, colour="#1d92f1")
