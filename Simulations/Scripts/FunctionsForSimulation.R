@@ -101,9 +101,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     sigmaMV <- out$sims.list$sigma
     p0MV <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
     alpha0V <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
-    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
-    tau_muV <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
-    tau_sdV <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
+    tau_MV <- out$sims.list$tau_p
     
     ## Quick plot to compare encounter probabilities of different snake categories
     c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -111,21 +109,10 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
     c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
     
-    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
-    # hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
-    # hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
-    # hist(p0MV[[4]], col = c3, add = TRUE, breaks = 25)
-    
     hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
     hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
     hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
     hist(p0MV[[4]], col = c4, add = TRUE, breaks = 25)
-    
-    # par(mfrow = c(4, 1))
-    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    # hist(p0MV[[2]], col = c2, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    # hist(p0MV[[3]], col = c3, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    # hist(p0MV[[4]], col = c4, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
     
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
@@ -135,11 +122,12 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     p0V <- vector()
     
     for(z in 1:nsims){  
-      sigmaV <- sigmaMV[sample(0:length(sigmaMV), 1)]   ## pull value from posterior
+      sigmaV <- sigmaMV[sample(1:length(sigmaMV), 1)]
       alpha1V <- 1/(2*sigmaV*sigmaV)
-      tau_pV <- rnorm(1,tau_muV,tau_sdV)
+      tau_pV <- tau_MV[sample(1:length(tau_MV), 1)]
+      etaV <- rnorm(1, 0, sqrt(1/tau_pV))
       for(l in 1:length(Ngroup)){
-        p0V[l] <- alpha0V[[l]][sample(0:length(alpha0V[[l]]),1)] + tau_pV
+        p0V[l] <- alpha0V[[l]][sample(1:length(alpha0V[[l]]),1)] + etaV
         print(p0V)
         # p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
       }
@@ -214,9 +202,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     sigmaMT <- out$sims.list$sigma
     p0MT <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
     alpha0T <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
-    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
-    tau_muT <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
-    tau_sdT <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
+    tau_MT <- out$sims.list$tau_p
     
     ## Quick plot to compare encounter probabilities of different snake categories
     c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -224,21 +210,10 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
     c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
     
-    # hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
-    # hist(p0MT[[2]], col = c2, add = TRUE, breaks = 25)
-    # hist(p0MT[[3]], col = c3, add = TRUE, breaks = 25)
-    # hist(p0MT[[4]], col = c3, add = TRUE, breaks = 25)
-    
     hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
     hist(p0MT[[2]], col = c2, add = TRUE, breaks = 25)
     hist(p0MT[[3]], col = c3, add = TRUE, breaks = 25)
     hist(p0MT[[4]], col = c4, add = TRUE, breaks = 25)
-    
-    # par(mfrow = c(4, 1))
-    # hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    # hist(p0MT[[2]], col = c2, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    # hist(p0MT[[3]], col = c3, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    # hist(p0MT[[4]], col = c4, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
     
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
@@ -248,11 +223,12 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     p0T <- vector()
     
     for(z in 1:nsims){  
-      sigmaT <- sigmaMT[sample(0:length(sigmaMT), 1)]   ## pull value from posterior
+      sigmaT <- sigmaMT[sample(1:length(sigmaMT), 1)]   ## pull value from posterior
       alpha1T <- 1/(2*sigmaT*sigmaT)
-      tau_pT <- rnorm(1,tau_muT,tau_sdT)
+      tau_pT <- tau_MT[sample(1:length(tau_MT), 1)]
+      etaT <- rnorm(1, 0, sqrt(1/tau_pT))
       for(l in 1:length(Ngroup)){
-        p0T[l] <- alpha0T[[l]][sample(0:length(alpha0T[[l]]),1)] + tau_pT
+        p0T[l] <- alpha0T[[l]][sample(1:length(alpha0T[[l]]),1)] + etaT
         print(p0T)
         # p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
       }
@@ -330,9 +306,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     sigmaMV <- out$sims.list$sigma
     p0MV <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
     alpha0V <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
-    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
-    tau_muV <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
-    tau_sdV <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
+    tau_MV <- out$sims.list$tau_p
     
     #### TRAPPING REAL DATA RESULTS ####
     load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLRE.Rdata")  # unified analysis of all datasets
@@ -384,9 +358,7 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     sigmaMT <- out$sims.list$sigma
     p0MT <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
     alpha0T <- list(sample(out$sims.list$alpha0[,1]),sample(out$sims.list$alpha0[,2]),sample(out$sims.list$alpha0[,3]),sample(out$sims.list$alpha0[,4]))
-    ## FIGURE OUT HOW TO CALC NEW DISTRIBUTION
-    tau_muT <- mean(out$sims.list$tau_p) #(mean(out$sims.list$tau_p)^2)/(sd(out$sims.list$tau_p)^2)
-    tau_sdT <- sd(out$sims.list$tau_p) #mean(out$sims.list$tau_p)/(sd(out$sims.list$tau_p)^2)
+    tau_MT <- out$sims.list$tau_p
     
     ## Quick plot to compare encounter probabilities of different snake categories
     cV1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
@@ -397,15 +369,6 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     cT2 <- rgb(239,146,173,max = 255, alpha = 80, names = "lt.pink2")
     cT3 <- rgb(244,106,146,max = 255, alpha = 80, names = "md.pink")
     cT4 <- rgb(241,61,113,max = 255, alpha = 80, names = "dk.pink")
-    
-    # hist(p0MV[[1]], col = cV1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
-    # hist(p0MV[[2]], col = cV2, add = TRUE, breaks = 25)
-    # hist(p0MV[[3]], col = cV3, add = TRUE, breaks = 25)
-    # hist(p0MV[[4]], col = cV3, add = TRUE, breaks = 25)
-    # hist(p0MT[[1]], col = cT1, add = TRUE, breaks = 25)
-    # hist(p0MT[[2]], col = cT2, add = TRUE, breaks = 25)
-    # hist(p0MT[[3]], col = cT3, add = TRUE, breaks = 25)
-    # hist(p0MT[[4]], col = cT3, add = TRUE, breaks = 25)
     
     hist(p0MV[[1]], col = cV1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
     hist(p0MV[[2]], col = cV2, add = TRUE, breaks = 25)
@@ -426,16 +389,18 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     p0T <- vector()
     
     for(z in 1:nsims){  
-      sigmaV <- sigmaMV[sample(0:length(sigmaMV), 1)]   ## pull value from posterior
-      sigmaT <- sigmaMT[sample(0:length(sigmaMT), 1)]   ## pull value from posterior
+      sigmaV <- sigmaMV[sample(1:length(sigmaMV), 1)]   ## pull value from posterior
+      sigmaT <- sigmaMT[sample(1:length(sigmaMT), 1)]   ## pull value from posterior
       alpha1V <- 1/(2*sigmaV*sigmaV)
       alpha1T <- 1/(2*sigmaT*sigmaT)
-      tau_pV <- rnorm(1,tau_muV,tau_sdV)
-      tau_pT <- rnorm(1,tau_muT,tau_sdT)
+      tau_pV <- tau_MV[sample(1:length(tau_MV), 1)]
+      etaV <- rnorm(1, 0, sqrt(1/tau_pV))
+      tau_pT <- tau_MT[sample(1:length(tau_MT), 1)]
+      etaT <- rnorm(1, 0, sqrt(1/tau_pT))
       
       for(l in 1:length(Ngroup)){
-        p0V[l] <- alpha0V[[l]][sample(0:length(alpha0V[[l]]),1)] + tau_pV
-        p0T[l] <- alpha0T[[l]][sample(0:length(alpha0T[[l]]),1)] + tau_pT
+        p0V[l] <- alpha0V[[l]][sample(0:length(alpha0V[[l]]),1)] + eta_pV
+        p0T[l] <- alpha0T[[l]][sample(0:length(alpha0T[[l]]),1)] + eta_pT
         print(p0V)
         print(p0T)
         # p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
