@@ -19,14 +19,14 @@ source("Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned u
 source("Visual surveys/DataPrep/OverlayCPGrid.R")
 
 projects <- c("Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VIS2.R",
-        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL1.R")#,
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL2.R",
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPREBT2.R",
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTBT2.R",
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB1.R",
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB2.R",
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB3.R",
-        # "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISVISTRAP.R")
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL1.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISHL2.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPREBT2.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTBT2.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB1.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB2.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISPOSTKB3.R",
+        "Visual surveys/Scripts/SCRScriptCPpstarSpaceCatSizeCat_VISVISTRAP.R")
 
 nproj <- length(projects)
 
@@ -77,8 +77,8 @@ ngroupall <- ngroupall
 vsstall[is.na(vsstall)] <- 0
 snszall[is.na(snszall)] <- 0
 ## Restrict to max number of individuals for subsetting testing
-yall <- yall[1:max(nindall),,]
-snszall <- snszall[1:max(nindall),]
+# yall <- yall[1:max(nindall),,]
+# snszall <- snszall[1:max(nindall),]
 
 
 #### FORMAT DATA FOR SEMI-COMPLETE LIKELIHOOD SCR ANALYSIS ####
@@ -236,48 +236,47 @@ foreach(i = 1:nc) %dopar% { # parallel version of for loop
   
 }
 
-stopCluster(cl) # important to do this to stop running things in parallel
+stopCluster(cl)
 
 t.end <- Sys.time() # end clock
-(runTime <- t.end - t.start) # how long did whole thing take in parallel
+(runTime <- t.end - t.start)
 
 
-
-## Diagnostics
 
 #### LOAD AND COMBINE RESULTS ####
 
 # for each chain, load the resulting MCMC output
 for (i in 1:nc) {
-  readRDS(here("Models", paste("out-", i,".RDS", sep = "")))
+  outALL <- readRDS(paste("Visual surveys/Results/outALL-",i,".RDS", sep = ""))
 }
 
 # combine them and make an mcmc object
-OUT <- list(`outALL-1`, `outALL-2`, `outALL-3`) %>% as.mcmc.list()
-# now you can treat it just like you ran the chains in succession
-library(coda)
-OUT <- out
-rhat <- gelman.diag(OUT, multivariate = FALSE) 
+# OUT <- list(outALL$chain1, outALL$chain2, outALL$chain3) %>% as.mcmc.list()
+
+post <- as.matrix(outALL)
 
 
-# post <- as.matrix(out)
-# 
-# #for median and CI
-# post_sum <- data.frame(
-#   mean = apply(post, 2, function(x) mean(x)),
-#   med = apply(post, 2, function(x) quantile(x, probs = 0.5, na.rm = T, names = F)),
-#   lower = apply(post, 2, function(x) quantile(x, probs = 0.025, na.rm = T, names = F)),
-#   upper = apply(post, 2, function(x) quantile(x, probs = 0.975, na.rm = T, names = F)))
-# post_sum$variable <- row.names(post_sum)
-# 
-# all_pars <- colnames(post)
-# 
-# #traceplot
-# coda::traceplot(out[,all_pars[which(grepl('alpha0', all_pars))]])
-# coda::traceplot(out[,all_pars[which(grepl('tau', all_pars))]])
-# coda::traceplot(out[,all_pars[which(grepl('N', all_pars))]])
-# coda::traceplot(out)
-# 
-# #rhats
-# gelman.diag(out[,c('N[1]', 'N[2]')], multivariate=F, autoburnin=F)
-# gelman.diag(out, multivariate=F, autoburnin=F)
+#### DIAGNOSTICS ####
+
+# rhats
+# rhat <- gelman.diag(OUT, multivariate = FALSE, autoburnin = FALSE) 
+gelman.diag(outALL[,c('N[1]', 'N[2]')], multivariate=F, autoburnin=F)
+gelman.diag(outALL, multivariate=F, autoburnin=F)
+
+#for median and CI
+post_sum <- data.frame(
+  mean = apply(post, 2, function(x) mean(x)),
+  med = apply(post, 2, function(x) quantile(x, probs = 0.5, na.rm = T, names = F)),
+  lower = apply(post, 2, function(x) quantile(x, probs = 0.025, na.rm = T, names = F)),
+  upper = apply(post, 2, function(x) quantile(x, probs = 0.975, na.rm = T, names = F)))
+post_sum$variable <- row.names(post_sum)
+
+all_pars <- colnames(post)
+
+# traceplots
+coda::traceplot(outALL[,all_pars[which(grepl('alpha0', all_pars))]])
+coda::traceplot(outALL[,all_pars[which(grepl('tau', all_pars))]])
+coda::traceplot(outALL[,all_pars[which(grepl('N', all_pars))]])
+coda::traceplot(outALL)
+
+
