@@ -1,5 +1,7 @@
 #### FUNCTIONS TO SIMULATE DATA ####
 
+library(coda);library(runjags)
+
 #### FUNCTION TO SPECIFY STUDY AREA TYPE.----
 
 areatype <- function(totlocs, stype, cellsize){
@@ -13,10 +15,10 @@ areatype <- function(totlocs, stype, cellsize){
     Yu <- max(totlocs[,2]) + delta
   }
   
-  if(stype == c("open")){
+  if(stype == c("openway")){
     ## Define state-space of point process. (i.e., where animals live).
-    ## Option 2. Delta is the buffer of space around the open study area
-    delta <- 29
+    ## Option 1. Slight buffer in area between transects and fence
+    delta <- 11.874929
     Xl <- min(totlocs[,1]) - delta
     Xu <- max(totlocs[,1]) + delta
     Yl <- min(totlocs[,2]) - delta
@@ -49,81 +51,97 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
     
     #### VISUAL SURVEY REAL DATA RESULTS ####
     load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")#RE.Rdata")  # unified analysis of all datasets
-    ## Only showing NWFN so far
-    # mdlsVIS <- c("Visual surveys/Results/NWFNVIS2_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
-    #              "Visual surveys/Results/NWFNVISHL1_SCRpstarvisCATsizeCATdpois10GRID.Rdata",
-    #              "Visual surveys/Results/NWFNVISHL2_SCRpstarvisCATsizeCATdpois.Rdata",
-    #              "Visual surveys/Results/NWFNVISPREBT2_SCRpstarvisCATsizeCATdpoisLONGER.Rdata",
-    #              "Visual surveys/Results/NWFNVISPOSTBT2_SCRpstarvisCATsizeCATdpoisLONGER.Rdata",
-    #              "Visual surveys/Results/NWFNVISPOSTKB1_SCRpstarvisCATsizeCATdpois2sizesLONGER.Rdata",
-    #              "Visual surveys/Results/NWFNVISPOSTKB2_SCRpstarvisCATsizeCATdpois.Rdata",
-    #              "Visual surveys/Results/NWFNVISPOSTKB3_SCRpstarvisCATsizeCATdpois3sizesLONGER.Rdata",
-    #              "Visual surveys/Results/NWFNVISTRAPVIS_SCRpstarvisCATsizeCATdpoisLONGER.Rdata")
     
-    ## Parameters (p0, sigma) that influence detection of snakes will be pulled from real data posterior samples
+    ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
+    mcmc.object <- as.mcmc.list(out$samples[[1]])
+    out1 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[2]])
+    out2 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[3]])
+    out3 <- window(mcmc.object, start=1499)
+    outALLV <- combine.mcmc(list(out1,out2,out3), thin = 1)
+    niter(outALLV)
+    postV <- as.matrix(outALLV)
     
-    ## Initialize empty vectors for creating posterior samples
-    # temp <- matrix()
-    # temp2 <- matrix()
-    # sigma <- matrix()
-    # p01 <- matrix()
-    # p02 <- matrix()
-    # p03 <- matrix()
-    # p04 <- matrix()
+    #for median and CI
+    post_sumV <- data.frame(
+      mean = apply(postV, 2, function(x) mean(x)),
+      med = apply(postV, 2, function(x) quantile(x, probs = 0.5, na.rm = T, names = F)),
+      lower = apply(postV, 2, function(x) quantile(x, probs = 0.025, na.rm = T, names = F)),
+      upper = apply(postV, 2, function(x) quantile(x, probs = 0.975, na.rm = T, names = F)),
+      sd = apply(postV, 2, function(x) sd(x)))
+    post_sumV$variable <- row.names(post_sumV)
     
-    ## Currently this is contingent on the order of the models above staying the same
-    # for(m in 1:length(mdlsVIS)){
-    #   load(mdlsVIS[m])
-    #   temp <- out$sims.list$sigma
-    #   sigma <- append(sigma, temp)
-    #   temp2 <- out$sims.list$p0
-    #   ## Some models couldn't estimate all 4 size categories so removed those sizes - need to add posteriors to vectors depending on what was estimated
-    #   if(dim(temp2)[2] == 4){
-    #     p01 <- append(p01,temp2[,1])
-    #     p02 <- append(p02,temp2[,2])
-    #     p03 <- append(p03,temp2[,3])
-    #     p04 <- append(p04,temp2[,4])
-    #   }
-    #   if(dim(temp2)[2] == 3 & m == 8){
-    #     p02 <- append(p02,temp2[,1])
-    #     p03 <- append(p03,temp2[,2])
-    #     p04 <- append(p04,temp2[,3])
-    #   }
-    #   if(dim(temp2)[2] == 2 & m == 6){
-    #     p01 <- append(p01,temp2[,1])
-    #     p02 <- append(p02,temp2[,2])
-    #   }
-    # }
+    all_parsV <- colnames(postV)
     
-    # sigmaMV <- sigma[-1]  # remove initial NA from empty vector
-    # p0MV <- list(sample(p01[-1]),sample(p02[-1]),sample(p03[-1]),sample(p04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
-    
-    sigmaMV <- out$sims.list$sigma
-    p0MV <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
+    # traceplots
+    # coda::traceplot(outALLV[,all_parsV[which(grepl('sigma', all_parsV))]])
+    # coda::traceplot(outALLV[,all_parsV[which(grepl('N', all_parsV))]])
+    # coda::traceplot(outALLV)
     
     ## Quick plot to compare encounter probabilities of different snake categories
-    c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
-    c2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
-    c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
-    c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
-    
-    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
+    # c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
+    # c2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
+    # c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
+    # c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
+    # 
+    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
     # hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
     # hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
-    # hist(p0MV[[4]], col = c3, add = TRUE, breaks = 25)
+    # hist(p0MV[[4]], col = c4, add = TRUE, breaks = 25)
     
-    hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
-    hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
-    hist(p0MV[[4]], col = c4, add = TRUE, breaks = 25)
-    
-    # par(mfrow = c(4, 1))
-    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    # hist(p0MV[[2]], col = c2, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    # hist(p0MV[[3]], col = c3, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
-    # hist(p0MV[[4]], col = c4, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
+    #### GET POSTERIOR FOR P0 FOR EACH SNAKE SIZE FOR EACH MONITORING METHOD.----
+    p0MV <- list(sample(postV[,"p0[1]"]),sample(postV[,"p0[2]"]),sample(postV[,"p0[3]"]),sample(postV[,"p0[4]"])) # randomize so encounter probabilities aren't from the same model iteration
     
     
+    
+    #### TRAPPING SURVEY REAL DATA RESULTS.----
+    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")
+    
+    ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
+    mcmc.object <- as.mcmc.list(out$samples[[1]])
+    out1 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[2]])
+    out2 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[3]])
+    out3 <- window(mcmc.object, start=1499)
+    outALLT <- combine.mcmc(list(out1,out2,out3), thin = 1)
+    niter(outALLT)
+    postT <- as.matrix(outALLT)
+    
+    #for median and CI
+    post_sumT <- data.frame(
+      mean = apply(postT, 2, function(x) mean(x)),
+      med = apply(postT, 2, function(x) quantile(x, probs = 0.5, na.rm = T, names = F)),
+      lower = apply(postT, 2, function(x) quantile(x, probs = 0.025, na.rm = T, names = F)),
+      upper = apply(postT, 2, function(x) quantile(x, probs = 0.975, na.rm = T, names = F)),
+      sd = apply(postT, 2, function(x) sd(x)))
+    post_sumT$variable <- row.names(post_sumT)
+    
+    all_parsT <- colnames(postT)
+    
+    # # traceplots
+    # coda::traceplot(outALLT[,all_parsT[which(grepl('sigma', all_parsT))]])
+    # coda::traceplot(outALLT[,all_parsT[which(grepl('N', all_parsT))]])
+    # coda::traceplot(outALLT)
+    
+    
+    #### CREATE JOINT DISTRIBUTION FOR SIGMA.----
+    d1 <- rnorm(1000000, subset(post_sumV,variable=="sigma")$mean, subset(post_sumV,variable=="sigma")$sd)
+    d2 <- rnorm(1000000, subset(post_sumT,variable=="sigma")$mean, subset(post_sumT,variable=="sigma")$sd)
+    alld <- cbind(d1,d2)
+    sigma_mu <- mean(alld)
+    sigma_sd <- sd(alld)
+    
+    # dfV <- as.data.frame((postV[,c("sigma")]));colnames(dfV) <- c("sigma")
+    # dfT <- as.data.frame(postT[,c("sigma")]);colnames(dfT) <- c("sigma")
+    # hist(rbind(dfV,dfT)$sigma)
+    # abline(v = c(mean(alld)), col="red", lwd=2)
+    # abline(v = c(mean(alld)-sd(alld), mean(alld)+sd(alld)), col="red", lwd=2, lty=2)
+    
+    # combosigma <- hist(rnorm(1000,44.64,7.35))
+    
+   
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
     
     ## VISUAL SURVEYS - Generate observations
@@ -158,77 +176,100 @@ createData <- function(type, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
   
   if(type == "TRAP"){
     
-    #### TRAPPING REAL DATA RESULTS ####
-    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")#RE.Rdata")  # unified analysis of all datasets
-    ## Only showing NWFN so far
-    # mdlsTRAP <- c("Trapping/Results/NWFNTRAP1_SCRpstartrapCATsizeCAT.Rdata",
-    #              "Trapping/Results/NWFNTRAP2LINVIS_SCRpstartrapCATsizeCAT.Rdata",
-    #              "Trapping/Results/NWFNTRAP3_SCRpstartrapCATsizeCAT.Rdata",
-    #              "Trapping/Results/NWFNTRAP4LCM_SCRpstartrapCATsizeCAT.Rdata",
-    #              "Trapping/Results/NWFNVISTRAPTRAP_SCRpstartrapCATsizeCAT3500.Rdata",
-    #              "Trapping/Results/NWFNPOSTBT2TRAP_SCRpstartrapCATsizeCAT.Rdata",
-    #              "Trapping/Results/NWFNPOSTKBTRAP1_SCRpstartrapCATsizeCAT.Rdata",
-    #              "Trapping/Results/NWFNPOSTKBTRAP2_SCRpstartrapCATsizeCAT.Rdata",  ## missing size 2 (no animals caught)
-    #              "Trapping/Results/NWFNPREBT1TRAP_SCRpstartrapCATsizeCAT.Rdata")
-    # 
-    ## Parameters (p0, sigma) that influence detection of snakes will be pulled from real data posterior samples
+    #### TRAPPING SURVEY REAL DATA RESULTS.----
+    load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")
     
-    ## Initialize empty vectors for creating posterior samples
-    # temp <- matrix()
-    # temp2 <- matrix()
-    # sigma <- matrix()
-    # p01 <- matrix()
-    # p02 <- matrix()
-    # p03 <- matrix()
-    # p04 <- matrix()
-    # 
-    # ## Currently this is contingent on the order of the models above staying the same
-    # for(m in 1:length(mdlsTRAP)){
-    #   load(mdlsTRAP[m])
-    #   temp <- out$sims.list$sigma
-    #   sigma <- append(sigma, temp)
-    #   temp2 <- out$sims.list$p0
-    #   ## Some models could estimate all 4 size categories so removed those sizes - need to add posteriors to vectors depending on what was estimated
-    #   if(dim(temp2)[2] == 4){
-    #     p01 <- append(p01,temp2[,1])
-    #     p02 <- append(p02,temp2[,2])
-    #     p03 <- append(p03,temp2[,3])
-    #     p04 <- append(p04,temp2[,4])
-    #   }
-    #   if(dim(temp2)[2] == 3 & m == 8){
-    #     p01 <- append(p01,temp2[,1])
-    #     p03 <- append(p03,temp2[,2])
-    #     p04 <- append(p04,temp2[,3])
-    #   }
-    # }
-    # 
-    # sigmaMT <- sigma[-1]  # remove initial NA from empty vector
-    # p0MT <- list(sample(p01[-1]),sample(p02[-1]),sample(p03[-1]),sample(p04[-1]))  # remove initial NA from empty vector and randomize so encounter probabilities aren't from the same model iteration
+    ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
+    mcmc.object <- as.mcmc.list(out$samples[[1]])
+    out1 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[2]])
+    out2 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[3]])
+    out3 <- window(mcmc.object, start=1499)
+    outALLT <- combine.mcmc(list(out1,out2,out3), thin = 1)
+    niter(outALLT)
+    postT <- as.matrix(outALLT)
     
-    sigmaMT <- out$sims.list$sigma
-    p0MT <- list(sample(out$sims.list$p0[,1]),sample(out$sims.list$p0[,2]),sample(out$sims.list$p0[,3]),sample(out$sims.list$p0[,4])) # randomize so encounter probabilities aren't from the same model iteration
+    #for median and CI
+    post_sumT <- data.frame(
+      mean = apply(postT, 2, function(x) mean(x)),
+      med = apply(postT, 2, function(x) quantile(x, probs = 0.5, na.rm = T, names = F)),
+      lower = apply(postT, 2, function(x) quantile(x, probs = 0.025, na.rm = T, names = F)),
+      upper = apply(postT, 2, function(x) quantile(x, probs = 0.975, na.rm = T, names = F)),
+      sd = apply(postT, 2, function(x) sd(x)))
+    post_sumT$variable <- row.names(post_sumT)
+    
+    all_parsT <- colnames(postT)
+    
+    # # traceplots
+    # coda::traceplot(outALLT[,all_parsT[which(grepl('sigma', all_parsT))]])
+    # coda::traceplot(outALLT[,all_parsT[which(grepl('N', all_parsT))]])
+    # coda::traceplot(outALLT)
+    
+    
+    
+    #### GET POSTERIOR FOR P0 FOR EACH SNAKE SIZE FOR EACH MONITORING METHOD.----
+    p0MV <- list(sample(postV[,"p0[1]"]),sample(postV[,"p0[2]"]),sample(postV[,"p0[3]"]),sample(postV[,"p0[4]"])) # randomize so encounter probabilities aren't from the same model iteration
+    
+    
+    #### VISUAL SURVEY REAL DATA RESULTS ####
+    load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")#RE.Rdata")  # unified analysis of all datasets
+    
+    ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
+    mcmc.object <- as.mcmc.list(out$samples[[1]])
+    out1 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[2]])
+    out2 <- window(mcmc.object, start=1499)
+    mcmc.object <- as.mcmc.list(out$samples[[3]])
+    out3 <- window(mcmc.object, start=1499)
+    outALLV <- combine.mcmc(list(out1,out2,out3), thin = 1)
+    niter(outALLV)
+    postV <- as.matrix(outALLV)
+    
+    #for median and CI
+    post_sumV <- data.frame(
+      mean = apply(postV, 2, function(x) mean(x)),
+      med = apply(postV, 2, function(x) quantile(x, probs = 0.5, na.rm = T, names = F)),
+      lower = apply(postV, 2, function(x) quantile(x, probs = 0.025, na.rm = T, names = F)),
+      upper = apply(postV, 2, function(x) quantile(x, probs = 0.975, na.rm = T, names = F)),
+      sd = apply(postV, 2, function(x) sd(x)))
+    post_sumV$variable <- row.names(post_sumV)
+    
+    all_parsV <- colnames(postV)
+    
+    # traceplots
+    # coda::traceplot(outALLV[,all_parsV[which(grepl('sigma', all_parsV))]])
+    # coda::traceplot(outALLV[,all_parsV[which(grepl('N', all_parsV))]])
+    # coda::traceplot(outALLV)
     
     ## Quick plot to compare encounter probabilities of different snake categories
-    c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
-    c2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
-    c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
-    c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
+    # c1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
+    # c2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
+    # c3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
+    # c4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
+    # 
+    # hist(p0MV[[1]], col = c1, breaks = 25, xlim = c(0.001,0.0055), ylim = c(0,5000))
+    # hist(p0MV[[2]], col = c2, add = TRUE, breaks = 25)
+    # hist(p0MV[[3]], col = c3, add = TRUE, breaks = 25)
+    # hist(p0MV[[4]], col = c4, add = TRUE, breaks = 25)
     
-    # hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0,0.021), ylim = c(0,30000))
-    # hist(p0MT[[2]], col = c2, add = TRUE, breaks = 25)
-    # hist(p0MT[[3]], col = c3, add = TRUE, breaks = 25)
-    # hist(p0MT[[4]], col = c3, add = TRUE, breaks = 25)
     
-    hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    hist(p0MT[[2]], col = c2, add = TRUE, breaks = 25)
-    hist(p0MT[[3]], col = c3, add = TRUE, breaks = 25)
-    hist(p0MT[[4]], col = c4, add = TRUE, breaks = 25)
     
-    # par(mfrow = c(4, 1))
-    # hist(p0MT[[1]], col = c1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    # hist(p0MT[[2]], col = c2, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    # hist(p0MT[[3]], col = c3, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-    # hist(p0MT[[4]], col = c4, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
+    #### CREATE JOINT DISTRIBUTION FOR SIGMA.----
+    d1 <- rnorm(1000000, subset(post_sumV,variable=="sigma")$mean, subset(post_sumV,variable=="sigma")$sd)
+    d2 <- rnorm(1000000, subset(post_sumT,variable=="sigma")$mean, subset(post_sumT,variable=="sigma")$sd)
+    alld <- cbind(d1,d2)
+    sigma_mu <- mean(alld)
+    sigma_sd <- sd(alld)
+    
+    # dfV <- as.data.frame((postV[,c("sigma")]));colnames(dfV) <- c("sigma")
+    # dfT <- as.data.frame(postT[,c("sigma")]);colnames(dfT) <- c("sigma")
+    # hist(rbind(dfV,dfT)$sigma)
+    # abline(v = c(mean(alld)), col="red", lwd=2)
+    # abline(v = c(mean(alld)-sd(alld), mean(alld)+sd(alld)), col="red", lwd=2, lty=2)
+    
+    # combosigma <- hist(rnorm(1000,44.64,7.35))
+    
     
     
     #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
