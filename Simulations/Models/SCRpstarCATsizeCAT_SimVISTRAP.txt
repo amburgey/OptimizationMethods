@@ -24,11 +24,14 @@
     
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J){  # J = number of traps (currently equal number per method)
-          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+        for(j in 1:J1){  # J1 = number of visual surveys
+          #Probability of an individual of size i being missed at grid cell g and survey location j multiplied by total effort (K) at that location
           miss_allKV[l,g,j] <- pow((1 - p0V[l]*exp(-alpha1*GdistV[g,j]*GdistV[g,j])),K)  # prob missed by visual searches
+        } #J1
+        for(j in 1:J2){  # J2 = number of traps
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
           miss_allKT[l,g,j] <- pow((1 - p0T[l]*exp(-alpha1*GdistT[g,j]*GdistT[g,j])),K)  # prob missed by trapping
-        } #J
+        } #J2
         pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,],miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
         pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
@@ -47,7 +50,7 @@
     
     for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
       # Model for capture histories of observed individuals from visual surveys:
-      for(j in 1:J){  ## J = number of visual surveys
+      for(j in 1:J1){  ## J = number of visual surveys
         yV[i,j] ~ dpois(pV[i,j]*K)
         pV[i,j] <- p0V[size[indV[i]]]*exp(-alpha1*GdistV[s[indV[i]],j]*GdistV[s[indV[i]],j])
       }#JV
@@ -55,7 +58,7 @@
     
     for(i in 1:nT){  ## nV = number of individuals observed via visual surveys
       # Model for capture histories of individuals from traps:
-      for(j in 1:J){  ## J = number of traps
+      for(j in 1:J2){  ## J = number of traps
         yT[i,j] ~ dpois(pT[i,j]*K)
         pT[i,j] <- p0T[size[indT[i]]]*exp(-alpha1*GdistT[s[indT[i]],j]*GdistT[s[indT[i]],j])
       }#JT
