@@ -7,28 +7,28 @@ rm(list=ls())
 ## Required libraries
 library(jagsUI);library(secr)
 ## Functions for simulating data
-source("Simulations/Scripts/FunctionsForSimulationBACKUPPLAN.R") #### CHANGE ME
+source("Simulations/Scripts/FunctionsForSimulation_ClosedAndOneWayBarrier.R")
 
 
 
 #### SCENARIO DETAILS (USER SPECIFIED).----
 
-## Question 1. Is your study area (open or closed [fenced])?
-# stype <- c("open")
-stype <- c("closed")
+## Question 1. Is your study area (permeable [one-way movement out of area] or closed [fenced])?
+stype <- c("oneway")
+# stype <- c("closed")
 
 ## Question 2. What type of sampling will you do?
-type <- c("VIS")
-nmeth <- 1
+# type <- c("VIS")
+# nmeth <- 1
 # type <- c("TRAP")
 # nmeth <- 1
-# type <- c("VISTRAP")
-# nmeth <- 2
+type <- c("VISTRAP")
+nmeth <- 2
 
 ## Question 3. How many transects will you survey?
 ## Full of one method [351 transects]
-stde <- c("full")
-samp <- c(1:351)
+# stde <- c("full")
+# samp <- c(1:351)
 ## Half of one method [14 transects, every other]
 # stde <- c("half")
 # samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
@@ -36,9 +36,9 @@ samp <- c(1:351)
 # stde <- c("third")
 # samp <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
 ## Half of two methods (e.g., VISTRAP)
-# stde <- c("halfhalf")
-# samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
-# samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
+stde <- c("halfhalf")
+samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
 ## Third of two methods (e.g., VISTRAP)
 # stde <- c("thirdthird")
 # samp1 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
@@ -74,8 +74,8 @@ Ngroup <- as.vector(table(Nsnsz))
 ## Study area based on the Closed Population (CP; 5-ha) with transects spaced every 8-m from each other and points on the transects spaced every 16-m
 ## Create location points and get coordinates
 totlocs <- secr::make.grid(nx = 13, ny = 27, spacex = 16, spacey = 8)
-## Get dimensions of the study area depending on if it's either a closed or open area based on "stype"
-sdeets <- areatype(totlocs = totlocs, stype = stype)
+## Get dimensions of the study area based on rough dimensions of CP
+sdeets <- areatype(totlocs = totlocs)
 
 
 #### SURVEY INFORMATION.----
@@ -83,6 +83,7 @@ sdeets <- areatype(totlocs = totlocs, stype = stype)
 ## Create matrix of sampling location options
 X <- as.matrix(totlocs)
 ## If applicable (i.e., if surveying less than the full design), subset locations to only those monitored
+## Depending on number of monitoring methods, do the following
 if(type == c("VIS") | type == c("TRAP")){
   X <- X[samp,]
   ## Number of sampling points
@@ -139,22 +140,22 @@ set.seed(062420)
 s <- sample(1:Gpts,N,replace=TRUE)
 
 
-#### CREATE OVERALL POSTERIOR FROM WHICH TO SAMPLE AND SIMULATE OBSERVATIONS.----
+#### CREATE COMBINED SIGMA AND SIMULATE OBSERVATIONS.----
 
-nsims <- 1000
+nsims <- 100
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)
-if(type != c("VISTRAP")){
-  createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat)
+if(type != c("VISTRAP")){  # get warnings due to deprecated function; ignore
+  createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat)
 }
-if(type == c("VISTRAP")){
-  createData(type=type,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat,VISloc=newX1,TRAPloc=newX2)
+if(type == c("VISTRAP")){  # get warnings due to deprecated function; ignore
+  createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat,VISloc=newX1,TRAPloc=newX2)
 }
 
 
 #### READ IN DATA AND ANALYZE.----
 
-for(i in 1:20){
+for(i in 1:nsims){
   
   if(type != c("VISTRAP")){
     ysnsz <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
@@ -175,11 +176,11 @@ for(i in 1:20){
     nindT <- nrow(yT)  ## number of individuals captured in traps
     nind <- length(unique(c(yVsnsz[,ncol(yVsnsz)],yTsnsz[,ncol(yTsnsz)])))  ## number of individuals detected overall
     ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
-    snszV <- yVsnsz[,((ncol(yVsnsz)-1):ncol(yVsnsz))]
-    snszT <- yTsnsz[,((ncol(yTsnsz)-1):ncol(yTsnsz))]
+    snszV <- yVsnsz[,((ncol(yVsnsz)-1):ncol(yVsnsz))];colnames(snszV) <- c("Size","ID")
+    snszT <- yTsnsz[,((ncol(yTsnsz)-1):ncol(yTsnsz))];colnames(snszT) <- c("Size","ID")
     ## All snakes ever observed and their sizes
     snsz <- merge(snszV, snszT, all = TRUE)
-    snsz <- snsz[order(snsz$V119),][,1]
+    snsz <- snsz[order(snsz$ID),][,1]
     L <- length(unique(snsz))
     ngroup <- as.vector(table(snsz))
   }
@@ -367,11 +368,14 @@ for(i in 1:20){
     
     for(l in 1:L){  # size category
       for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J){  # J = number of traps (currently equal number per method)
-          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+        for(j in 1:J1){  # J1 = number of visual surveys
+          #Probability of an individual of size i being missed at grid cell g and survey location j multiplied by total effort (K) at that location
           miss_allKV[l,g,j] <- pow((1 - p0V[l]*exp(-alpha1*GdistV[g,j]*GdistV[g,j])),K)  # prob missed by visual searches
+        } #J1
+        for(j in 1:J2){  # J2 = number of traps
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
           miss_allKT[l,g,j] <- pow((1 - p0T[l]*exp(-alpha1*GdistT[g,j]*GdistT[g,j])),K)  # prob missed by trapping
-        } #J
+        } #J2
         pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,],miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
         pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
@@ -390,7 +394,7 @@ for(i in 1:20){
     
     for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
       # Model for capture histories of observed individuals from visual surveys:
-      for(j in 1:J){  ## J = number of visual surveys
+      for(j in 1:J1){  ## J = number of visual surveys
         yV[i,j] ~ dpois(pV[i,j]*K)
         pV[i,j] <- p0V[size[indV[i]]]*exp(-alpha1*GdistV[s[indV[i]],j]*GdistV[s[indV[i]],j])
       }#JV
@@ -398,7 +402,7 @@ for(i in 1:20){
     
     for(i in 1:nT){  ## nV = number of individuals observed via visual surveys
       # Model for capture histories of individuals from traps:
-      for(j in 1:J){  ## J = number of traps
+      for(j in 1:J2){  ## J = number of traps
         yT[i,j] ~ dpois(pT[i,j]*K)
         pT[i,j] <- p0T[size[indT[i]]]*exp(-alpha1*GdistT[s[indT[i]],j]*GdistT[s[indT[i]],j])
       }#JT
@@ -422,7 +426,7 @@ for(i in 1:20){
   
   ## When two methods used
   # Data and constants
-  # jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J=J1, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+  # jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J1=J1, J2=J2, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
   
   ## When only a single method used
   inits <- function(){
