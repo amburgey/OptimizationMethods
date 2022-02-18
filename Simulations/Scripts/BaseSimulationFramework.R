@@ -18,28 +18,28 @@ stype <- c("oneway")
 # stype <- c("closed")
 
 ## Question 2. What type of sampling will you do?
-# type <- c("VIS")
-# nmeth <- 1
+type <- c("VIS")
+nmeth <- 1
 # type <- c("TRAP")
 # nmeth <- 1
-type <- c("VISTRAP")
-nmeth <- 2
+# type <- c("VISTRAP")
+# nmeth <- 2
 
 ## Question 3. How many transects will you survey?
-## Full of one method [351 transects]
-# stde <- c("full")
-# samp <- c(1:351)
-## Half of one method [14 transects, every other]
+## Full of ONE method [351 transects]
+stde <- c("full")
+samp <- c(1:351)
+## Half of ONE method [14 transects, every other]
 # stde <- c("half")
 # samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
-## Third of one method [9 transects, every third]
+## Third of ONE method [9 transects, every third]
 # stde <- c("third")
 # samp <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
-## Half of two methods (e.g., VISTRAP)
-stde <- c("halfhalf")
-samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
-samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
-## Third of two methods (e.g., VISTRAP)
+## Half of TWO methods (e.g., VISTRAP)
+# stde <- c("halfhalf")
+# samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+# samp2 <- c(14:26,40:52,66:78,92:104,118:130,144:156,170:182,196:208,222:234,248:260,274:286,300:312,326:338)
+## Third of TWO methods (e.g., VISTRAP)
 # stde <- c("thirdthird")
 # samp1 <- c(14:26,53:65,92:104,131:143,170:182,209:221,248:260,287:299,326:338)
 # samp2 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
@@ -133,24 +133,19 @@ if(type == c("VISTRAP")){
 }
 
 
-#### INDIVIDUAL-SPECIFIC INFO.----
-## Set seed so we get the same values each time for true information about the population
-set.seed(062420)
-## True snake activity centers (AC)
-s <- sample(1:Gpts,N,replace=TRUE)
-
-
 #### CREATE COMBINED SIGMA AND SIMULATE OBSERVATIONS.----
 
-nsims <- 100
+nsims <- 1 #100
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)
-if(type != c("VISTRAP")){  # get warnings due to deprecated function; ignore
-  createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat)
-}
-if(type == c("VISTRAP")){  # get warnings due to deprecated function; ignore
-  createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,stat=stat,VISloc=newX1,TRAPloc=newX2)
-}
+createData()
+
+# if(type != c("VISTRAP")){  # get warnings due to deprecated function; ignore
+#   createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,Gpts=Gpts,N=N,J=J,K=K)
+# }
+# if(type == c("VISTRAP")){  # get warnings due to deprecated function; ignore
+#   createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,newX1=newX1,newX2=newX2,Gpts=Gpts,N=N,J1=J1,J2=J2,K=K)
+# }
 
 
 #### READ IN DATA AND ANALYZE.----
@@ -158,7 +153,7 @@ if(type == c("VISTRAP")){  # get warnings due to deprecated function; ignore
 for(i in 1:nsims){
   
   if(type != c("VISTRAP")){
-    ysnsz <- read.csv(paste("Simulations/simDat/",type,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
+    ysnsz <- read.csv(paste("Simulations/simDat/",type,stype,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
     y <- as.matrix(ysnsz[,-ncol(ysnsz)]) ## observations
     nind <- nrow(y)  ## number of observed individuals
     ## Categories by size (1 = <850, 2 = 850-<950, 3 = 950-<1150, 1150 and >)
@@ -168,8 +163,8 @@ for(i in 1:nsims){
   }
   
   if(type == c("VISTRAP")){
-    yVsnsz <- read.csv(paste("Simulations/simDat/",type,"VIS",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove numeric column
-    yTsnsz <- read.csv(paste("Simulations/simDat/",type,"TRAP",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove numeric column
+    yVsnsz <- read.csv(paste("Simulations/simDat/",type,stype,"VIS",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove numeric column
+    yTsnsz <- read.csv(paste("Simulations/simDat/",type,stype,"TRAP",N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove numeric column
     yV <- as.matrix(yVsnsz[,-((ncol(yVsnsz)-1):ncol(yVsnsz))]) ## observations
     yT <- as.matrix(yTsnsz[,-((ncol(yTsnsz)-1):ncol(yTsnsz))]) ## observations
     nindV <- nrow(yV)  ## number of individuals visually detected
@@ -418,31 +413,29 @@ for(i in 1:nsims){
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
+  nc <- 5; nAdapt=1000; nb <- 10; ni <- 5000+nb; nt <- 1 
+  # nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
   
-  ## When only a single method used
-  # Data and constants
-  jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
-  
-  ## When two methods used
-  # Data and constants
-  # jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J1=J1, J2=J2, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
-  
-  ## When only a single method used
-  inits <- function(){
-    list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
+  if(nmeth == 1){
+    ## When only a single method used
+    # Data and constants
+    jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+    inits <- function(){
+      list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
+    }
+    parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
   }
   
-  ## When two methods used
-  # inits <- function(){
-  #   list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
-  # }
-  
-  ## When only a single method used
-  parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
-  
-  ## When two methods used
-  # parameters <- c("p0V","p0T","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
+  if(nmeth == 2){
+    ## When two methods used
+    # Data and constants
+    jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J1=J1, J2=J2, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+    ## When two methods used
+    inits <- function(){
+      list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
+    }
+    parameters <- c("p0V","p0T","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
+  }
   
   out <- jags(paste("Simulations/Models/SCRpstarCATsizeCAT_Sim",type,".txt",sep=""), data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
   

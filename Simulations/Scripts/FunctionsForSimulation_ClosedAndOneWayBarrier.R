@@ -1,7 +1,7 @@
 #### FUNCTIONS TO SIMULATE DATA FOR BROWN TREESNAKE MONITORING OPTIMIZATION ####
 ## These functions are used in BaseSimulationFramework.R and create and calculate information needed to run alternate monitoring scenarios
 
-library(coda);library(runjags)
+library(coda);library(runjags);library(sp);library(rgeos);library(raster)
 
 #### FUNCTION TO SPECIFY STUDY AREA TYPE.----
 
@@ -22,20 +22,25 @@ areatype <- function(totlocs){
 
 #### FUNCTION TO FIND DISTANCES BETWEEN INTEGRATION GRID POINTS AND SAMPLING POINTS.----
 
-e2dist <- function (x, y) {
+e2dist <- function(x, y) {
   i <- sort(rep(1:nrow(y), nrow(x)))
   dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
 }
 
 
+#### FUNCTION TO CREATE INDIVIDUAL ACTIVITY CENTERS.----
+## True snake activity centers (AC), pull new values for every simulation
+ActCent <- function(Gpts,N){
+  s <- sample(1:Gpts,N,replace=TRUE) #pull value from integration grid locations
+  
+  return(s)
+}
+
 
 #### FUNCTION TO CREATE ONE-WAY BARRIER AND CALCULATE PROBABILITY OF LEAVING.----
 
-ProbStay <- function(sigma_mu, sigma_sd, G, s, a){
-  #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT PROBABILITY OF LEAVING.----
-  sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
-  
+ProbStay <- function(sigma, G, s, a){
   
   #### GENERATE HOME RANGE AREA FROM SIGMA.----
   #Scale parameter (sigma) can be interpreted as range size (for half-normal detection function, 95% of activity is within 2.45*sigma circle)
@@ -59,7 +64,6 @@ ProbStay <- function(sigma_mu, sigma_sd, G, s, a){
   # #Visualize
   # plot(PP)
   # # plot(PP, xlim = c(152.4605,197.3189), ylim = c(210.1056,229.1364))  #close up view
-  # # plot(PP, xlim = c(-4.208262,38.5987), ylim = c(-24.31353, 0.247878))
   # plot(B, add=TRUE, pch=21, col="red", cex=0.5)
   # points(X, pch=18, col="orange")               #add locations of survey points
   # points(locAC, pch=16, col="black")            #add locations of ACs
@@ -89,15 +93,35 @@ ProbStay <- function(sigma_mu, sigma_sd, G, s, a){
   # points(extent(pp[[507]])[1],extent(pp[[507]])[4], col="blue", cex=3, pch=21)
   # points(extent(pp[[528]])[2],extent(pp[[528]])[4], col="blue", cex=3, pch=21)
   
-  
   #### PROBABILITY OF SNAKE LEAVING STUDY AREA.----
   #Find intersection with home ranges and boundaries of CP
+  #Line coordinates (x1,y1) and (x2,y2); horizontal line is just y intercept, for vertical line is just x intercept
   #https://www.engineersedge.com/math/circular_segment_equation_and_calculator__13796.htm
   #For edge of CP, integration grid points pt1 = G[1,1:2], pt2 = G[22,1:2], pt3 = G[507,1:2], pt4 = G[528,1:2]
-  #Line coordinates (x1,y1) and (x2,y2); horizontal line is just y intercept, for vertical line is just x intercept
+  ## Check if snake is in corner of study area as this will double the home range area potentially outside of the barrier
+  doubleprob <- vector()
+  for(i in 1:nrow(locAC)){
+    doubleprob[i] <- ifelse(any(
+      (locAC[i,1] == G[1,1] & locAC[i,2] == G[1,2]) |
+        (locAC[i,1] == G[22,1] & locAC[i,2] == G[22,2]) |
+        (locAC[i,1] == G[507,1] & locAC[i,2] == G[507,2]) |
+        (locAC[i,1] == G[528,1] & locAC[i,2] == G[528,2])
+      == TRUE), 2, 1)
+  }
+
   #The home range will be the same size for all individuals in a simulation so only need to calculate this once per sigma value
-  #d is the distance between a home range centroid y-coordinate and the equation of a horizontal study barrier (y) cutting through the home range
-  d <- locAC[circHalf[1],2] - extent(pp[[1]])[3]
+  #Find a snake that has a home range on the edge of the study area on which to calculate area outside the barrier
+  #Determine which side of the study area the example snake's home range is on
+  circHalfSide <- ifelse(locAC[circHalf[1],1] == G[1,1], "1.1",              # check if overlapping circle matches left side of barrier
+                         ifelse(locAC[circHalf[1],1] == G[528,1], "528.2",   # check if overlapping circle matches right side of barrier
+                                ifelse(locAC[circHalf[1],2] == G[1,2], "1.3",        # check if overlapping circle matches bottom side of barrier
+                                       ifelse(locAC[circHalf[1],2] == G[528,2], "528.4", "-9999"))))     # check if overlapping circle matches top side of barrier
+  #split this identifier into a dataframe of which side is overlapping and the xmin (1), xmax (2), ymin (3), or ymax (4) coordinate needed
+  circHalfSide <- as.numeric(unlist(strsplit(circHalfSide, ".", fixed = TRUE)))
+  
+  #d is the distance between a home range centroid x or y-coordinate and the equation of a vertical (x) or horizontal study barrier (y) cutting through the home range
+  #take absolute value as sometimes barrier is above or below the circle centroid
+  d <- abs(locAC[circHalf[1],ifelse(circHalfSide[2] == 1 |circHalfSide[2] == 2,1,2)] - extent(pp[[circHalfSide[1]]])[circHalfSide[2]])
   #h is the distance between d (the barrier cutting through the home range) and the circular edge of the home range
   h <- radius - d
   #c is the length of the line segment within the home range
@@ -120,9 +144,9 @@ ProbStay <- function(sigma_mu, sigma_sd, G, s, a){
     for(z in 1:nsims){
       for(k in 1:K){                          #for each occasion sampled
         for(n in 1:N){                        #for each snake
-          if(is.na(stay[n,K,z])){               #conditional on the snake still being in the study area
+          if(is.na(stay[n,K,z])){             #conditional on the snake still being in the study area
             if(any(n == circHalf) == TRUE){   #conditional on the snake's home range overlapping the fence
-              stay[n,k,z] <- rbinom(1,1,(1-probleave))
+              stay[n,k,z] <- rbinom(1,1,(1-(probleave*doubleprob[n])))  #prob the snake stays given the proportion of the home range area outside the barrier
               if(stay[n,k,z] == 0){
                 stay[n,k:K,z] <- 0
                 next                          #If the snake leaves, fill in zeroes and skip for rest of occasions
@@ -137,15 +161,15 @@ ProbStay <- function(sigma_mu, sigma_sd, G, s, a){
       }
     }
   }
-  oinfo <- list(sigma=sigma,stay=stay)
+  info <- list(stay=stay)
   
-  return(oinfo)
+  return(info)
 }
 
 
-#### FUNCTION TO CREATE POSTERIOR SAMPLE FROM REAL DATA ANALYSIS AND SIMULATE OBSERVATIONS DEPENDING ON THE METHOD SELECTED.----
+#### FUNCTION TO CREATE COMBINED SIGMA AND SIMULATE OBSERVATIONS DEPENDING ON THE METHOD SELECTED.----
 
-createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc){
+createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
   
   ## CREATE COMBINED SIGMA FROM MODEL RESULTS FROM VIS AND TRAP ANALYSIS
   
@@ -261,18 +285,24 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
       p0V <- vector()
       paramsim <- matrix(NA, nrow = nsims, ncol = 5, dimnames = list(1:nsims,c("Sigma","p01","p02","p03","p04")))
       
-      for(z in 1:nsims){  
-        sigmaV <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
-        alpha1V <- 1/(2*sigmaV*sigmaV)
+      for(z in 1:nsims){
+        
+        #### GENERATE ACTIVTY CENTERS
+        s <- ActCent(Gpts,N)
+        
+        #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
+        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
+        alpha1 <- 1/(2*sigma*sigma)
+        
         for(l in 1:length(Ngroup)){
           p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
         }
-        pmatV <- p0V[Nsnsz]*exp(-alpha1V*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
+        pmatV <- p0V[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
         for(n in 1:N){
           yTrueVIS[n,,z] <- rpois(J,pmatV[n,]*K)  # observations of each snake at each trap based on encounter probability and effort
         }
-        ## Save all values of sigmaV and p0V used for simulations for reference
-        paramsim[z,1] <- sigmaV
+        ## Save all values of sigma and p0V used for simulations for reference
+        paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0V
       }
       
@@ -303,17 +333,23 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
       paramsim <- matrix(NA, nrow = nsims, ncol = 5, dimnames = list(1:nsims,c("Sigma","p01","p02","p03","p04")))
       
       for(z in 1:nsims){  
-        sigmaT <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution
-        alpha1T <- 1/(2*sigmaT*sigmaT)
+        
+        #### GENERATE ACTIVTY CENTERS
+        s <- ActCent(Gpts,N)
+        
+        #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
+        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
+        alpha1 <- 1/(2*sigma*sigma)
+        
         for(l in 1:length(Ngroup)){
           p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
         }
-        pmatT <- p0T[Nsnsz]*exp(-alpha1T*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
+        pmatT <- p0T[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
         for(n in 1:N){
           yTrueTRAP[n,,z] <- rbinom(J,K,pmatT[n,])  # observations of each snake at each trap based on encounter probability and effort
         }
-        ## Save all values of sigmaT and p0T used for simulations for reference
-        paramsim[z,1] <- sigmaT
+        ## Save all values of sigma and p0T used for simulations for reference
+        paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0T
       }
       
@@ -348,7 +384,12 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
       paramsim <- matrix(NA, nrow = nsims, ncol = 9, dimnames = list(1:nsims,c("Sigma","p0V1","p0V2","p0V3","p0V4","p0T1","p0T2","p0T3","p0T4")))
       
       for(z in 1:nsims){  
-        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution
+        
+        #### GENERATE ACTIVTY CENTERS
+        s <- ActCent(Gpts,N)
+        
+        #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
+        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
         alpha1 <- 1/(2*sigma*sigma)
         
         for(l in 1:length(Ngroup)){
@@ -363,7 +404,7 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
           yTrueVIS[n,,z] <- rpois(J1,pmatV[n,newX1]*K)  # observations of each snake at each survey location based on encounter probability and effort
           yTrueTRAP[n,,z] <- rbinom(J2,K,pmatT[n,newX2])  # observations of each snake in each trap based on encounter probability and effort
         }
-        ## Save all values of sigmaV/T and p0V/T used for simulations for reference
+        ## Save all values of sigma and p0V/T used for simulations for reference
         paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0V
         paramsim[z,6:9] <- p0T
@@ -410,15 +451,20 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
       paramsim <- matrix(NA, nrow = nsims, ncol = 5, dimnames = list(1:nsims,c("Sigma","p01","p02","p03","p04")))
       
       for(z in 1:nsims){
-        # Per simulation, draw sigma and calculate home ranges
-        siminfo <- ProbStay(sigma_mu, sigma_sd, G, s, a)  # get warnings about deprecated function; ignore
-        sigmaV <- siminfo$sigma
-        alpha1V <- 1/(2*sigmaV*sigmaV)
+        
+        #### GENERATE ACTIVTY CENTERS
+        s <- ActCent(Gpts,N)
+        
+        #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
+        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
+        alpha1 <- 1/(2*sigma*sigma)
+        siminfo <- ProbStay(sigma, G, s, a)
+          
         for(l in 1:length(Ngroup)){
           p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   # pull value from posterior
         }
         
-        pmatV <- p0V[Nsnsz]*exp(-alpha1V*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
+        pmatV <- p0V[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
         
         for(n in 1:N){  ## for each snake
           for(k in 1:K){  ## for each occasion sampled
@@ -429,8 +475,8 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
             yTrueVIS2[n,j,z] <- sum(yTrueVIS[n,j,,z])
           }
         }
-        ## Save all values of sigmaV and p0V used for simulations for reference
-        paramsim[z,1] <- sigmaV
+        ## Save all values of sigma and p0V used for simulations for reference
+        paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0V
       }
       
@@ -462,15 +508,20 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
       paramsim <- matrix(NA, nrow = nsims, ncol = 5, dimnames = list(1:nsims,c("Sigma","p01","p02","p03","p04")))
       
       for(z in 1:nsims){  
-        # Per simulation, draw sigma and calculate home ranges
-        siminfo <- ProbStay(sigma_mu, sigma_sd, G, s, a)  # get warnings about deprecated function; ignore
-        sigmaT <- siminfo$sigma
-        alpha1T <- 1/(2*sigmaT*sigmaT)
+        
+        #### GENERATE ACTIVTY CENTERS
+        s <- ActCent(Gpts,N)
+        
+        #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
+        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
+        alpha1 <- 1/(2*sigma*sigma)
+        siminfo <- ProbStay(sigma, G, s, a)
+        
         for(l in 1:length(Ngroup)){
           p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   # pull value from posterior
         }
         
-        pmatT <- p0T[Nsnsz]*exp(-alpha1T*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
+        pmatT <- p0T[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
         
         for(n in 1:N){
           for(k in 1:K){  ## for each occasion sampled
@@ -481,8 +532,8 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
             yTrueTRAP2[n,j,z] <- sum(yTrueTRAP[n,j,,z])
           }
         }
-        ## Save all values of sigmaT and p0T used for simulations for reference
-        paramsim[z,1] <- sigmaT
+        ## Save all values of sigma and p0T used for simulations for reference
+        paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0T
       }
       
@@ -518,10 +569,14 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
       paramsim <- matrix(NA, nrow = nsims, ncol = 9, dimnames = list(1:nsims,c("Sigma","p0V1","p0V2","p0V3","p0V4","p0T1","p0T2","p0T3","p0T4")))
       
       for(z in 1:nsims){  
-        # Per simulation, draw sigma and calculate home ranges
-        siminfo <- ProbStay(sigma_mu, sigma_sd, G, s, a)  # get warnings about deprecated function; ignore
-        sigma <- siminfo$sigma
+        
+        #### GENERATE ACTIVTY CENTERS
+        s <- ActCent(Gpts,N)
+        
+        #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
+        sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
         alpha1 <- 1/(2*sigma*sigma)
+        siminfo <- ProbStay(sigma, G, s, a)
         
         for(l in 1:length(Ngroup)){
           p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
@@ -549,7 +604,7 @@ createData <- function(type, stype, nsims, Ngroup, Nsnsz, stat, VISloc, TRAPloc)
             yTrueVIS2[n,j,z] <- sum(yTrueVIS[n,j,,z])
           }
         }
-        ## Save all values of sigmaV/T and p0V/T used for simulations for reference
+        ## Save all values of sigma and p0V/T used for simulations for reference
         paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0V
         paramsim[z,6:9] <- p0T
