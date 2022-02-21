@@ -377,8 +377,10 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
       #### SIMULATE OBSERVATIONS OF SNAKES BASED ON THIS DESIGN ----
       
       ## VISUAL SURVEYS - Generate observations
-      yTrueVIS <- array(NA,dim=c(N,J1,nsims))
-      yTrueTRAP <- array(NA,dim=c(N,J2,nsims))
+      yTrueVIS <- array(NA,dim=c(N,J1,K,nsims))
+      yTrueTRAP <- array(NA,dim=c(N,J2,K,nsims))
+      yTrueVIS2 <- array(NA,dim=c(N,J1,nsims))
+      yTrueTRAP2 <- array(NA,dim=c(N,J2,nsims))
       p0V <- vector()
       p0T <- vector()
       paramsim <- matrix(NA, nrow = nsims, ncol = 9, dimnames = list(1:nsims,c("Sigma","p0V1","p0V2","p0V3","p0V4","p0T1","p0T2","p0T3","p0T4")))
@@ -401,14 +403,35 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         pmatT <- p0T*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all trapping locations
         
         for(n in 1:N){
-          yTrueVIS[n,,z] <- rpois(J1,pmatV[n,newX1]*K)  # observations of each snake at each survey location based on encounter probability and effort
-          yTrueTRAP[n,,z] <- rbinom(J2,K,pmatT[n,newX2])  # observations of each snake in each trap based on encounter probability and effort
+          for(k in 1:K){
+            yTrueTRAP[n,,k,z] <- rbinom(J2,1,pmatT[n,newX2])    # observations of each snake at each trap based on encounter probability and effort
+            if(any(yTrueTRAP[n,,k,z] >= 1) == TRUE){
+              yTrueVIS[n,,k,z] <- 0
+              next
+            } else {
+              yTrueVIS[n,,k,z] <- rpois(J1,pmatV[n,newX1])  # observations of each snake at each survey location based on encounter probability and effort conditional on if snake was captured in a trap that evening
+            }
+          }
+          for(j in 1:J2){
+            ## Collapse observations across all occasions to give a count of observations per trap for each simulation
+            yTrueTRAP2[n,j,z] <- sum(yTrueTRAP[n,j,,z])
+          }
+          for(j in 1:J1){
+            yTrueVIS2[n,j,z] <- sum(yTrueVIS[n,j,,z])
+          }
         }
         ## Save all values of sigma and p0V/T used for simulations for reference
         paramsim[z,1] <- sigma
         paramsim[z,2:5] <- p0V
         paramsim[z,6:9] <- p0T
       }
+      
+      # # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
+      # for(z in 1:nsims){
+      #   for(k in 1:K){
+      #     ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
+      #   }
+      # }
         
       ## yTrueVIS and yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
       capturedV <- list()
