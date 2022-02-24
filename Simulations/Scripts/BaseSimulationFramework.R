@@ -14,8 +14,8 @@ source("Simulations/Scripts/FunctionsForSimulation_ClosedAndOneWayBarrier.R")
 #### SCENARIO DETAILS (USER SPECIFIED).----
 
 ## Question 1. Is your study area (permeable [one-way movement out of area] or closed [fenced])?
-stype <- c("oneway")
-# stype <- c("closed")
+# stype <- c("oneway")
+stype <- c("closed")
 
 ## Question 2. What type of sampling will you do?
 type <- c("VIS")
@@ -46,7 +46,7 @@ samp <- c(1:351)
 
 ## Question 4. How many nights of sampling will you do? 
 ## (full [60], half [30], quarter [14])
-K <- 60
+K <- 30
 
 ## Question 5. How many snakes are there in the population?
 ## True number of snakes (normal [120] or low [60] density)
@@ -135,7 +135,7 @@ if(type == c("VISTRAP")){
 
 #### CREATE COMBINED SIGMA AND SIMULATE OBSERVATIONS.----
 
-nsims <- 1 #100
+nsims <- 100
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)
 createData()
@@ -150,7 +150,7 @@ createData()
 
 #### READ IN DATA AND ANALYZE.----
 
-for(i in 1:nsims){
+for(i in 1:10){
   
   if(type != c("VISTRAP")){
     ysnsz <- read.csv(paste("Simulations/simDat/",type,stype,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
@@ -274,7 +274,7 @@ for(i in 1:nsims){
   }
   ",file = "Simulations/Models/SCRpstarCATsizeCAT_SimVIS.txt")
   
-  ### TRAP model using Binomial observation process ###
+  ### TRAP model using Poisson observation process ###
   
   cat("
   model {
@@ -323,7 +323,7 @@ for(i in 1:nsims){
       
       # Model for capture histories of observed individuals:
       for(j in 1:J){  ## J = number of traps
-        y[i,j] ~ dbin(p[i,j],K)
+        y[i,j] ~ dpois(p[i,j]*K)
         p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
       }#J
     }#I
@@ -413,7 +413,7 @@ for(i in 1:nsims){
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=1000; nb <- 10; ni <- 5000+nb; nt <- 1 
+  nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
   # nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
   
   if(nmeth == 1){
