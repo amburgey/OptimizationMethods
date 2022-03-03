@@ -288,7 +288,6 @@ for(i in 1:10){
     for(l in 1:L){   # 4 size categories
       #prior for intercept
       p0[l] ~ dunif(0,1)
-      alpha0[l] <- logit(p0[l])
       
       # Posterior conditional distribution for N-n (and hence N):
       n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
@@ -423,7 +422,7 @@ for(i in 1:10){
     inits <- function(){
       list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
     }
-    parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGroup")
+    parameters <- c("p0","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
   }
   
   if(nmeth == 2){
