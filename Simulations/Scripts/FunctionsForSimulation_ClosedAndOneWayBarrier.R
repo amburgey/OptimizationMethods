@@ -295,7 +295,7 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         alpha1 <- 1/(2*sigma*sigma)
         
         for(l in 1:length(Ngroup)){
-          p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
+          p0V[l] <- p0MV[[l]][sample(1:length(p0MV[[l]]), 1)]   ## pull value from posterior
         }
         pmatV <- p0V[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
         for(n in 1:N){
@@ -342,7 +342,7 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         alpha1 <- 1/(2*sigma*sigma)
         
         for(l in 1:length(Ngroup)){
-          p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
+          p0T[l] <- p0MT[[l]][sample(1:length(p0MT[[l]]), 1)]   ## pull value from posterior
         }
         pmatT <- p0T[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
         for(n in 1:N){
@@ -395,8 +395,8 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         alpha1 <- 1/(2*sigma*sigma)
         
         for(l in 1:length(Ngroup)){
-          p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
-          p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
+          p0V[l] <- p0MV[[l]][sample(1:length(p0MV[[l]]), 1)]   ## pull value from posterior
+          p0T[l] <- p0MT[[l]][sample(1:length(p0MT[[l]]), 1)]   ## pull value from posterior
         }
         
         pmatV <- p0V*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all surveying locations
@@ -484,7 +484,7 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         siminfo <- ProbStay(sigma, G, s, a)
           
         for(l in 1:length(Ngroup)){
-          p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   # pull value from posterior
+          p0V[l] <- p0MV[[l]][sample(1:length(p0MV[[l]]), 1)]   # pull value from posterior
         }
         
         pmatV <- p0V[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
@@ -541,7 +541,7 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         siminfo <- ProbStay(sigma, G, s, a)
         
         for(l in 1:length(Ngroup)){
-          p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   # pull value from posterior
+          p0T[l] <- p0MT[[l]][sample(1:length(p0MT[[l]]), 1)]   # pull value from posterior
         }
         
         pmatT <- p0T[Nsnsz]*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all locations
@@ -602,8 +602,8 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         siminfo <- ProbStay(sigma, G, s, a)
         
         for(l in 1:length(Ngroup)){
-          p0V[l] <- p0MV[[l]][sample(0:length(p0MV[[l]]), 1)]   ## pull value from posterior
-          p0T[l] <- p0MT[[l]][sample(0:length(p0MT[[l]]), 1)]   ## pull value from posterior
+          p0V[l] <- p0MV[[l]][sample(1:length(p0MV[[l]]), 1)]   ## pull value from posterior
+          p0T[l] <- p0MT[[l]][sample(1:length(p0MT[[l]]), 1)]   ## pull value from posterior
         }
         
         pmatV <- p0V*exp(-alpha1*Gdist[s,]*Gdist[s,])  # encounter probabilities of all snakes (based on their size and activity centers) at all location
