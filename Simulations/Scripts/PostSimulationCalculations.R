@@ -57,7 +57,7 @@ for(t in 1:length(scen)){
   if(str_detect(scen[t], "closed")){  # if study area is closed, use this area
     A <- 52800
   } else{                             # if study area is open, use this area
-    A <- 70200   ### UPDATE WITH FINAL OPEN AREA FROM SIMULATION
+    A <- 52800   ### UPDATE WITH FINAL OPEN AREA FROM SIMULATION
   }
 }
 
