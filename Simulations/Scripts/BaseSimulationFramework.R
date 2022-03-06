@@ -14,8 +14,8 @@ source("Simulations/Scripts/FunctionsForSimulation_ClosedAndOneWayBarrier.R")
 #### SCENARIO DETAILS (USER SPECIFIED).----
 
 ## Question 1. Is your study area (permeable [one-way movement out of area] or closed [fenced])?
-# stype <- c("oneway")
-stype <- c("closed")
+stype <- c("oneway")
+# stype <- c("closed")
 
 ## Question 2. What type of sampling will you do?
 type <- c("VIS")
@@ -27,11 +27,11 @@ nmeth <- 1
 
 ## Question 3. How many transects will you survey?
 ## Full of ONE method [351 transects]
-stde <- c("full")
-samp <- c(1:351)
+# stde <- c("full")
+# samp <- c(1:351)
 ## Half of ONE method [14 transects, every other]
-# stde <- c("half")
-# samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+stde <- c("half")
+samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
 ## Third of ONE method [9 transects, every third]
 # stde <- c("third")
 # samp <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
@@ -46,17 +46,17 @@ samp <- c(1:351)
 
 ## Question 4. How many nights of sampling will you do? 
 ## (full [60], half [30], quarter [14])
-K <- 30
+K <- 14
 
 ## Question 5. How many snakes are there in the population?
 ## True number of snakes (normal [120] or low [60] density)
-N <- 120
+N <- 60
 
 ## Question 6. How many snakes are there per size category and are there more small or large snakes?
 ## 4 groups; <850, >=850 to <950, >=950 to <1150, >=1150
 ## High density - many small scenario
-dens <- c("small")
-Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10)))
+# dens <- c("small")
+# Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10)))
 ## High density - many large scenario
 # dens <- c("large")
 # Nsnsz <- sample(c(rep(1,times=10),rep(2,times=25),rep(3,times=35),rep(4,times=50)))
@@ -64,8 +64,8 @@ Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10
 # dens <- c("small")
 # Nsnsz <- sample(c(rep(1,times=25),rep(2,times=17),rep(3,times=13),rep(4,times=5)))
 ## Low density - many large scenario
-# dens <- c("large")
-# Nsnsz <- sample(c(rep(1,times=5),rep(2,times=13),rep(3,times=17),rep(4,times=25)))
+dens <- c("large")
+Nsnsz <- sample(c(rep(1,times=5),rep(2,times=13),rep(3,times=17),rep(4,times=25)))
 Ngroup <- as.vector(table(Nsnsz))
 
 
@@ -412,7 +412,7 @@ for(i in 1:10){
   #######################################################
   
   # MCMC settings
-  nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
+  nc <- 5; nAdapt=1000; nb <- 10; ni <- 5000+nb; nt <- 1 
   # nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
   
   if(nmeth == 1){
