@@ -150,7 +150,7 @@ createData()
 
 #### READ IN DATA AND ANALYZE.----
 
-for(i in 1:10){
+for(i in 10:10){
   
   if(type != c("VISTRAP")){
     ysnsz <- read.csv(paste("Simulations/simDat/",type,stype,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
@@ -160,6 +160,14 @@ for(i in 1:10){
     snsz <- ysnsz[,ncol(ysnsz)]
     L <- length(unique(snsz))
     ngroup <- as.vector(table(snsz))
+    if(L == 4){  ## check if all size classes present in simulated data, will need to manually add zeros for those missing
+      next
+    } else {
+      stop("not full length") 
+    }
+    ## If missing
+    # L <- 4
+    # ngroup <- c(0,ngroup)  ##e.g., if size class 1 missing
   }
   
   if(type == c("VISTRAP")){
@@ -178,6 +186,14 @@ for(i in 1:10){
     snsz <- snsz[order(snsz$ID),][,1]
     L <- length(unique(snsz))
     ngroup <- as.vector(table(snsz))
+    if(L == 4){  ## check if all size classes present in simulated data, will need to manually add zeros for those missing
+      next
+    } else {
+      stop("not full length") 
+    }
+    ## If missing
+    # L <- 4
+    # ngroup <- c(0,ngroup)  ##e.g., if size class 1 missing
   }
   
   ## Initial values for activity centers, take first location where snake found
@@ -210,6 +226,9 @@ for(i in 1:10){
     indT <- na.omit(indT)[,ncol(indT)]   ## get snake identities for ones found in TRAP
   }
   
+  ### TESTING
+  ngroup <- c(0,ngroup)
+  L <- 4
   
   ########################################################
   ##Jags model for a King et al 2016 semicomplete likelihood
