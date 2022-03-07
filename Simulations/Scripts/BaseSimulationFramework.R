@@ -226,9 +226,6 @@ for(i in 41:50){
     indT <- na.omit(indT)[,ncol(indT)]   ## get snake identities for ones found in TRAP
   }
   
-  ### TESTING
-  ngroup <- c(0,ngroup)
-  L <- 4
   
   ########################################################
   ##Jags model for a King et al 2016 semicomplete likelihood
