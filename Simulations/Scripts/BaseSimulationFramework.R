@@ -150,7 +150,7 @@ createData()
 
 #### READ IN DATA AND ANALYZE.----
 
-for(i in 10:10){
+for(i in 41:50){
   
   if(type != c("VISTRAP")){
     ysnsz <- read.csv(paste("Simulations/simDat/",type,stype,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
@@ -161,7 +161,7 @@ for(i in 10:10){
     L <- length(unique(snsz))
     ngroup <- as.vector(table(snsz))
     if(L == 4){  ## check if all size classes present in simulated data, will need to manually add zeros for those missing
-      next
+      L
     } else {
       stop("not full length") 
     }
@@ -187,7 +187,7 @@ for(i in 10:10){
     L <- length(unique(snsz))
     ngroup <- as.vector(table(snsz))
     if(L == 4){  ## check if all size classes present in simulated data, will need to manually add zeros for those missing
-      next
+      L
     } else {
       stop("not full length") 
     }
