@@ -3,12 +3,12 @@
 library(jagsUI)
 
 #create a list of the files from your target directory
-file_list <- list.files(path="D:/Results-20220223-003/Results")
+file_list <- list.files(path="D:/Results")
 
 
 for(i in 1:length(file_list)){
     
-  load(file=paste("D:/Results-20220223-003/Results/",file_list[i],sep=""))
+  load(file=paste("D:/Results/",file_list[i],sep=""))
     
   print(i)
     
