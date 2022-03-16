@@ -128,8 +128,8 @@ for(t in 17){ #1:length(scen)
   } else{                                                         # If scenario used 60 snakes in simulation
     simSumm[count,4] <- (1/60)*(out$mean$N - 60)                  # Calculate bias
   }
-  simSumm[count,5] <- hdi(out, credMass = 0.95)[21]#29               # 2.5% credible interval of N
-  simSumm[count,6] <- hdi(out, credMass = 0.95)[22]#30               # 97.5% credible interval of N
+  simSumm[count,5] <- hdi(out, credMass = 0.95)[,"N"][1]          # 2.5% credible interval of N
+  simSumm[count,6] <- hdi(out, credMass = 0.95)[,"N"][2]          # 97.5% credible interval of N
   simSumm[count,7] <- out$sd$N/out$mean$N                         # Coefficient of variation
   simSumm[count,8] <- out$Rhat$N                                  # Rhat for N
   simSumm[count,9] <- mean(sqrt(var(out$sims.list$N) + (out$sims.list$N - 120)^2))  # RMSE
@@ -148,6 +148,7 @@ for(i in 1:nrow(simSumm)){
 #### Write individual results to file.----
 write.csv(simSumm, file = "Simulations/Results/SimIndividualResults.csv")
 
+############ TEMPORARY #################
 ## remove subset for right now that didn't converge
 simSumm <- subset(simSumm, Rhat < 1.1)
 
