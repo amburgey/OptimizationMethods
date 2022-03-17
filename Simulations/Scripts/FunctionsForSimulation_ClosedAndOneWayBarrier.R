@@ -447,8 +447,8 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
       for(z in 1:nsims){
         capturedV[[z]] <- which(apply(yTrueVIS3[,1:J1,z],1,sum)>0)  # snakes that were observed at least once
         capturedT[[z]] <- which(apply(yTrueTRAP3[,1:J2,z],1,sum)>0)  # snakes that were observed at least once
-        yarrV[[z]] <- yTrueVIS[capturedV[[z]],,z]  # subset to observed snakes
-        yarrT[[z]] <- yTrueTRAP[capturedT[[z]],,z]  # subset to observed snakes
+        yarrV[[z]] <- yTrueVIS3[capturedV[[z]],,z]  # subset to observed snakes
+        yarrT[[z]] <- yTrueTRAP3[capturedT[[z]],,z]  # subset to observed snakes
         write.csv(yarrV[[z]], file = paste("Simulations/simDat/",type,stype,"VIS",N,dens,K,stde,z,".csv",sep=""))  # write to file to keep observations
         write.csv(yarrT[[z]], file = paste("Simulations/simDat/",type,stype,"TRAP",N,dens,K,stde,z,".csv",sep=""))  # write to file to keep observations
       }
