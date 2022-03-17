@@ -439,14 +439,14 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
       yarrV <- list()
       yarrT <- list()
       ## Bind sizes of snake to encounter histories
-      yTrueVIS <- abind::abind(yTrueVIS,array(Nsnsz, replace(dim(yTrueVIS),2,1)), along=2)
-      yTrueTRAP <- abind::abind(yTrueTRAP,array(Nsnsz, replace(dim(yTrueTRAP),2,1)), along=2)
+      yTrueVIS3 <- abind::abind(yTrueVIS2,array(Nsnsz, replace(dim(yTrueVIS2),2,1)), along=2)
+      yTrueTRAP3 <- abind::abind(yTrueTRAP2,array(Nsnsz, replace(dim(yTrueTRAP2),2,1)), along=2)
       ## Bind unique snake identity to encounter histories
-      yTrueVIS <- abind::abind(yTrueVIS,array(seq(1:N), replace(dim(yTrueVIS),2,1)), along=2)
-      yTrueTRAP <- abind::abind(yTrueTRAP,array(seq(1:N), replace(dim(yTrueTRAP),2,1)), along=2)
+      yTrueVIS3 <- abind::abind(yTrueVIS3,array(seq(1:N), replace(dim(yTrueVIS3),2,1)), along=2)
+      yTrueTRAP3 <- abind::abind(yTrueTRAP3,array(seq(1:N), replace(dim(yTrueTRAP3),2,1)), along=2)
       for(z in 1:nsims){
-        capturedV[[z]] <- which(apply(yTrueVIS[,1:J1,z],1,sum)>0)  # snakes that were observed at least once
-        capturedT[[z]] <- which(apply(yTrueTRAP[,1:J2,z],1,sum)>0)  # snakes that were observed at least once
+        capturedV[[z]] <- which(apply(yTrueVIS3[,1:J1,z],1,sum)>0)  # snakes that were observed at least once
+        capturedT[[z]] <- which(apply(yTrueTRAP3[,1:J2,z],1,sum)>0)  # snakes that were observed at least once
         yarrV[[z]] <- yTrueVIS[capturedV[[z]],,z]  # subset to observed snakes
         yarrT[[z]] <- yTrueTRAP[capturedT[[z]],,z]  # subset to observed snakes
         write.csv(yarrV[[z]], file = paste("Simulations/simDat/",type,stype,"VIS",N,dens,K,stde,z,".csv",sep=""))  # write to file to keep observations
