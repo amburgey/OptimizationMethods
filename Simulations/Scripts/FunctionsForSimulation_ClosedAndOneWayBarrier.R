@@ -117,8 +117,8 @@ ProbStay <- function(sigma, G, s, a){
                                 ifelse(locAC[circHalf[1],2] == G[1,2], "1.3",        # check if overlapping circle matches bottom side of barrier
                                        ifelse(locAC[circHalf[1],2] == G[528,2], "528.4", "-9999"))))     # check if overlapping circle matches top side of barrier
   #split this identifier into a dataframe of which side is overlapping and the xmin (1), xmax (2), ymin (3), or ymax (4) coordinate needed
-  circHalfSide <- if(is.na(circHalfSide) == FALSE){  # if no snakes near edge
-    as.numeric(unlist(strsplit(circHalfSide, ".", fixed = TRUE)))
+  if(is.na(circHalfSide) == FALSE){  # if no snakes near edge
+    circHalfSide <- as.numeric(unlist(strsplit(circHalfSide, ".", fixed = TRUE)))
   
     #d is the distance between a home range centroid x or y-coordinate and the equation of a vertical (x) or horizontal study barrier (y) cutting through the home range
     #take absolute value as sometimes barrier is above or below the circle centroid
@@ -599,12 +599,10 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         
         #### GENERATE ACTIVTY CENTERS
         s <- ActCent(Gpts,N)
-        print(s)
         
         #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
         sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
         alpha1 <- 1/(2*sigma*sigma)
-        print(sigma)
         siminfo <- ProbStay(sigma, G, s, a)
         
         for(l in 1:length(Ngroup)){
