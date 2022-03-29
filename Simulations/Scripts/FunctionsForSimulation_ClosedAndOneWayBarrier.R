@@ -57,7 +57,7 @@ ProbStay <- function(sigma, G, s, a){
   #Find all 5 points of each square
   pp <- list()
   for(i in seq_along(B)) {
-    pp[i] <- gBuffer(B[i], width=ww[i], quadsegs=1, capStyle="SQUARE")  #ignore warnings, deprecated approach but still works
+    pp[[i]] <- gBuffer(B[i], width=ww[i], quadsegs=1, capStyle="SQUARE")
   }
   PP <- do.call(bind, pp)
   
