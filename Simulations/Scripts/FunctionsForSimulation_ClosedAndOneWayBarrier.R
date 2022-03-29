@@ -117,49 +117,53 @@ ProbStay <- function(sigma, G, s, a){
                                 ifelse(locAC[circHalf[1],2] == G[1,2], "1.3",        # check if overlapping circle matches bottom side of barrier
                                        ifelse(locAC[circHalf[1],2] == G[528,2], "528.4", "-9999"))))     # check if overlapping circle matches top side of barrier
   #split this identifier into a dataframe of which side is overlapping and the xmin (1), xmax (2), ymin (3), or ymax (4) coordinate needed
-  circHalfSide <- as.numeric(unlist(strsplit(circHalfSide, ".", fixed = TRUE)))
+  circHalfSide <- if(is.na(circHalfSide) == FALSE){  # if no snakes near edge
+    as.numeric(unlist(strsplit(circHalfSide, ".", fixed = TRUE)))
   
-  #d is the distance between a home range centroid x or y-coordinate and the equation of a vertical (x) or horizontal study barrier (y) cutting through the home range
-  #take absolute value as sometimes barrier is above or below the circle centroid
-  d <- abs(locAC[circHalf[1],ifelse(circHalfSide[2] == 1 |circHalfSide[2] == 2,1,2)] - extent(pp[[circHalfSide[1]]])[circHalfSide[2]])
-  #h is the distance between d (the barrier cutting through the home range) and the circular edge of the home range
-  h <- radius - d
-  #c is the length of the line segment within the home range
-  c <- sqrt((radius-(h/2))*8*h)
-  if(is.na(c) == TRUE){                 # if the home range is so small that a snake never would cross the barrier
-    stay <- array(1, dim=c(N,K,nsims))  # fill the staying matrix with 1s to indicate snake always present
-  } else {                              # if the home range is big enough to allow snake to cross the barrier and leave
-    #theta is the interior angle of the segment within the circle
-    theta <- 2*atan(c/(2*d))
-    
-    #The proportion of home range outside of the barrier to inside dictates the probability of the snake leaving
-    #https://www.mathsisfun.com/geometry/circle-sector-segment.html
-    #Area of circle outside of circle (when theta is in radians)
-    areaseg <- ((theta-sin(theta))/2) * (radius)^2
-    probleave <- areaseg/rangeS
-    
-    #Do Bernoulli trial of whether snake stays or snake leaves based on this probability
-    #If snake leaves, it can never come back in
-    stay <- array(NA, dim=c(N,K,nsims))
-    for(z in 1:nsims){
-      for(k in 1:K){                          #for each occasion sampled
-        for(n in 1:N){                        #for each snake
-          if(is.na(stay[n,K,z])){             #conditional on the snake still being in the study area
-            if(any(n == circHalf) == TRUE){   #conditional on the snake's home range overlapping the fence
-              stay[n,k,z] <- rbinom(1,1,(1-(probleave*doubleprob[n])))  #prob the snake stays given the proportion of the home range area outside the barrier
-              if(stay[n,k,z] == 0){
-                stay[n,k:K,z] <- 0
-                next                          #If the snake leaves, fill in zeroes and skip for rest of occasions
+    #d is the distance between a home range centroid x or y-coordinate and the equation of a vertical (x) or horizontal study barrier (y) cutting through the home range
+    #take absolute value as sometimes barrier is above or below the circle centroid
+    d <- abs(locAC[circHalf[1],ifelse(circHalfSide[2] == 1 |circHalfSide[2] == 2,1,2)] - extent(pp[[circHalfSide[1]]])[circHalfSide[2]])
+    #h is the distance between d (the barrier cutting through the home range) and the circular edge of the home range
+    h <- radius - d
+    #c is the length of the line segment within the home range
+    c <- sqrt((radius-(h/2))*8*h)
+    if(is.na(c) == TRUE){                 # if the home range is so small that a snake never would cross the barrier
+      stay <- array(1, dim=c(N,K,nsims))  # fill the staying matrix with 1s to indicate snake always present
+    } else {                              # if the home range is big enough to allow snake to cross the barrier and leave
+      #theta is the interior angle of the segment within the circle
+      theta <- 2*atan(c/(2*d))
+      
+      #The proportion of home range outside of the barrier to inside dictates the probability of the snake leaving
+      #https://www.mathsisfun.com/geometry/circle-sector-segment.html
+      #Area of circle outside of circle (when theta is in radians)
+      areaseg <- ((theta-sin(theta))/2) * (radius)^2
+      probleave <- areaseg/rangeS
+      
+      #Do Bernoulli trial of whether snake stays or snake leaves based on this probability
+      #If snake leaves, it can never come back in
+      stay <- array(NA, dim=c(N,K,nsims))
+      for(z in 1:nsims){
+        for(k in 1:K){                          #for each occasion sampled
+          for(n in 1:N){                        #for each snake
+            if(is.na(stay[n,K,z])){             #conditional on the snake still being in the study area
+              if(any(n == circHalf) == TRUE){   #conditional on the snake's home range overlapping the fence
+                stay[n,k,z] <- rbinom(1,1,(1-(probleave*doubleprob[n])))  #prob the snake stays given the proportion of the home range area outside the barrier
+                if(stay[n,k,z] == 0){
+                  stay[n,k:K,z] <- 0
+                  next                          #If the snake leaves, fill in zeroes and skip for rest of occasions
+                }
+              } else {
+                stay[n,k,z] <- 1
               }
             } else {
-              stay[n,k,z] <- 1
+              next
             }
-          } else {
-            next
           }
         }
       }
     }
+  } else {
+    stay <- array(1, dim=c(N,K,nsims))  # fill the staying matrix with 1s to indicate snake always present
   }
   info <- list(stay=stay)
   
@@ -591,14 +595,16 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
       p0T <- vector()
       paramsim <- matrix(NA, nrow = nsims, ncol = 9, dimnames = list(1:nsims,c("Sigma","p0V1","p0V2","p0V3","p0V4","p0T1","p0T2","p0T3","p0T4")))
       
-      for(z in 1:nsims){  
+      for(z in 1:nsims){ 
         
         #### GENERATE ACTIVTY CENTERS
         s <- ActCent(Gpts,N)
+        print(s)
         
         #### PULL SIGMA VALUE FIRST IN ORDER TO CALCULATE SUBSEQUENT STEPS.----
         sigma <- rnorm(1,sigma_mu,sigma_sd)   ## pull value from combined sigma distribution, save to file for reference at end of simulation runs
         alpha1 <- 1/(2*sigma*sigma)
+        print(sigma)
         siminfo <- ProbStay(sigma, G, s, a)
         
         for(l in 1:length(Ngroup)){
