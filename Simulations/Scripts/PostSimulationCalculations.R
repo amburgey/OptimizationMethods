@@ -28,14 +28,14 @@ scen <- c(
   "closedTRAP120large14full","closedTRAP120large14half",
   "closedTRAP60large30full","closedTRAP60large30half",
   "closedTRAP60large14full","closedTRAP60large14half",
-#   "closedVISTRAP120small30halfhalf","closedVISTRAP120small30thirdthird",
-#   "closedVISTRAP120small14halfhalf","closedVISTRAP120small14thirdthird",
-#   "closedVISTRAP60small30halfhalf","closedVISTRAP60small30thirdthird",
-#   "closedVISTRAP60small14halfhalf","closedVISTRAP60small14thirdthird",
-#   "closedVISTRAP120large30halfhalf","closedVISTRAP120large30thirdthird",
-#   "closedVISTRAP120large14halfhalf","closedVISTRAP120large14thirdthird",
-#   "closedVISTRAP60large30halfhalf","closedVISTRAP60large30thirdthird",
-#   "closedVISTRAP60large14halfhalf","closedVISTRAP60large14thirdthird",
+  "closedVISTRAP120small30halfhalf","closedVISTRAP120small30thirdthird",
+  "closedVISTRAP120small14halfhalf","closedVISTRAP120small14thirdthird",
+  "closedVISTRAP60small30halfhalf","closedVISTRAP60small30thirdthird",
+  "closedVISTRAP60small14halfhalf","closedVISTRAP60small14thirdthird",
+  "closedVISTRAP120large30halfhalf","closedVISTRAP120large30thirdthird",
+  "closedVISTRAP120large14halfhalf","closedVISTRAP120large14thirdthird",
+  "closedVISTRAP60large30halfhalf","closedVISTRAP60large30thirdthird",
+  "closedVISTRAP60large14halfhalf","closedVISTRAP60large14thirdthird",
   "onewayVIS120small30full","onewayVIS120small30half",
   "onewayVIS120small14full","onewayVIS120small14half",
   "onewayVIS60small30full","onewayVIS60small30half",
@@ -51,15 +51,15 @@ scen <- c(
   "onewayTRAP120large30full","onewayTRAP120large30half",
   "onewayTRAP120large14full","onewayTRAP120large14half",
   "onewayTRAP60large30full","onewayTRAP60large30half",
-  "onewayTRAP60large14full","onewayTRAP60large14half"
-#   "onewayVISTRAP120small30halfhalf","onewayVISTRAP120small30thirdthird",
-#   "onewayVISTRAP120small14halfhalf","onewayVISTRAP120small14thirdthird",
-#   "onewayVISTRAP60small30halfhalf","onewayVISTRAP60small30thirdthird",
-#   "onewayVISTRAP60small14halfhalf","onewayVISTRAP60small14thirdthird",
-#   "onewayVISTRAP120large30halfhalf","onewayVISTRAP120large30thirdthird",
-#   "onewayVISTRAP120large14halfhalf","onewayVISTRAP120large14thirdthird",
-#   "onewayVISTRAP60large30halfhalf","onewayVISTRAP60large30thirdthird",
-#   "onewayVISTRAP60large14halfhalf","onewayVISTRAP60large14thirdthird"
+  "onewayTRAP60large14full","onewayTRAP60large14half",
+  "onewayVISTRAP120small30halfhalf","onewayVISTRAP120small30thirdthird",
+  "onewayVISTRAP120small14halfhalf","onewayVISTRAP120small14thirdthird",
+  "onewayVISTRAP60small30halfhalf","onewayVISTRAP60small30thirdthird",
+  "onewayVISTRAP60small14halfhalf","onewayVISTRAP60small14thirdthird",
+  "onewayVISTRAP120large30halfhalf","onewayVISTRAP120large30thirdthird",
+  "onewayVISTRAP120large14halfhalf","onewayVISTRAP120large14thirdthird",
+  "onewayVISTRAP60large30halfhalf","onewayVISTRAP60large30thirdthird",
+  "onewayVISTRAP60large14halfhalf","onewayVISTRAP60large14thirdthird"
 )
 
 type <- length(scen)
@@ -67,13 +67,6 @@ type <- length(scen)
 #### Study area size.----
 
 A <- 52800
-# for(t in 1:length(scen)){
-#   if(str_detect(scen[t], "closed")){  # if study area is closed, use this area
-#     A <- 52800
-#   } else{                             # if study area is open, use this area
-#     A <- 52800   ### UPDATE WITH FINAL OPEN AREA FROM SIMULATION
-#   }
-# }
 
 #### Function to find mode for continuous data.----
 
