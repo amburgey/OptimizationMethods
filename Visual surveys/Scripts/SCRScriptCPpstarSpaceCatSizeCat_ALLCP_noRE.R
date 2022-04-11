@@ -136,7 +136,7 @@ model {
           #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
           miss_allK[l,g,j,t] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K[j,t])
         } #J
-        pdot.temp[l,g,t] <- 1 - prod(miss_allK[l,g,,t]) #Prob of detect each size category across entire study area and time period
+        pdot.temp[l,g,t] <- 1 - prod(miss_allK[l,g,,t]) #Prob of detect each size category across all points in the study area and time period
         pdot[l,g,t] <- max(pdot.temp[l,g,t], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
       } #G
       pstar[l,t] <- (sum(pdot[l,1:Gpts,t]*a[1:Gpts]))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
