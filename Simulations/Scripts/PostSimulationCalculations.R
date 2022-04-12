@@ -139,16 +139,17 @@ for(t in 1:length(scen)){ #1:length(scen)
 }
 
 
-s#### Check if any simulation didn't converge.----
-for(i in 1:nrow(simSumm)){
-  try(if(simSumm$Rhat[i] > 1.1) stop("did not converge"))
-}
 
 #### Write individual results to file.----
-write.csv(simSumm, file = "Simulations/Results/SimIndividualResults.csv")
+# write.csv(simSumm, file = "Simulations/Results/SimIndividualResults.csv")
+simSumm <- read.csv(file = "Simulations/Results/SimIndividualResults.csv")
 
 
 #### Calculate metrics.----
+
+## Calculate number of successful simulations finished per scenario
+snakefreq <- as.data.frame(table(simSumm$Sim))
+snakefreq <- snakefreq[order(snakefreq[,1]),]
 
 ## Calculate mean snake abundance by each monitoring scenario
 snakenums <- aggregate(simSumm$Nmn, list(simSumm$Sim), mean)
@@ -167,9 +168,10 @@ for(t in 1:nrow(simSumm)){
     simSumm[t,ncol(simSumm)] <- ifelse(simSumm[t,5] <= 60 & simSumm[t,6] >= 60, 1, 0)      # Calculate coverage
   }
 }
-## Percent of time real value included within credible intervals (assuming 100 simulations used)
+## Percent of time real value included within credible intervals
 snakecov <- aggregate(simSumm$Cov, list(simSumm$Sim), sum)
 snakecov <- snakecov[order(snakecov[,1]),]
+snakecov$Perc <- (snakecov$x/snakefreq$Freq)*100
 
 ## Calculate RMSE of snake abundance by each monitoring scenario
 snakermse <- aggregate(simSumm$RMSE, list(simSumm$Sim), mean)
@@ -186,8 +188,9 @@ snakebias$x <- snakebias$x*100
 snakebias <- snakebias[order(snakebias[,1]),]
 
 #### Create results table and write to file.----
-all <- cbind(snakenums,snakemod[,2],snakecov[,2],snakeCV[,2],snakebias[,2],snakermse[,2])
-colnames(all) <- c("Sim","Nmn","Nmod","%Coverage","%CV","%Bias","RMSE")
+all <- cbind(snakefreq,snakenums[,2],snakemod[,2],snakecov[,3],snakeCV[,2],snakebias[,2],snakermse[,2])
+colnames(all) <- c("Sim","Freq","Nmn","Nmod","%Coverage","%CV","%Bias","RMSE")
+all <- all %>% mutate_at(vars(Nmn,Nmod,`%Coverage`,`%CV`,`%Bias`,RMSE), list(~round(.,2)))
 
 write.csv(all,"Simulations/Results/SimResultsSummary.csv")
 
