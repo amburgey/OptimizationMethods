@@ -26,15 +26,12 @@ nmeth <- 1
 # nmeth <- 2
 
 ## Question 3. How many transects will you survey?
-## Full of ONE method [351 transects]
+## Full of ONE method [27 transects, all]
 # stde <- c("full")
 # samp <- c(1:351)
 ## Half of ONE method [14 transects, every other]
 stde <- c("half")
 samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
-## Third of ONE method [9 transects, every third]
-# stde <- c("third")
-# samp <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
 ## Half of TWO methods (e.g., VISTRAP)
 # stde <- c("halfhalf")
 # samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
