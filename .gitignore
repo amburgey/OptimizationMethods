@@ -13,9 +13,10 @@
 /Simulations/Results
 
 # Unused files
-NWFNlocationsKey.xlsx
 /Archive
 
-# Outdated files
-/Older
+# Original file versions not used in this manuscript
+/Real\ Data\ Analysis/Scripts/Select&PrepVisualData_original.R
+/Real\ Data\ Analysis/Data
+/Real\ Data\ Analysis/Visual\ surveys/Scripts/UnusedSitesScripts
 
