@@ -175,5 +175,5 @@ parameters <- c("p0","sigma","pstar","alpha0","alpha1","N","n0","Ngroup","piGrou
 out <- jags("Trapping/Models/SCRpstarCATsizeCAT_CPALL.txt", data=jags.data, inits=inits, parallel=TRUE,
             n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE") ## might have to use "factories" to keep JAGS from locking up with large categorical distribution, will speed things up a little
 
-save(out, file="Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLLONGER.Rdata")
+save(out, file="Trapping/Results/NWFNTRAPALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALLLONGER.Rdata")
 ## DID NOT COMPLETE THIS RUN, JUST MANUALLY DISCARDED MORE FOR BURN-IN
