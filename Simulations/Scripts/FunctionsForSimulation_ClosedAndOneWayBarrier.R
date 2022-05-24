@@ -1,7 +1,7 @@
 #### FUNCTIONS TO SIMULATE DATA FOR BROWN TREESNAKE MONITORING OPTIMIZATION ####
 ## These functions are used in BaseSimulationFramework.R and create and calculate information needed to run alternate monitoring scenarios
 
-library(coda);library(runjags);library(sp);library(rgeos);library(raster)
+library(coda);library(runjags);library(sp);library(rgeos);library(raster);library(scales)
 
 #### FUNCTION TO SPECIFY STUDY AREA TYPE.----
 
@@ -209,7 +209,7 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
   
   
   #### TRAPPING SURVEY REAL DATA RESULTS.----
-  load("Trapping/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")
+  load("Trapping/Results/NWFNTRAPALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")
   
   ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
   mcmc.object <- as.mcmc.list(out$samples[[1]])
@@ -240,23 +240,38 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
   
   
   ## Quick plot to compare encounter probabilities of different snake categories
-  # cV1 <- rgb(0,255,223,max = 255, alpha = 80, names = "lt.blue")
-  # cV2 <- rgb(0,167,255,max = 255, alpha = 80, names = "lt.blue2")
-  # cV3 <- rgb(66,129,255,max = 255, alpha = 80, names = "md.blue")
-  # cV4 <- rgb(7,69,137,max = 255, alpha = 80, names = "dk.blue")
-  # cT1 <- rgb(238,170,189,max = 255, alpha = 80, names = "lt.pink")
-  # cT2 <- rgb(239,146,173,max = 255, alpha = 80, names = "lt.pink2")
-  # cT3 <- rgb(244,106,146,max = 255, alpha = 80, names = "md.pink")
-  # cT4 <- rgb(241,61,113,max = 255, alpha = 80, names = "dk.pink")
   # 
-  # hist(postV[,1], col = cV1, breaks = 25, xlim = c(0.0005,0.0055), ylim = c(0,5800))
-  # hist(postV[,2], col = cV2, add = TRUE, breaks = 25)
-  # hist(postV[,3], col = cV3, add = TRUE, breaks = 25)
-  # hist(postV[,4], col = cV4, add = TRUE, breaks = 25)
-  # hist(postT[,1], col = cT1, add = TRUE, breaks = 25)
-  # hist(postT[,2], col = cT2, add = TRUE, breaks = 25)
-  # hist(postT[,3], col = cT3, add = TRUE, breaks = 25)
-  # hist(postT[,4], col = cT3, add = TRUE, breaks = 25)
+  # png(file="Visual Surveys/Results/VISencounter.png",width=10,height=7,units="in",res=600)
+  # hist(postV[,1], col = alpha("#451A00",0.4), breaks = 25, 
+  #      xlim = c(0.0005,0.0055), ylim = c(0,5800), xlab = "Encounter Probability", ylab = "Frequency",
+  #      main = NULL)
+  # hist(postV[,2], col = alpha("#A66A2E",0.4), add = TRUE, breaks = 25)
+  # hist(postV[,3], col = alpha("#C48A47",0.4), add = TRUE, breaks = 25)
+  # hist(postV[,4], col = alpha("#F0C648",0.4), add = TRUE, breaks = 25)
+  # text(0.003, 4300, expression("< 850"))
+  # text(0.0042, 2900, expression("850-950"))
+  # text(0.0036, 3800, expression("950-1150"))
+  # text(0.0024, 2900, expression("> 1150"))
+  # segments(0.0042, 2700, 0.0037, 2000,
+  #          col = "black", lty = 1, lwd = 1)
+  # segments(0.0024, 2700, 0.0026, 2000,
+  #          col = "black", lty = 1, lwd = 1)
+  # dev.off()
+  # 
+  # png(file="Trapping/Results/TRAPencounter.png",width=10,height=7,units="in",res=600)
+  # hist(postT[,1], col = alpha("#26580F",0.4), breaks = 25, 
+  #      xlim = c(0.0005,0.0055), ylim = c(0,5800), xlab = "Encounter Probability", ylab = "Frequency",
+  #      main = NULL)
+  # hist(postT[,2], col = alpha("#378805",0.4), add = TRUE, breaks = 25)
+  # hist(postT[,3], col = alpha("#86DC3D",0.4), add = TRUE, breaks = 25)
+  # hist(postT[,4], col = alpha("#C5E90B",0.4), add = TRUE, breaks = 25)
+  # text(0.0016, 5000, expression("< 850"))
+  # text(0.0026, 3500, expression("850-950"))
+  # text(0.004, 3100, expression("950-1150"))
+  # text(0.0045, 3900, expression("> 1150"))
+  # dev.off()
+  
+  
   
   
   #### CREATE JOINT DISTRIBUTION FOR SIGMA.----
