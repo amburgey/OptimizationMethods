@@ -12,8 +12,8 @@
 /Real\ Data\ Analysis/Trapping/Data/TRAPcaptures.csv
 /Real\ Data\ Analysis/Visual\ surveys/Data/VISinfo.csv
 /Real\ Data\ Analysis/Visual\ surveys/Data/VIScaptures.csv
-/Real\ Data\ Analysis/Trapping/Results/NFWNTRAPALL_SCRpstar
-/Real\ Data\ Analysis/Visual\ surveys/Results/NFWNVISALL_SCRpstar
+/Real\ Data\ Analysis/Trapping/Results/NFWNTRAPALL_SCRpstar.Rdata
+/Real\ Data\ Analysis/Visual\ surveys/Results/NFWNVISALL_SCRpstar.Rdata
 /Simulations/Results
 
 # Original file versions not used in this manuscript
