@@ -6,7 +6,11 @@
 # Simulated Data
 /Simulations/simDat
 
-# Results that are posted on ScienceBase
+# Data and results that are posted on ScienceBase
+/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPinfo
+/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPcaptures
+/Real\ Data\ Analysis/Visual\ surveys/Data/VISinfo
+/Real\ Data\ Analysis/Visual\ surveys/Data/VIScaptures
 /Real\ Data\ Analysis/Trapping/Results/NFWNTRAPALL_SCRpstar
 /Real\ Data\ Analysis/Visual\ surveys/Results/NFWNVISALL_SCRpstar
 /Simulations/Results
