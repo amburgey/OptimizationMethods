@@ -7,8 +7,9 @@
 /Simulations/simDat
 
 # Data and results that are posted on ScienceBase
-/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPinfo.csv
-/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPcaptures.csv
+/Real\ Data\ Analysis/Data/CPUperimeter.kml
+/Real\ Data\ Analysis/Trapping/Data/TRAPinfo.csv
+/Real\ Data\ Analysis/Trapping/Data/TRAPcaptures.csv
 /Real\ Data\ Analysis/Visual\ surveys/Data/VISinfo.csv
 /Real\ Data\ Analysis/Visual\ surveys/Data/VIScaptures.csv
 /Real\ Data\ Analysis/Trapping/Results/NFWNTRAPALL_SCRpstar
@@ -24,8 +25,8 @@
 /Real\ Data\ Analysis/Trapping/Scripts/Unused
 /Real\ Data\ Analysis/Visual\ surveys/Models/Unused
 /Real\ Data\ Analysis/Trapping/Models/Unused
-/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPinfo_original.csv
-/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPcaptures_original.csv
+/Real\ Data\ Analysis/Trapping/Data/TRAPinfo_original.csv
+/Real\ Data\ Analysis/Trapping/Data/TRAPcaptures_original.csv
 /Real\ Data\ Analysis/Visual\ surveys/Data/VISinfo_original.csv
 /Real\ Data\ Analysis/Visual\ surveys/Data/VIScaptures_original.csv
 /Real\ Data\ Analysis/Visual\ surveys/Results/Unused
