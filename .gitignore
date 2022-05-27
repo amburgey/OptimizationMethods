@@ -6,23 +6,22 @@
 # Simulated Data
 /Simulations/simDat
 
-# Results
-/Results
-/Visual\ surveys/Results
-/Trapping/Results
+# Results that are posted on ScienceBase
+/Real\ Data\ Analysis/Trapping/Results/NFWNTRAPALL_SCRpstar
+/Real\ Data\ Analysis/Visual\ surveys/Results/NFWNVISALL_SCRpstar
 /Simulations/Results
 
 # Original file versions not used in this manuscript
 /Archive
 /Real\ Data\ Analysis/Data/Unused
 /Real\ Data\ Analysis/Visual\ surveys/DataPrep/Unused
-/Real\ Data\ Analysis/Scripts/Select&PrepVisualData_original.R
-/Real\ Data\ Analysis/Scripts/Select&PrepTrappingData_original.R
-/Real\ Data\ Analysis/Data
-/Real\ Data\ Analysis/Visual\ surveys/Scripts/UnusedSitesScripts
+/Real\ Data\ Analysis/Trapping/DataPrep/Unused
+/Real\ Data\ Analysis/Visual\ surveys/Scripts/Unused
+/Real\ Data\ Analysis/Trapping/Scripts/Unused
+/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPinfo_original
+/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPcaptures_original
 /Real\ Data\ Analysis/Visual\ surveys/Data/VISinfo_original
 /Real\ Data\ Analysis/Visual\ surveys/Data/VIScaptures_original
 /Real\ Data\ Analysis/Visual\ surveys/Results/Unused
 /Real\ Data\ Analysis/Trapping/Results/Unused
-/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPinfo_original
-/Real\ Data\ Analysis/Visual\ surveys/Data/TRAPcaptures_original
+
