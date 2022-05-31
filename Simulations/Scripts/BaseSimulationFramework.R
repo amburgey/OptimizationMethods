@@ -1,5 +1,5 @@
-## Simulate capture/observation histories of snakes in different sampling scenarios
-## Save data to simDat folder
+## Simulate observation histories of snakes from different monitoring methods in different sampling designs
+## Comment out/in various components to specify design
 ## Analyze each dataset using King et al. Semicomplete Likelihood (2016) and save results in Results folder
 
 rm(list=ls())
@@ -11,7 +11,7 @@ source("Simulations/Scripts/FunctionsForSimulation_ClosedAndOneWayBarrier.R")
 
 
 
-#### SCENARIO DETAILS (USER SPECIFIED).----
+#### SCENARIO DETAILS (USER SPECIFIED, COMMENT IN OR OUT DEPENDING ON DESIGN).----
 
 ## Question 1. Is your study area (permeable [one-way movement out of area] or closed [fenced])?
 stype <- c("oneway")
@@ -27,11 +27,11 @@ nmeth <- 1
 
 ## Question 3. How many transects will you survey?
 ## Full of ONE method [27 transects, all]
-# stde <- c("full")
-# samp <- c(1:351)
+stde <- c("full")
+samp <- c(1:351)
 ## Half of ONE method [14 transects, every other]
-stde <- c("half")
-samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
+# stde <- c("half")
+# samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
 ## Half of TWO methods (e.g., VISTRAP)
 # stde <- c("halfhalf")
 # samp1 <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247,261:273,287:299,313:325,339:351)
@@ -42,7 +42,7 @@ samp <- c(1:13,27:39,53:65,79:91,105:117,131:143,157:169,183:195,209:221,235:247
 # samp2 <- c(27:39,66:78,105:117,144:156,183:195,222:234,261:273,300:312,339:351)
 
 ## Question 4. How many nights of sampling will you do? 
-## (full [60], half [30], quarter [14])
+## (half [30], quarter [14])
 K <- 14
 
 ## Question 5. How many snakes are there in the population?
@@ -51,18 +51,21 @@ N <- 60
 
 ## Question 6. How many snakes are there per size category and are there more small or large snakes?
 ## 4 groups; <850, >=850 to <950, >=950 to <1150, >=1150
-## High density - many small scenario
-# dens <- c("small")
-# Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10)))
-## High density - many large scenario
+
+## High density (120 snakes) - many small scenario
+dens <- c("small")
+Nsnsz <- sample(c(rep(1,times=50),rep(2,times=35),rep(3,times=25),rep(4,times=10)))
+## High density (120 snakes) - many large scenario
 # dens <- c("large")
 # Nsnsz <- sample(c(rep(1,times=10),rep(2,times=25),rep(3,times=35),rep(4,times=50)))
-## Low density - many small scenario
+## Low density (60 snakes) - many small scenario
 # dens <- c("small")
 # Nsnsz <- sample(c(rep(1,times=25),rep(2,times=17),rep(3,times=13),rep(4,times=5)))
-## Low density - many large scenario
-dens <- c("large")
-Nsnsz <- sample(c(rep(1,times=5),rep(2,times=13),rep(3,times=17),rep(4,times=25)))
+## Low density (60 snakes) - many large scenario
+# dens <- c("large")
+# Nsnsz <- sample(c(rep(1,times=5),rep(2,times=13),rep(3,times=17),rep(4,times=25)))
+
+## Total snakes in each size category
 Ngroup <- as.vector(table(Nsnsz))
 
 
@@ -137,17 +140,10 @@ nsims <- 100
 set.seed(07192021)
 createData()
 
-# if(type != c("VISTRAP")){  # get warnings due to deprecated function; ignore
-#   createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,Gpts=Gpts,N=N,J=J,K=K)
-# }
-# if(type == c("VISTRAP")){  # get warnings due to deprecated function; ignore
-#   createData(type=type,stype=stype,nsims=nsims,Ngroup=Ngroup,Nsnsz=Nsnsz,newX1=newX1,newX2=newX2,Gpts=Gpts,N=N,J1=J1,J2=J2,K=K)
-# }
-
 
 #### READ IN DATA AND ANALYZE.----
 
-for(i in 41:50){
+for(i in 1:100){
   
   if(type != c("VISTRAP")){
     ysnsz <- read.csv(paste("Simulations/simDat/",type,stype,N,dens,K,stde,i,".csv",sep=""))[,-1]  ## remove individual column
@@ -162,7 +158,7 @@ for(i in 41:50){
     } else {
       stop("not full length") 
     }
-    ## If missing
+    ## If missing size category, check which and add as a zero
     # L <- 4
     # ngroup <- c(0,ngroup)  ##e.g., if size class 1 missing
   }
@@ -188,7 +184,7 @@ for(i in 41:50){
     } else {
       stop("not full length") 
     }
-    ## If missing
+    ## If missing size category, check which and add as a zero
     # L <- 4
     # ngroup <- c(0,ngroup)  ##e.g., if size class 1 missing
   }
@@ -227,120 +223,120 @@ for(i in 41:50){
   ########################################################
   ##Jags model for a King et al 2016 semicomplete likelihood
   
-  ### VIS survey model using Poisson observation process ###
+  ### VIS survey model using Poisson observation process - same as TRAP model ###
   
   cat("
   model {
     
-    #prior for spatial decay
+    #Prior for spatial decay
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
-    #prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    #Prior for each grid cell (set b[1:Gpts] = rep(1,Gpts) below so as to be a uniform prior across all cells) 
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(l in 1:L){   # 4 size categories
-      #prior for intercept
+      #Prior for intercept
       p0[l] ~ dunif(0,5)
       
-      # Posterior conditional distribution for N-n (and hence N):
-      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-      Ngroup[l] <- ngroup[l] + n0[l]
+      #Prior for N
+      #Posterior conditional distribution for N-n (and hence N):
+      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures to observe by project and size category
+      Ngroup[l] <- ngroup[l] + n0[l]       # number of animals observed + failures to observe by size category
     }
     
     N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
     
-    #Probability of capture for integration grid points
-    #pdot = probability of being detected at least once (given location)
-    
     for(l in 1:L){  # size category
-      for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J){  # J = number of traps
-          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+      for(g in 1:Gpts){ # number of points on integration grid
+        for(j in 1:J){  # number of survey points
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that location
           miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K)
         } #J
-        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
-        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+        #Probability of detecting each size category across all points in the study area and time period
+        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,])
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  # pdot.temp is very close to zero and will lock model up with out this
       } #G
-      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      #Probability of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A
       
-      # Zero trick for initial 1/pstar^n
+      #Zero trick for initial 1/pstar^n, described in King et al. 2016
       loglikterm[l] <- -ngroup[l] * log(pstar[l])
       lambda[l] <- -loglikterm[l] + 10000
       dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
     } #L
     
-    for(i in 1:n){  ## n = number of observed individuals
-      ## For use when defining traps on a grid cell
+    for(i in 1:n){  # number of observed individuals for each project
+      #Define activity centers on a grid
       s[i] ~ dcat(pi[1:Gpts])
       
-      # Model for capture histories of observed individuals:
-      for(j in 1:J){  ## J = number of traps
+      #Model for capture histories of observed individuals:
+      for(j in 1:J){
         y[i,j] ~ dpois(p[i,j]*K)
         p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
       }#J
     }#I
     
-    #derived proportion in each size class
+    #Derived proportion of each size class
     for(l in 1:L){
       piGroup[l] <- Ngroup[l]/N
     }
   }
   ",file = "Simulations/Models/SCRpstarCATsizeCAT_SimVIS.txt")
   
-  ### TRAP model using Poisson observation process ###
+  ### TRAP model using Poisson observation process - same as VIS model  ###
   
   cat("
   model {
     
-    #prior for spatial decay
+    #Prior for spatial decay
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
-    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    #Prior for each grid cell (set b[1:Gpts] = rep(1,Gpts) below so as to be a uniform prior across all cells)
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(l in 1:L){   # 4 size categories
-      #prior for intercept
+      #Prior for intercept
       p0[l] ~ dunif(0,1)
       
-      # Posterior conditional distribution for N-n (and hence N):
-      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-      Ngroup[l] <- ngroup[l] + n0[l]
+      #Prior for N
+      #Posterior conditional distribution for N-n (and hence N):
+      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures to observe by project and size category
+      Ngroup[l] <- ngroup[l] + n0[l]       # number of animals observed + failures to observe by size category
     }
     
     N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
     
-    #Probability of capture for integration grid points
-    #pdot = probability of being detected at least once (given location)
-    
     for(l in 1:L){  # size category
-      for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J){  # J = number of traps
-          # Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
+      for(g in 1:Gpts){ # number of points on integration grid
+        for(j in 1:J){  # number of trapping points
+          #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that location
           miss_allK[l,g,j] <- pow((1 - p0[l]*exp(-alpha1*Gdist[g,j]*Gdist[g,j])),K)
         } #J
-        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,]) #Prob of detect each size category across entire study area and time period
-        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+        #Probability of detecting each size category across all points in the study area and time period
+        pdot.temp[l,g] <- 1 - prod(miss_allK[l,g,])
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  # pdot.temp is very close to zero and will lock model up with out this
       } #G
-      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      #Probability of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A
       
-      # Zero trick for initial 1/pstar^n
+      #Zero trick for initial 1/pstar^n, described in King et al. 2016
       loglikterm[l] <- -ngroup[l] * log(pstar[l])
       lambda[l] <- -loglikterm[l] + 10000
       dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
     } #L
     
-    for(i in 1:n){  ## n = number of observed individuals
-      # For use when defining traps on a grid cell
+    for(i in 1:n){  # number of observed individuals for each project
+      #Define activity centers on a grid
       s[i] ~ dcat(pi[1:Gpts])
       
-      # Model for capture histories of observed individuals:
-      for(j in 1:J){  ## J = number of traps
+      #Model for capture histories of observed individuals:
+      for(j in 1:J){
         y[i,j] ~ dpois(p[i,j]*K)
         p[i,j] <- p0[size[i]]*exp(-alpha1*Gdist[s[i],j]*Gdist[s[i],j])
       }#J
     }#I
     
-    # derived proportion in each size class
+    #Derived proportion of each size class
     for(l in 1:L){
       piGroup[l] <- Ngroup[l]/N
     }
@@ -352,70 +348,70 @@ for(i in 41:50){
   cat("
   model {
     
-    #prior for spatial decay
+    #Prior for spatial decay
     sigma ~ dunif(0,100)
     alpha1 <- 1/(2*sigma*sigma)
-    # prior prob for each grid cell (setting b[1:Gpts] = rep(1,Gpts) is a uniform prior across all cells)   
+    #Prior for each grid cell (set b[1:Gpts] = rep(1,Gpts) below so as to be a uniform prior across all cells)
     pi[1:Gpts] ~ ddirch(b[1:Gpts])
     
     for(l in 1:L){      # 4 size categories
-      #prior for intercept
+      #Prior for intercept
       p0V[l] ~ dunif(0,5)  # VIS
       p0T[l] ~ dunif(0,5)  # TRAP
         
-      # Posterior conditional distribution for N-n (and hence N):
-      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures by size category
-      Ngroup[l] <- ngroup[l] + n0[l]
+      #Prior for N
+      #Posterior conditional distribution for N-n (and hence N):
+      n0[l] ~ dnegbin(pstar[l],ngroup[l])  # number of failures to observe by project and size category
+      Ngroup[l] <- ngroup[l] + n0[l]       # number of animals observed + failures to observe by size category
     }
     
     N <- sum(Ngroup[1:L])  # successful observations plus failures to observe of each size = total N
     
-    #Probability of capture for integration grid points
-    #pdot = probability of being detected at least once (given location)
-    
     for(l in 1:L){  # size category
-      for(g in 1:Gpts){ # Gpts = number of points on integration grid
-        for(j in 1:J1){  # J1 = number of visual surveys
-          #Probability of an individual of size i being missed at grid cell g and survey location j multiplied by total effort (K) at that location
+      for(g in 1:Gpts){  # number of points on integration grid
+        for(j in 1:J1){  # number of survey points
+          #Probability of an individual of size i being missed at grid cell g and point j multiplied by total effort (K) at that location
           miss_allKV[l,g,j] <- pow((1 - p0V[l]*exp(-alpha1*GdistV[g,j]*GdistV[g,j])),K)  # prob missed by visual searches
         } #J1
-        for(j in 1:J2){  # J2 = number of traps
+        for(j in 1:J2){  # number of trapping points
           #Probability of an individual of size i being missed at grid cell g and trap j multiplied by total effort (K) at that trap
           miss_allKT[l,g,j] <- pow((1 - p0T[l]*exp(-alpha1*GdistT[g,j]*GdistT[g,j])),K)  # prob missed by trapping
         } #J2
-        pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,],miss_allKT[l,g,]) #Prob of detect each size category across entire study area and time period
-        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  #pdot.temp is very close to zero and will lock model up with out this
+        #Probability of detecting each size category across all points in the study area and time period
+        pdot.temp[l,g] <- 1 - prod(miss_allKV[l,g,],miss_allKT[l,g,])
+        pdot[l,g] <- max(pdot.temp[l,g], 1.0E-10)  # pdot.temp is very close to zero and will lock model up with out this
       } #G
-      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A #prob of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      #Probability of detecting a size category at least once in S (a=area of each integration grid, given as data)
+      pstar[l] <- (sum(pdot[l,1:Gpts]*a))/A
       
-      # Zero trick for initial 1/pstar^n
+      #Zero trick for initial 1/pstar^n, described in King et al. 2016
       loglikterm[l] <- -ngroup[l] * log(pstar[l])
       lambda[l] <- -loglikterm[l] + 10000
       dummy[l] ~ dpois(lambda[l]) # dummy = 0; entered as data
     } #L
     
-    for(i in 1:n){
-      ## For use when defining traps on a grid cell
+    for(i in 1:n){  # number of observed individuals for each project
+      #Define activity centers on a grid
       s[i] ~ dcat(pi[1:Gpts])
     }
     
-    for(i in 1:nV){  ## nV = number of individuals observed via visual surveys
-      # Model for capture histories of observed individuals from visual surveys:
-      for(j in 1:J1){  ## J = number of visual surveys
+    for(i in 1:nV){  # number of individuals observed via visual surveys
+      #Model for capture histories of observed individuals from visual surveys:
+      for(j in 1:J1){  # number of survey points
         yV[i,j] ~ dpois(pV[i,j]*K)
         pV[i,j] <- p0V[size[indV[i]]]*exp(-alpha1*GdistV[s[indV[i]],j]*GdistV[s[indV[i]],j])
       }#JV
-    }
+    }#I
     
-    for(i in 1:nT){  ## nV = number of individuals observed via visual surveys
-      # Model for capture histories of individuals from traps:
-      for(j in 1:J2){  ## J = number of traps
+    for(i in 1:nT){  # number of individuals observed via trapping surveys
+      #Model for capture histories of observed individuals from traps:
+      for(j in 1:J2){  # number of trapping points
         yT[i,j] ~ dpois(pT[i,j]*K)
         pT[i,j] <- p0T[size[indT[i]]]*exp(-alpha1*GdistT[s[indT[i]],j]*GdistT[s[indT[i]],j])
       }#JT
     }#I
     
-    #derived proportion in each size class
+    #Derived proportion of each size class
     for(l in 1:L){
       piGroup[l] <- Ngroup[l]/N
     }
@@ -424,31 +420,34 @@ for(i in 41:50){
   
   #######################################################
   
-  # MCMC settings
+  ## MCMC settings
   nc <- 5; nAdapt=1000; nb <- 10; ni <- 5000+nb; nt <- 1 
-  # nc <- 5; nAdapt=1000; nb <- 10; ni <- 10000+nb; nt <- 1 
   
+  ## When only a single method used
   if(nmeth == 1){
-    ## When only a single method used
-    # Data and constants
+    ## Data and constants
     jags.data <- list (y=y, Gpts=Gpts, Gdist=Gdist, J=J, A=A, K=K, a=a, n=nind, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
+    ## Initial values
     inits <- function(){
       list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0=runif(L,.001,.002))
     }
+    ## Parameters to save
     parameters <- c("p0","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
   }
   
+  ## When two methods used
   if(nmeth == 2){
-    ## When two methods used
-    # Data and constants
+    ## Data and constants
     jags.data <- list (yV=yV, yT=yT, Gpts=Gpts, GdistV=GdistV, GdistT=GdistT, J1=J1, J2=J2, A=A, K=K, a=a, n=nind, nV=nindV, nT=nindT, indV=indV, indT=indT, dummy=rep(0,L), b=rep(1,Gpts), size=snsz, L=L, ngroup=ngroup)
-    ## When two methods used
+    ## Initial values
     inits <- function(){
       list (sigma=runif(1,50,60), n0=(ngroup+100), s=vsst, p0V=runif(L,.001,.002), p0T=runif(L,.001,.002))
     }
+    ## Parameters to save
     parameters <- c("p0V","p0T","sigma","pstar","alpha1","N","n0","Ngroup","piGroup")
   }
   
+  ## JAGS model run
   out <- jags(paste("Simulations/Models/SCRpstarCATsizeCAT_Sim",type,".txt",sep=""), data=jags.data, inits=inits, parallel=TRUE, n.chains=nc, n.burnin=nb,n.adapt=nAdapt, n.iter=ni, parameters.to.save=parameters, factories = "base::Finite sampler FALSE")
   
   save(out, file=paste("Simulations/Results/RESULTS_",stype,type,N,dens,K,stde,i,".Rdata",sep=""))
