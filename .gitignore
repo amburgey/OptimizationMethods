@@ -16,6 +16,9 @@
 /Real\ Data\ Analysis/Visual\ surveys/Results/NWFNVISALL_SCRpstar.Rdata
 /Simulations/Results
 
+# Plotting individuals dataset analyses
+/Real\ Data\ Analysis/Scripts/PlottingFigures_RealData_original.R
+
 # Original file versions not used in this manuscript
 /Archive
 /Real\ Data\ Analysis/Data/Unused
