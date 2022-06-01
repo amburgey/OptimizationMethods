@@ -32,7 +32,7 @@ e2dist <- function(x, y) {
 #### FUNCTION TO CREATE INDIVIDUAL ACTIVITY CENTERS.----
 ## True snake activity centers (AC), pull new values for every simulation
 ActCent <- function(Gpts,N){
-  s <- sample(1:Gpts,N,replace=TRUE) #pull value from integration grid locations
+  s <- sample(1:Gpts,N,replace=TRUE) # pull value from integration grid locations
   
   return(s)
 }
@@ -61,37 +61,9 @@ ProbStay <- function(sigma, G, s, a){
   }
   PP <- do.call(bind, pp)
   
-  # #Visualize
-  # plot(PP)
-  # # plot(PP, xlim = c(152.4605,197.3189), ylim = c(210.1056,229.1364))  #close up view
-  # plot(B, add=TRUE, pch=21, col="red", cex=0.5)
-  # points(X, pch=18, col="orange")               #add locations of survey points
-  # points(locAC, pch=16, col="black")            #add locations of ACs
-  # #Plot home range around each AC (study area is 50,000m2 so home ranges are fairly small)
-  # for(i in 1:nrow(locAC)){
-  #   symbols(x=locAC[i,1], y=locAC[i,2], add=TRUE, inches = FALSE, circles = radius)
-  # }
-  #The only snakes that will ever leave are those with their home ranges right on the edge of the study area (the home range size is never large enough to cross the barrier from farther away)
-  #Find individuals whose home ranges are outside the barrier based on centroid locations being right along the edge of the study area
+  #The only snakes that will ever leave are those with their home ranges on the edge of the study area (the home range size is never large enough to cross the barrier from farther away)
+  #Find individuals whose home ranges are outside the barrier based on centroid locations being along the edge of the study area
   circHalf <- as.numeric(row.names(subset(as.data.frame(locAC), Ylocs == G[1,2] | Ylocs == G[528,2] | Xlocs == G[1,1] | Xlocs == G[528,1])))
-  # for(i in 1:length(circHalf)){
-  #   symbols(x=locAC[circHalf[i],1], y=locAC[circHalf[i],2], add=TRUE, bg="#aaf0d1", inches = FALSE, circles = radius)
-  # }
-  #Centroids of grid cells on the edge
-  # abline(v = G[1,1])
-  # abline(v = G[528,1])
-  # abline(h = G[1,2])
-  # abline(h = G[528,2])
-  #Anchor points of grid cells
-  # plot(pp[[1]], add=TRUE, col="red")
-  # plot(pp[[22]], add=TRUE, col="red")
-  # plot(pp[[507]], add=TRUE, col="red")
-  # plot(pp[[528]], add=TRUE, col="red")
-  #XY coordinates of farthest points of study area
-  # points(extent(pp[[1]])[1],extent(pp[[1]])[3], col="blue", cex=3, pch=21)
-  # points(extent(pp[[22]])[2],extent(pp[[22]])[3], col="blue", cex=3, pch=21)
-  # points(extent(pp[[507]])[1],extent(pp[[507]])[4], col="blue", cex=3, pch=21)
-  # points(extent(pp[[528]])[2],extent(pp[[528]])[4], col="blue", cex=3, pch=21)
   
   #### PROBABILITY OF SNAKE LEAVING STUDY AREA.----
   #Find intersection with home ranges and boundaries of CP
@@ -173,12 +145,12 @@ ProbStay <- function(sigma, G, s, a){
 
 #### FUNCTION TO CREATE COMBINED SIGMA AND SIMULATE OBSERVATIONS DEPENDING ON THE METHOD SELECTED.----
 
-createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
+createData <- function(){
   
   ## CREATE COMBINED SIGMA FROM MODEL RESULTS FROM VIS AND TRAP ANALYSIS
   
   #### VISUAL SURVEY REAL DATA RESULTS ####
-  load("Visual surveys/Results/NWFNVISALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")  # unified analysis of all datasets
+  load("Real Data Analysis/Visual surveys/Results/NWFNVISALL_SCRpstar.Rdata")  # unified analysis of all datasets
   
   ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
   mcmc.object <- as.mcmc.list(out$samples[[1]])
@@ -201,15 +173,9 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
     sd = apply(postV, 2, function(x) sd(x)))
   post_sumV$variable <- row.names(post_sumV)
   
-  ## Traceplots
-  # all_parsV <- colnames(postV)
-  # coda::traceplot(outALLV[,all_parsV[which(grepl('sigma', all_parsV))]])
-  # coda::traceplot(outALLV[,all_parsV[which(grepl('N', all_parsV))]])
-  # coda::traceplot(outALLV)
-  
   
   #### TRAPPING SURVEY REAL DATA RESULTS.----
-  load("Trapping/Results/NWFNTRAPALL_SCRpstarvisCATsizeCATdpois10GRIDnovsstALL.Rdata")
+  load("Real Data Analysis/Trapping/Results/NWFNTRAPALL_SCRpstar.Rdata")
   
   ## Truncate posterior in order to have longer burn-in, have to do separately for each chain and then recombine to single posterior for parameters of interest
   mcmc.object <- as.mcmc.list(out$samples[[1]])
@@ -232,47 +198,6 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
     sd = apply(postT, 2, function(x) sd(x)))
   post_sumT$variable <- row.names(post_sumT)
   
-  ## Traceplots
-  # all_parsT <- colnames(postT)
-  # coda::traceplot(outALLT[,all_parsT[which(grepl('sigma', all_parsT))]])
-  # coda::traceplot(outALLT[,all_parsT[which(grepl('N', all_parsT))]])
-  # coda::traceplot(outALLT)
-  
-  
-  ## Quick plot to compare encounter probabilities of different snake categories
-  # 
-  # png(file="Visual Surveys/Results/VISencounter.png",width=10,height=7,units="in",res=600)
-  # hist(postV[,1], col = alpha("#451A00",0.4), breaks = 25, 
-  #      xlim = c(0.0005,0.0055), ylim = c(0,5800), xlab = "Encounter Probability", ylab = "Frequency",
-  #      main = NULL)
-  # hist(postV[,2], col = alpha("#A66A2E",0.4), add = TRUE, breaks = 25)
-  # hist(postV[,3], col = alpha("#C48A47",0.4), add = TRUE, breaks = 25)
-  # hist(postV[,4], col = alpha("#F0C648",0.4), add = TRUE, breaks = 25)
-  # text(0.003, 4300, expression("< 850"))
-  # text(0.0042, 2900, expression("850-950"))
-  # text(0.0036, 3800, expression("950-1150"))
-  # text(0.0024, 2900, expression("> 1150"))
-  # segments(0.0042, 2700, 0.0037, 2000,
-  #          col = "black", lty = 1, lwd = 1)
-  # segments(0.0024, 2700, 0.0026, 2000,
-  #          col = "black", lty = 1, lwd = 1)
-  # dev.off()
-  # 
-  # png(file="Trapping/Results/TRAPencounter.png",width=10,height=7,units="in",res=600)
-  # hist(postT[,1], col = alpha("#26580F",0.4), breaks = 25, 
-  #      xlim = c(0.0005,0.0055), ylim = c(0,5800), xlab = "Encounter Probability", ylab = "Frequency",
-  #      main = NULL)
-  # hist(postT[,2], col = alpha("#378805",0.4), add = TRUE, breaks = 25)
-  # hist(postT[,3], col = alpha("#86DC3D",0.4), add = TRUE, breaks = 25)
-  # hist(postT[,4], col = alpha("#C5E90B",0.4), add = TRUE, breaks = 25)
-  # text(0.0016, 5000, expression("< 850"))
-  # text(0.0026, 3500, expression("850-950"))
-  # text(0.004, 3100, expression("950-1150"))
-  # text(0.0045, 3900, expression("> 1150"))
-  # dev.off()
-  
-  
-  
   
   #### CREATE JOINT DISTRIBUTION FOR SIGMA.----
   d1 <- rnorm(1000000, subset(post_sumV,variable=="sigma")$mean, subset(post_sumV,variable=="sigma")$sd)
@@ -281,13 +206,6 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
   sigma_mu <- mean(alld)
   sigma_sd <- sd(alld)
   
-  ## Visualize separate and combined sigma distributions
-  # dfV <- as.data.frame((postV[,c("sigma")]));colnames(dfV) <- c("sigma")
-  # dfT <- as.data.frame(postT[,c("sigma")]);colnames(dfT) <- c("sigma")
-  # hist(rbind(dfV,dfT)$sigma)
-  # abline(v = c(mean(alld)), col="red", lwd=2)
-  # abline(v = c(mean(alld)-sd(alld), mean(alld)+sd(alld)), col="red", lwd=2, lty=2)
-  # hist(rnorm(1000,44.64,7.35))
   
   if(stype == "closed"){
   
@@ -445,12 +363,12 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         paramsim[z,6:9] <- p0T
       }
       
-      # # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
-      # for(z in 1:nsims){
-      #   for(k in 1:K){
-      #     ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
-      #   }
-      # }
+      # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
+      for(z in 1:nsims){
+        for(k in 1:K){
+          ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
+        }
+      }
         
       ## yTrueVIS and yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
       capturedV <- list()
@@ -579,6 +497,13 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         paramsim[z,2:5] <- p0T
       }
       
+      # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
+      for(z in 1:nsims){
+        for(k in 1:K){
+          ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
+        }
+      }
+      
       ## yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
       capturedT <- list()
       yarrT <- list()
@@ -652,12 +577,12 @@ createData <- function(){#type,stype,nsims,Ngroup,Nsnsz,Gpts,N,J,K
         paramsim[z,6:9] <- p0T
       }
       
-      # # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
-      # for(z in 1:nsims){
-      #   for(k in 1:K){
-      #     ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
-      #   }
-      # }
+      # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
+      for(z in 1:nsims){
+        for(k in 1:K){
+          ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
+        }
+      }
       
       
       ## yTrueVIS and yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
