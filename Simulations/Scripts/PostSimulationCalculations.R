@@ -1,4 +1,4 @@
-### Post simulation calculations
+### Post simulation calculations from simulation analyses
 ### Calculate RMSE, CV, coverage
 
 rm(list=ls())
@@ -66,7 +66,7 @@ type <- length(scen)
 
 #### Study area size.----
 
-A <- 52800
+A <- 52800   # from simulation file
 
 #### Function to find mode for continuous data.----
 
@@ -85,9 +85,6 @@ mode <- function(data) {
   v3<-s$y[3:n]
   ix<-1+which((v1<v2)&(v2>v3))
   
-  # lines(s$x,s$y,col="red")
-  # points(s$x[ix],s$y[ix],col="blue")
-  
   md <- s$x[which(s$y==max(s$y))] 
   
   md
@@ -103,8 +100,8 @@ listfiles <- list.files("D:/Results/")
 
 count <- 1  ## incremental key to store data in correct dataframe position
 
-for(t in 1:length(scen)){ #1:length(scen)
-  for(i in 1:nsims){ #1:nsims, length(list.files("D:/Results/", pattern = scen[t]))
+for(t in 1:length(scen)){
+  for(i in 1:nsims){
 
   if(file.exists(file.path(paste("D:/Results/RESULTS_",scen[t],i,".Rdata",sep=""))) == FALSE)
   {
@@ -141,8 +138,8 @@ for(t in 1:length(scen)){ #1:length(scen)
 
 
 #### Write individual results to file.----
-# write.csv(simSumm, file = "Simulations/Results/SimIndividualResults.csv")
-simSumm <- read.csv(file = "Simulations/Results/SimIndividualResults.csv")
+write.csv(simSumm, file = "Simulations/Results/SimIndividualResults.csv")  ## use first time to archive a version of the results
+simSumm <- read.csv(file = "Simulations/Results/SimIndividualResults.csv") ## use read.csv if need to return to calculations
 
 
 #### Calculate metrics.----
