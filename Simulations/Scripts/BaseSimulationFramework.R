@@ -47,7 +47,7 @@ K <- 14
 
 ## Question 5. How many snakes are there in the population?
 ## True number of snakes (normal [120] or low [60] density)
-N <- 60
+N <- 120
 
 ## Question 6. How many snakes are there per size category and are there more small or large snakes?
 ## 4 groups; <850, >=850 to <950, >=950 to <1150, >=1150
@@ -137,7 +137,7 @@ if(type == c("VISTRAP")){
 
 nsims <- 100
 ## Create and save datasets matching the previously specified scenarios
-set.seed(07192021)
+set.seed(07192021)  # R Version 4.1.0 run on PC
 createData()
 
 
