@@ -3,7 +3,7 @@
 rm(list=ls())
 
 ## Required libraries
-library(jagsUI);library(secr);library(ggspatial);library(patchwork);library(ggplot2)
+library(jagsUI);library(secr);library(patchwork);library(ggplot2)
 ## Functions for simulating data
 source("Simulations/Scripts/FunctionsForSimulation_ClosedAndOneWayBarrier.R")
 
