@@ -1,4 +1,4 @@
-### Plotting monitoring scenarios by cost
+### Plotting root mean square error (RMSE) of each monitoring scenario by the cost of conducting it
 ### Highlighting Pareto frontier where a scenario results in a gain in the monitoring objective (i.e., reducing RMSE of abundance) with no gain or a reduction in cost
 
 rm(list=ls())
