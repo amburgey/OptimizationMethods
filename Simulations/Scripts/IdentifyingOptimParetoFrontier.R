@@ -1,90 +1,101 @@
 ### Plotting root mean square error (RMSE) of each monitoring scenario by the cost of conducting it
-### Highlighting Pareto frontier where a scenario results in a gain in the monitoring objective (i.e., reducing RMSE of abundance) with no gain or a reduction in cost
+### Highlighting the Pareto frontier where a scenario results in a gain on the monitoring objective (i.e., reducing RMSE of abundance) with a reduction or no change in cost
+### Density of transect sampling can be full (all transects) or half when using a single method (VIS or TRAP) or half and half or third and third when using combined methods (VISTRAP) 
 
 rm(list=ls())
 
 library(ggplot2);library(tidyverse);library(dplyr);library(ggrepel);library(patchwork)
 
 
-#### Costs of scenarios.----
+#### COSTS OF SCENARIOS.----
 
-cost <- read_csv('Simulations/simDat/AlternateScenarioCosts.csv')
+cost <- read_csv('Simulations/simDat/AlternateScenarioCosts.csv')  # ignoring warning about duplicated column names
 
-### Measures of performance in achieving monitoring objective.----
+
+### METRICS OF PERFORMANCE (E.G., RMSE).----
 
 perf <- read_csv('Simulations/Results/SimResultsSummary.csv')[,-1]
 
-#### Plot initial/start-up cost comparison.----
+
+#### CREATE DATAFRAME OF STARTUP COSTS.----
 
 lvls <- c("VIS", "TRAP Full","TRAP Half","VISTRAP Half","VISTRAP Third")
 
 startup <- cost %>%
   dplyr::select("TotalStart","Scenario") %>%
   distinct() %>%
-  add_row(TotalStart = c("$2,000"), Scenario = c("VIS")) %>%
-  add_row(TotalStart = c("$18,900"), Scenario = c("VISTRAP Half")) %>%  ## create combined method cost
-  add_row(TotalStart = c("$13,700"), Scenario = c("VISTRAP Third")) %>%  ## create combined method cost
-  slice(-c(1,3,5:8),) %>%  # remove separate costs of combined method scenarios
-  mutate(Code2 = factor(Scenario, levels = lvls)) %>%  #reorder levels
-  mutate(Type = c("TRAP","TRAP","VIS","VISTRAP","VISTRAP")) %>%
-  mutate(Cost = gsub(",","",TotalStart)) %>%
-  mutate(Cost = as.numeric(gsub("\\$","",Cost)))
+  add_row(TotalStart = c("$2,000"), Scenario = c("VIS")) %>%             # visual surveys don't change in base startup cost as equipment is the same
+  add_row(TotalStart = c("$18,900"), Scenario = c("VISTRAP Half")) %>%   # create combined method startup cost as increased number of traps changes the cost
+  add_row(TotalStart = c("$13,700"), Scenario = c("VISTRAP Third")) %>%  # create combined method startup cost as increased number of traps changes the cost
+  slice(-c(1,3,5:8),) %>%                                                # remove separated costs of combined method scenarios to just retain the combined cost
+  mutate(Code2 = factor(Scenario, levels = lvls)) %>%                    # reorder levels
+  mutate(Type = c("TRAP","TRAP","VIS","VISTRAP","VISTRAP")) %>%          # type of sampling scenario
+  mutate(Cost = gsub(",","",TotalStart)) %>%                             # remove comma from cost
+  mutate(Cost = as.numeric(gsub("\\$","",Cost)))                         # remove dollar sign from cost
   
-
-
+## Basic plot to see different costs in comparison
 startplot <- ggplot(startup, aes(x = Scenario, y = Cost, fill = Type)) +
   geom_point(shape = 21, cex = 4) +
   ylab("Startup Cost") + xlab("Monitoring Scenario") +
   scale_fill_manual(values = c("#799D31","#B77A29","#FDEC9E"), breaks = c("TRAP","VIS","VISTRAP"))
 
-#### Combine performance and cost datasets to figure out value for estimate achieved.----
 
+#### CREATE DATAFRAME OF RECURRING COSTS.----
+
+# Recurring costs based on monitoring scenario
 recur <- cost %>%
   dplyr::select("TotalRun","Scenario","Nights") %>%
-  filter(Nights != 60) %>%  #not including 60 days anymore
-  drop_na(TotalRun) %>%
-  mutate(Type = ifelse(grepl("VIS Half +|VIS Third +", Scenario),"VISTRAP",
+  filter(Nights != 60) %>%                                                            # not including 60 days anymore
+  drop_na(TotalRun) %>%                                                               # remove separated costs of combined method scenarios to just retain the combined cost
+  mutate(Type = ifelse(grepl("VIS Half +|VIS Third +", Scenario),"VISTRAP",           # rename scenarios to properly combine scenario names
                        ifelse(grepl("VIS ", Scenario),"VIS",
                               ifelse(grepl("TRAP ", Scenario),"TRAP","9999")))) %>%
-  mutate(Code = paste(Scenario,Nights,sep=".")) %>%
-  mutate(Code = str_replace(Code, "VIS Half [+]", "VISTRAP Half")) %>%
-  mutate(Code = str_replace(Code, "VIS Third [+]", "VISTRAP Third"))
+  mutate(Code = paste(Scenario,Nights,sep=".")) %>%                                   # create code to describe method, number of transects, and number of days
+  mutate(Code = str_replace(Code, "VIS Half [+]", "VISTRAP Half")) %>%                # rename scenarios to properly combine scenario names
+  mutate(Code = str_replace(Code, "VIS Third [+]", "VISTRAP Third"))                  # rename scenarios to properly combine scenario names
+
+
+#### SHAPE PERFORMANCE DATAFRAME FOR PLOTTING.----
 
 perf <- perf %>%
-  mutate(Type = ifelse(grepl("VISTRAP", Sim),"VISTRAP ",
+  mutate(Type = ifelse(grepl("VISTRAP", Sim),"VISTRAP ",                     # separate out method from simulation name
                        ifelse(grepl("TRAP",Sim),"TRAP ","VIS "))) %>%
-  mutate(Sched = ifelse(grepl("full", Sim),"Full.",
+  mutate(Sched = ifelse(grepl("full", Sim),"Full.",                          # separate out number of transects from simulation name
                        ifelse(grepl("half",Sim),"Half.","Third."))) %>%
-  mutate(Nights = ifelse(grepl("l60|e60", Sim),"60",
+  mutate(Nights = ifelse(grepl("l60|e60", Sim),"60",                         # separate out number of days from simulation name
                          ifelse(grepl("l30|e30",Sim),"30","14"))) %>%
-  mutate(Code = paste(Type,Sched,Nights,sep="")) %>%
-  mutate(Code2 = paste(Type,gsub("\\.","",Sched),sep="")) %>%
-  mutate(Code2 = ifelse(grepl("VIS Full",Code2),"VIS",
-                        ifelse(grepl("VIS Half",Code2),"VIS",Code2)))
+  mutate(Code = paste(Type,Sched,Nights,sep="")) %>%                         # create code to describe method, number of transects, and number of days
+  mutate(Code2 = paste(Type,gsub("\\.","",Sched),sep="")) %>%                # separate out method and transects for plotting
+  mutate(Code2 = ifelse(grepl("VIS Full",Code2),"VIS",                       # separate out method and transects for plotting
+                        ifelse(grepl("VIS Half",Code2),"VIS",Code2)))        # get method without space for plotting
 
+
+#### COMBINE PERFORMANCE METRIC (E.G., RMSE) AND COST.----
+
+## Combine performance and cost by Code
 perfcost <- inner_join(recur, perf, by = "Code")
+## Mutate dataframe for plotting
 perfcost2 <- perfcost %>%
-  mutate(Cost = gsub(",","",TotalRun)) %>%
-  mutate(Cost = as.numeric(gsub("\\$","",Cost))) %>%
-  mutate(TypeALL = ifelse(grepl("closedTRAP",Sim),"closedTRAP",
+  mutate(Cost = gsub(",","",TotalRun)) %>%                                   # remove comma from cost
+  mutate(Cost = as.numeric(gsub("\\$","",Cost))) %>%                         # remove dollar sign from cost
+  mutate(TypeALL = ifelse(grepl("closedTRAP",Sim),"closedTRAP",              # separate out method and barrier from simulation name
                                 ifelse(grepl("onewayTRAP",Sim),"onewayTRAP",
                                     ifelse(grepl("closedVISTRAP",Sim),"closedVISTRAP",
                                         ifelse(grepl("onewayVISTRAP",Sim),"onewayVISTRAP",
                                                ifelse(grepl("closedVIS",Sim),"closedVIS","onewayVIS")))))) %>%
-  mutate(Truth = ifelse(grepl("120",Sim),"120","60")) %>%
-  mutate(Scenario = sub(".* ","",Code)) %>%
-  mutate(Size = ifelse(grepl("large",Sim),"large",
+  mutate(Truth = ifelse(grepl("120",Sim),"120","60")) %>%                    # separate out number of days from simulation name
+  mutate(Scenario = sub(".* ","",Code)) %>%                                  # get number of transects and days from simulation name
+  mutate(Size = ifelse(grepl("large",Sim),"large",                           # get size of snakes from simulation name
                           ifelse(grepl("small",Sim),"small",NA))) %>%
-  mutate(Days = ifelse(grepl("14",Sim),"14","30")) %>%
-  mutate(Space = ifelse(grepl("halfhalf",Sim),"halfhalf",
+  mutate(Days = ifelse(grepl("14",Sim),"14","30")) %>%                       # get number of days from simulation name
+  mutate(Space = ifelse(grepl("halfhalf",Sim),"halfhalf",                    # get transect sampling scheme from simulation name
                                ifelse(grepl("thirdthird",Sim),"thirdthird",
                                       ifelse(grepl("half",Sim),"half","full"))))
 
 
+#### PLOT START-UP COST SCENARIOS PLUS RECURRING COSTS AS COMPARED TO PERFORMANCE.----
 
-#### Plot start-up cost scenarios plus recurring costs as compared to performance.----
-
-## Combine start-up and recurring costs
+## Combine start-up and recurring costs to get full cost
 fullcost <- inner_join(startup, perfcost2, by = c("Code2"))
 fullcost <- fullcost %>%
   mutate(TotalCost = Cost.x + fullcost$Cost.y)
@@ -180,7 +191,7 @@ pareto60NONE <- ggplot(subset(fullcost, Truth == 60), aes(x = (TotalCost-Cost.x)
 pareto60NONE
 
 
-## Sacrifical plot for legend
+## Sacrificial plot for complex legend to edit outside of R
 paretoLEGEND <- ggplot(subset(fullcost, Truth == 60), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Scenario.y, size = as.factor(Size))) +
   geom_jitter(alpha = 1) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
@@ -191,33 +202,27 @@ paretoLEGEND <- ggplot(subset(fullcost, Truth == 60), aes(x = (TotalCost-Cost.x)
   guides(shape = guide_legend(override.aes = list(size=5)), fill = guide_legend(override.aes = list(size=5)))
 
 
+#### Create combined panel figures of normal and low density
 
-#### Create combined panel figure of normal and low density
-
+## Supplementary material
 png(file="Simulations/Figures/NormalLowDensityParetoNoStartUp.png",width=12,height=7,units="in",res=600)
 (pareto60NONE + pareto120NONE)
 dev.off()
 
+## Figure in main body
 png(file="Simulations/Figures/NormalLowDensityParetoHalfStartUp.png",width=12,height=7,units="in",res=600)
 (pareto60HALF + pareto120HALF)
 dev.off()
 
+## Supplementary material
 png(file="Simulations/Figures/NormalLowDensityParetoFullStartUp.png",width=12,height=7,units="in",res=600)
 (pareto60FULL + pareto120FULL)
 dev.off()
 
-## Manually place legend so able to better tweak/combine pieces
-# png(file="Simulations/Figures/LEGEND.png",width=12,height=7,units="in",res=600)
-# paretoLEGEND
-# dev.off()
-
-
-#### Create combined panel figure of normal and low density averaged across snake size ratios (large and small)
-
-png(file="Simulations/Figures/NormalLowDensityParetoHalfStartUpAvSize.png",width=12,height=7,units="in",res=600)
-(pareto60HALFAvSize + pareto120HALFAvSize)
+## Write legend and manually place legend so able to better tweak/combine pieces
+png(file="Simulations/Figures/LEGEND.png",width=12,height=7,units="in",res=600)
+paretoLEGEND
 dev.off()
-
 
 
 #### Plot start-up cost scenarios plus recurring costs with different panels for snake size (large and small).----
