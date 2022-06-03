@@ -78,5 +78,31 @@ Details of this work can be found in the published journal article on this topic
 Amburgey SA, Yackel Adams AA, Gardner B, Siers S, Converse SJ (in prep) Optimizing monitoring scenarios for an invasive predator. XXXX.
 
 ## How to Use This Repository
+To run analyses of real data:
+1. Go to Real Data Analysis folder
+2. Go to Trapping folder
+3. Go to Scripts folder
+4. Run SCRScriptAnalysisALLTRAPCP.R
+5. Repeat for Visual survey -> Scripts -> run SCRScriptAnalysisALLVISCP.R
 
+To make figures of results of real data analyses:
+1. Go to Real Data Analysis folder
+2. Go to Scripts folder
+3. Select and run plotting script
 
+To simulate data and analyze simulated datasets:
+1. Go to Simulations folder
+2. Go to Scripts folder
+3. Run BaseSimulationFramework.R with scenario specified (carefully read instructions in script)
+
+After simulating and analyzing datasets:
+1. Go to Simulations folder
+2. Go to Scripts folder
+3. Run CheckRhats.R to see which simulations need to be re-run or continue to fail
+4. Run PostSimulationCalculations.R to calculate performance metrics
+
+To plot results of simulations:
+1. Go to Simulations folder
+2. Go to Scripts folder
+3. Run IdentifyingOptimParetoFrontier.R to make figures of Pareto optimality
+4. Run PlottingSimulationStudyAreas.R to make figure of study areas
