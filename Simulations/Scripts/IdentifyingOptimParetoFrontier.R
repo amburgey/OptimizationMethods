@@ -4,7 +4,7 @@
 
 rm(list=ls())
 
-library(ggplot2);library(tidyverse);library(dplyr);library(ggrepel);library(patchwork)
+library(ggplot2);library(tidyverse);library(dplyr);library(patchwork)
 
 
 #### COSTS OF SCENARIOS.----
