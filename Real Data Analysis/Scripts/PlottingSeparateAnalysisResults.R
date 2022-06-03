@@ -1,10 +1,12 @@
-### Summarize results from the analysis of real datasets
-### Analyses from Closed Population (CP), maybe Habitat Management Unit (HMU), and others
+### Supplementary figure of sigma and abundance across projects
+### The purpose of this code is to summarize results from the separate analyses of real datasets
+### All analyses are from the Closed Population (CP)
 
 library(jagsUI);library(ggplot2);library(RColorBrewer);library(tidyverse);library(ggpubr);library(HDInterval)
 
 #### VISUAL SURVEYS ####
-## Dataset analyses below not archived on ScienceBase as used combined analysis for rest of manuscript
+## Dataset analyses below are NOT archived on ScienceBase as we used combined analysis for rest of manuscript
+## However, we include the code for how we created this plot
 mdlsVIS <- c("Real Data Analysis/Visual surveys/Results/Unused/NWFNVIS2_SCRpstar.Rdata",
           "Real Data Analysis/Visual surveys/Results/Unused/NWFNVISHL1_SCRpstar.Rdata",
           "Real Data Analysis/Visual surveys/Results/Unused/NWFNVISHL2_SCRpstar.Rdata",

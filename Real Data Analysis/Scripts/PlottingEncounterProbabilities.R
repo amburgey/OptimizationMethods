@@ -1,5 +1,5 @@
-## Quick plot to compare encounter probabilities of different snake size categories from real data analysis
 ## Supplementary figure of visual surveys (VIS) and trapping surveys (TRAP)
+## The purpose of this code is to create a quick plot to compare encounter probabilities of different snake size categories from real data analysis
 
 library(ggplot2); library(jagsUI); library(coda);library(runjags)
 

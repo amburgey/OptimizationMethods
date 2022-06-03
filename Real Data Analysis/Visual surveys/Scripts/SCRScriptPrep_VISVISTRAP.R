@@ -1,5 +1,6 @@
 ##### CP (Closed Pop, aka NWFN) is a 5-ha closed (fenced to entry and exit of snakes) study area
 ##### VISTRAP - 2015 project
+##### The purpose of this code is to prepare this dataset for spatial capture recapture analysis
 
 source("Real Data Analysis/Visual surveys/DataPrep/DataPrepCP_VISVISTRAP.R")      ## Functions to reshape survey and capture data
 

@@ -1,6 +1,8 @@
 #### Unified analysis of all closed populaton (CP, aka NWFN) datasets ####
-#### Visual survey datasets selected from overall database, formatted individually based on project-specific details, and formatted together for overall analysis
-#### Analysis based on semi-complete likelihood spatial capture-recapture framework described by King et al. (2016)
+#### The purpose of this code is to:
+## 1) Read in trapping survey datasets selected from overall database, formatted individually based on project-specific details
+## 2) Format all datasets together for overall analysis
+## 3) Analyze based on semi-complete likelihood spatial capture-recapture framework described by King et al. (2016)
 
 rm(list=ls())
 

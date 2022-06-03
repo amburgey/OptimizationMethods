@@ -1,6 +1,7 @@
-#### Nov 2, 2020; Code written by Staci Amburgey ####
-## Read in data (survey info and captures) from trapping surveys from numerous projects
-## Select what projects to use
+## The purpose of this code is to: 
+## 1) read in data (survey info and captures) from trapping surveys from numerous projects
+## 2) select what projects to use
+## 3) check capture and survey information and fix errors
 
 library(lubridate); library(dplyr)
 

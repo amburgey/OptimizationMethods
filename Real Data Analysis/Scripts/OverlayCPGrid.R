@@ -1,4 +1,5 @@
-## Code to specify grid locations for CP surveys
+## The purpose of this code is to specify grid locations for closed population (CP) surveys
+## Locations of traps are read in and rotated to match the correct spatial orientation of the real study area
 
 library(rgeos); library(maptools); library(spatialEco); library(raster); library(sf); library(reshape2)
 

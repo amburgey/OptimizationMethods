@@ -1,5 +1,6 @@
 ##### CP (Closed Pop, aka NWFN) is a 5-ha closed (fenced to entry and exit of snakes) study area
 ##### POST BT2 - 2010 project
+##### The purpose of this code is to prepare this dataset for spatial capture recapture analysis
 
 source("Real Data Analysis/Visual surveys/DataPrep/DataPrepCP_VISPOSTBT2.R")   ## Functions to reshape survey and capture data
 

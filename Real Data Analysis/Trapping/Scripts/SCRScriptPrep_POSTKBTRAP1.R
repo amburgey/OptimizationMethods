@@ -1,5 +1,6 @@
 ##### CP (Closed Pop, aka NWFN) is a 5-ha closed (fenced to entry and exit of snakes) study area
 ##### POSTKBTRAP1 - 2012 project
+##### The purpose of this code is to prepare this dataset for spatial capture recapture analysis
 
 source("Real Data Analysis/Trapping/DataPrep/DataPrepCP.R")    ## Functions to reshape survey and capture data
 

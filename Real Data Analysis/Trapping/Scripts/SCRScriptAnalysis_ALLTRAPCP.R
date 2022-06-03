@@ -1,6 +1,8 @@
 #### Unified analysis of all closed populaton (CP, aka NWFN) datasets ####
-#### Trapping survey datasets selected from overall database, formatted individually based on project-specific details, and formatted together for overall analysis
-#### Analysis based on semi-complete likelihood spatial capture-recapture framework described by King et al. (2016)
+#### The purpose of this code is to:
+## 1) Read in trapping survey datasets selected from overall database, formatted individually based on project-specific details
+## 2) Format all datasets together for overall analysis
+## 3) Analyze based on semi-complete likelihood spatial capture-recapture framework described by King et al. (2016)
 
 rm(list=ls())
 
@@ -10,7 +12,7 @@ memory.limit(5000000000)
 library(secr); library(jagsUI); library(abind)
 
 source("Real Data Analysis/Trapping/Scripts/Select&PrepTrapData.R")   ## Creation of subcap and subsurv (cleaned up trapping surveys from the overall combined database)
-source("Real Data Analysis/Scripts/OverlayCPGrid.R")                          ## Script to define spatial information of CP
+source("Real Data Analysis/Scripts/OverlayCPGrid.R")                  ## Script to define spatial information of CP
 
 projects <- c("Real Data Analysis/Trapping/Scripts/SCRScriptPrep_POSTBT2TRAP.R",
         "Real Data Analysis/Trapping/Scripts/SCRScriptPrep_TRAP2LINVIS.R",

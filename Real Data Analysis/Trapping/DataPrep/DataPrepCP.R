@@ -1,7 +1,7 @@
 ##### CP (Closed Pop, aka NWFN) is a 5-ha closed (fenced to entry and exit of snakes) study area
 
-## CP was created in 2004 and has been used in several projects, resulting in a rich time series with surveys occurring at various densities of snakes
-## Able to use the same data prep file for all trapping datasets as less variable than visual surveys
+## The purpose of this code is to read in, check, find snake sizes, and prepare each dataset for analysis
+## Able to use the same data prep file for almost all trapping datasets as less variable than visual surveys
 
 ## Subset down to captures needed for project:
 subSnk <- function(SITEcaps, type, info){
