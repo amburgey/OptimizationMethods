@@ -42,7 +42,35 @@ Folder structure is divided into files pertaining to the analysis of real data (
 * *simDat* - need to download cost model data file from ScienceBase, details in folder
 
 ## Required Packages and Versions Used
+All code run in R Version 4.1.0 and on a PC
 
+plyr_1.8.6
+lubridate_1.7.10
+dplyr_1.0.7
+stringr_1.4.0
+coda_0.19-4
+parallel_4.1.0
+runjags_2.2.0-3
+tidyverse_1.3.1
+tibble_3.1.2
+reshape2_1.4.4
+sf_1.0-1
+raster_3.4-13
+spatialEco_1.3-7
+maptools_1.1-1
+rgeos_0.5-5
+sp_1.4-5
+jagsUI_1.5.2
+secr_4.4.5
+ggplot2_3.3.5
+HDInterval_0.2.2
+ggpubr_0.4.0
+RColorBrewer_1.1-2
+forcats_0.5.1
+purrr_0.3.4
+scales_1.1.1
+readr_2.0.0
+patchwork_1.1.1
 
 ## Details of Article
 Details of this work can be found in the published journal article on this topic:
@@ -50,3 +78,5 @@ Details of this work can be found in the published journal article on this topic
 Amburgey SA, Yackel Adams AA, Gardner B, Siers S, Converse SJ (in prep) Optimizing monitoring scenarios for an invasive predator. XXXX.
 
 ## How to Use This Repository
+
+
