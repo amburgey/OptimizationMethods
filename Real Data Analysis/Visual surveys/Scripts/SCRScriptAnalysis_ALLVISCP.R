@@ -9,7 +9,7 @@ rm(list=ls())
 ## Adjust default memory limit so model won't fail if it surpasses it
 memory.limit(5000000000)
 
-library(secr); library(jagsUI); library(abind)
+library(secr); library(jagsUI)
 
 source("Real Data Analysis/Visual surveys/Scripts/Select&PrepVisualData.R")   ## Creation of subcap and subsurv (cleaned up visual surveys from the overall combined database)
 source("Real Data Analysis/Scripts/OverlayCPGrid.R")                          ## Script to define spatial information of CP
