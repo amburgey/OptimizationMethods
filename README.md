@@ -16,30 +16,30 @@ Snake size distribution (larger proportion of smaller- or larger-sized snakes)
 Folder structure is divided into files pertaining to the analysis of real data ("Real Data Analysis") and the simulation and analysis of alternate scenarios ("Simulations").
 
 ### Within Real Data Analysis:
-*Figures* - supplementary figures that show information for both visual and trapping survey
-*Scripts* - scripts for creating supplementary figures and study area specification for both visual and trapping surveys
-*Trapping* - all files specific to trapping surveys
+* *Figures* - supplementary figures that show information for both visual and trapping survey
+* *Scripts* - scripts for creating supplementary figures and study area specification for both visual and trapping surveys
+* *Trapping* - all files specific to trapping surveys
 + DataPrep - scripts to prepare individual project datasets for SCR analysis
 + Models - JAGS model script for trapping analysis
 + Results - need to be downloaded from ScienceBase, details in folder
 + Scripts - includes all scripts to pull data and check for errors (Select&PrepTrapData.R) and individual scripts for each file to format matrices for SCR analyses (SCRScriptPrep_projectname); the main file to focus on to run the analysis is **SCRScriptAnalysis_ALLTRAPCP.R**
-*Visual surveys* - all files specific to visual surveys
+* *Visual surveys* - all files specific to visual surveys
 + DataPrep - scripts to prepare individual project datasets for SCR analysis
 + Models - JAGS model script for visual survey analysis
 + Results - need to be downloaded from ScienceBase, details in folder
 + Scripts - includes all scripts to pull data and check for errors (Select&PrepVisualData.R) and individual scripts for each file to format matrices for SCR analyses (SCRScriptPrep_projectname); the main file to focus on to run the analysis is **SCRScriptAnalysis_ALLVISCP.R**
 
 ### Within Simulations:
-*Figures* - figures showing simulation transect designs and Pareto optimality for full, half, and no startup cost scenarios
-*Models* - JAGS model script for visual, trapping, and visual + trapping combined survey analyses
-*Scripts* - includes all scripts for simulating, checking, and plotting
+* *Figures* - figures showing simulation transect designs and Pareto optimality for full, half, and no startup cost scenarios
+* *Models* - JAGS model script for visual, trapping, and visual + trapping combined survey analyses
+* *Scripts* - includes all scripts for simulating, checking, and plotting
 + BaseSimulationFramework.R - main script for specifying a monitoring scenario to simulate and analyze
 + CheckRhats.R - script to check for failed (Rhat > 1.1) simulations after analysis
 + FunctionsForSimulation_ClosedAndOneWayBarrier.R - functions used in BaseSimulationFramework
 + IdentifyingOptimParetoFrontier.R - script for highlighting Pareto efficient scenarios and plotting 4 panel figures for manuscript and supplementary material
 + PlottingSimulationStudyAreas.R - script for making figure of simulation transect designs
 + PostSimulationCalculations.R - script for calculating performance metrics (e.g., root mean square error) of all scenarios
-*simDat* - need to download cost model data file from ScienceBase, details in folder
+* *simDat* - need to download cost model data file from ScienceBase, details in folder
 
 ## Required Packages and Versions Used
 
