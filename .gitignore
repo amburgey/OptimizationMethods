@@ -11,7 +11,7 @@
 /Real\ Data\ Analysis/Trapping/Results/NWFNTRAPALL_SCRpstar.Rdata
 /Real\ Data\ Analysis/Visual\ surveys/Results/NWFNVISALL_SCRpstar.Rdata
 /Simulations/Results
-/Simulations/simDat
+/Simulations/simDat/AlternateScenarioCosts.csv
 
 # Plotting individuals dataset analyses
 /Real\ Data\ Analysis/Scripts/PlottingFigures_RealData_original.R
