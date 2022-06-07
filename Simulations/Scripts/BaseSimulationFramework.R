@@ -138,8 +138,8 @@ if(type == c("VISTRAP")){
 nsims <- 100
 ## Create and save datasets matching the previously specified scenarios
 set.seed(07192021)  # R Version 4.1.0 run on PC
-createData()
-
+createData() # warning will occur if snake never close enough to cross barrier in oneway simulations - ignore and see FunctionsForSimulation file for more information on how this is handled
+## if you get "There were 50 or more warnings (use warnings() to see the first 50)" then tried specifying size using code for 120 snakes vs. 60 snakes - see Question 6 above
 
 #### READ IN DATA AND ANALYZE.----
 
