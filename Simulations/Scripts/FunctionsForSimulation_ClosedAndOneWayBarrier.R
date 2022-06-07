@@ -497,13 +497,6 @@ createData <- function(){
         paramsim[z,2:5] <- p0T
       }
       
-      # CHECK TO MAKE SURE NO OCCASION HAS A SNAKE TRAPPED AND VISUALLY SEEN
-      for(z in 1:nsims){
-        for(k in 1:K){
-          ifelse(any((rowSums(yTrueTRAP[,,k,z]) & rowSums(yTrueVIS[,,k,z])) == TRUE) == TRUE , print("oh no"), print("we good"))
-        }
-      }
-      
       ## yTrueTRAP includes a row for every snake even if that snake was never observed. We need to remove these snakes to mimic real data.
       capturedT <- list()
       yarrT <- list()
