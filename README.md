@@ -16,14 +16,17 @@ Snake size distribution (larger proportion of smaller- or larger-sized snakes)
 Folder structure is divided into files pertaining to the analysis of real data ("Real Data Analysis") and the simulation and analysis of alternate scenarios ("Simulations").
 
 ### Within Real Data Analysis:
+* *Data* - need to be downloaded from ScienceBase, details in folder
 * *Figures* - supplementary figures that show information for both visual and trapping survey
 * *Scripts* - scripts for creating supplementary figures and study area specification for both visual and trapping surveys
 * *Trapping* - all files specific to trapping surveys
+  + Data - need to be downloaded from ScienceBase, details in folder
   + DataPrep - scripts to prepare individual project datasets for SCR analysis
   + Models - JAGS model script for trapping analysis
   + Results - need to be downloaded from ScienceBase, details in folder
   + Scripts - includes all scripts to pull data and check for errors (Select&PrepTrapData.R) and individual scripts for each file to format matrices for SCR analyses (SCRScriptPrep_projectname); the main file to focus on to run the analysis is **SCRScriptAnalysis_ALLTRAPCP.R**
 * *Visual surveys* - all files specific to visual surveys
+  + Data - need to be downloaded from ScienceBase, details in folder
   + DataPrep - scripts to prepare individual project datasets for SCR analysis
   + Models - JAGS model script for visual survey analysis
   + Results - need to be downloaded from ScienceBase, details in folder
