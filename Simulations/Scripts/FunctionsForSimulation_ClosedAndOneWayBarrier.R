@@ -1,5 +1,6 @@
 #### FUNCTIONS TO SIMULATE DATA FOR BROWN TREESNAKE MONITORING OPTIMIZATION ####
 ## These functions are used in BaseSimulationFramework.R and create and calculate information needed to run alternate monitoring scenarios
+## Study area from which real datasets were collected was the Closed Population (CP) on Guam
 
 library(coda);library(runjags);library(sp);library(rgeos);library(raster);library(scales)
 
