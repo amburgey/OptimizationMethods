@@ -20,7 +20,7 @@ Folder structure is divided into files pertaining to the analysis of real data (
 * *Figures* - supplementary figures that show information for both visual and trapping survey
 * *Scripts* - scripts for creating supplementary figures and study area specification for both visual and trapping surveys
 * *Trapping* - all files specific to trapping surveys
-  + Data - need to be downloaded from ScienceBase, details in folder
+  + Data - study area kml file for specifying spatial dimensions
   + DataPrep - scripts to prepare individual project datasets for SCR analysis
   + Models - JAGS model script for trapping analysis
   + Results - need to be downloaded from ScienceBase, details in folder
