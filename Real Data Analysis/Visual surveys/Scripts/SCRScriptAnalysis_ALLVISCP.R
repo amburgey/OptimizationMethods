@@ -1,4 +1,4 @@
-#### Unified analysis of all closed populaton (CP, aka NWFN) datasets ####
+#### Unified analysis of all closed population (CP, aka NWFN) datasets ####
 #### The purpose of this code is to:
 ## 1) Read in trapping survey datasets selected from overall database, formatted individually based on project-specific details
 ## 2) Format all datasets together for overall analysis
