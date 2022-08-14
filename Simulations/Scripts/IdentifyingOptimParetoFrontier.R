@@ -90,7 +90,8 @@ perfcost2 <- perfcost %>%
   mutate(Days = ifelse(grepl("14",Sim),"14","30")) %>%                       # get number of days from simulation name
   mutate(Space = ifelse(grepl("halfhalf",Sim),"halfhalf",                    # get transect sampling scheme from simulation name
                                ifelse(grepl("thirdthird",Sim),"thirdthird",
-                                      ifelse(grepl("half",Sim),"half","full"))))
+                                      ifelse(grepl("half",Sim),"half","full")))) %>%
+  mutate(Barrier = ifelse(grepl("closed",Sim),"Closed", "Open"))             # get type of barrier from simulation name
 
 
 #### CALCULATE FULL COST (STARTUP PLUS RECURRING COSTS).----
@@ -123,25 +124,26 @@ getPareto <- function(x,y){
 
 
 ## Scenario: Half start-up costs (aka, some equipment/replacements needed) plus recurring costs
+## State: Closed barrier fence (snakes cannot enter or exit)
 ## Root Mean Square Error (RMSE) - square root of the mean of the square of all error, lower value indicates more accuracy
 
 
-## PANEL ONE. LOW DENSITY (60), SMALL SNAKES
-lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL ONE. LOW DENSITY (60), SMALL SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
 lowdenssmall$TotalCost <- (lowdenssmall$TotalCost-(lowdenssmall$Cost.x/2))/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = lowdenssmall$TotalCost, y = lowdenssmall$RMSE)
 #Subset to names of Sim on frontier
-pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small"))[numSim[!is.na(numSim)],c("Sim")]
+pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 60 & Size == c("small") & Sim %in% pflowsmall[[1]]) %>%
+  filter(Truth == 60 & Size == c("small")  & Barrier == c("Closed") & Sim %in% pflowsmall[[1]]) %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60HALFsmall <- ggplot(subset(fullcost, Truth == 60 & Size == c("small")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto60HALFsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
@@ -153,33 +155,33 @@ pareto60HALFsmall <- ggplot(subset(fullcost, Truth == 60 & Size == c("small")), 
   xlim(15,75) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 54, xmax = 73, ymin = 160, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. closedVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedTRAP30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedVISTRAP30halfhalf", size = 2.5, hjust = 0)
-pareto60HALFsmall
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+pareto60HALFsmallclosed
 
 
-## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES
-normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
 normdenssmall$TotalCost <- (normdenssmall$TotalCost-(normdenssmall$Cost.x/2))/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = normdenssmall$TotalCost, y = normdenssmall$RMSE)
 #Subset to names of simulations on the frontier
-pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small"))[numSim[!is.na(numSim)],c("Sim")]
+pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 120 & Size == c("small") & Sim %in% pfnormsmall[[1]]) %>%
+  filter(Truth == 120 & Size == c("small") & Barrier == c("Closed") & Sim %in% pfnormsmall[[1]]) %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120HALFsmall <- ggplot(subset(fullcost, Truth == 120 & Size == c("small")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto120HALFsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
   scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
@@ -189,35 +191,36 @@ pareto120HALFsmall <- ggplot(subset(fullcost, Truth == 120 & Size == c("small"))
   ylim(0,(max(fullcost$RMSE)+5)) +
   xlim(15,75) +
   ## Pareto efficient actions identified above
-  annotate("rect", xmin = 54, xmax = 73, ymin = 140, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. onewayVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedTRAP30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedTRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedVISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. closedVIS30full", size = 2.5, hjust = 0)
-pareto120HALFsmall
+  annotate("rect", xmin = 54, xmax = 73, ymin = 120, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+pareto120HALFsmallclosed
 
 
-## PANEL THREE. LOW DENSITY (60), LARGE SNAKES
-lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL THREE. LOW DENSITY (60), LARGE SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
 lowdenslarge$TotalCost <- (lowdenslarge$TotalCost-(lowdenslarge$Cost.x/2))/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = lowdenslarge$TotalCost, y = lowdenslarge$RMSE)
 #Subset to names of Sim on frontier
-pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large"))[numSim[!is.na(numSim)],c("Sim")]
+pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 60 & Size == c("large") & Sim %in% pflowlarge[[1]]) %>%
+  filter(Truth == 60 & Size == c("large") & Barrier == c("Closed") & Sim %in% pflowlarge[[1]]) %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60HALFlarge <- ggplot(subset(fullcost, Truth == 60 & Size == c("large")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto60HALFlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
@@ -229,32 +232,32 @@ pareto60HALFlarge <- ggplot(subset(fullcost, Truth == 60 & Size == c("large")), 
   xlim(15,75) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 54, xmax = 73, ymin = 180, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. closedVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedTRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVISTRAP30halfhalf", size = 2.5, hjust = 0)
-pareto60HALFlarge
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+pareto60HALFlargeclosed
 
 
-## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES
-normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
 normdenslarge$TotalCost <- (normdenslarge$TotalCost-(normdenslarge$Cost.x/2))/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = normdenslarge$TotalCost, y = normdenslarge$RMSE)
 #Subset to names of Sim on frontier
-pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large"))[numSim[!is.na(numSim)],c("Sim")]
+pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 120 & Size == c("large") & Sim %in% pfnormlarge[[1]]) %>%
+  filter(Truth == 120 & Size == c("large") & Barrier == c("Closed") & Sim %in% pfnormlarge[[1]]) %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120HALFlarge <- ggplot(subset(fullcost, Truth == 120 & Size == c("large")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto120HALFlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
@@ -266,23 +269,23 @@ pareto120HALFlarge <- ggplot(subset(fullcost, Truth == 120 & Size == c("large"))
   xlim(15,75) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 54, xmax = 73, ymin = 120, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. onewayVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedTRAP30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedTRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. closedVISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. closedVIS30full", size = 2.5, hjust = 0)
-pareto120HALFlarge
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VIS120full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+pareto120HALFlargeclosed
 
 ## Create plot for legend to better tweak/combine pieces manually outside of R
 
-paretoLEGEND <- ggplot(subset(fullcost, Truth == 120 & Size == c("small")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+paretoLEGEND <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_jitter(width = 0.5, height = 1)) + 
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -295,8 +298,8 @@ paretoLEGEND <- ggplot(subset(fullcost, Truth == 120 & Size == c("small")), aes(
 
 ## Numeric labels and arrows of individual Pareto frontier points done manually outside R to prevent overlap
 
-png(file="Simulations/Figures/NormalLowDensityParetoHalfStartUpSmallLarge.png",width=12,height=9,units="in",res=600)
-((pareto60HALFsmall + pareto120HALFsmall) / (pareto60HALFlarge + pareto120HALFlarge))
+png(file="Simulations/Figures/NormalLowDensityParetoHalfStartUpSmallLargeCLOSED.png",width=12,height=9,units="in",res=600)
+((pareto60HALFsmallclosed + pareto120HALFsmallclosed) / (pareto60HALFlargeclosed + pareto120HALFlargeclosed))
 dev.off()
 
 #### WRITE PLOT TO PNG FIGURE IN ORDER TO HARVEST COMBINED LEGEND AND MANUALLY COMBINE.----
@@ -307,28 +310,195 @@ dev.off()
 
 
 
-#### APPENDIX - NO STARTUP.----
-
-## Scenario: No start-up costs (aka, all equipment already purchased) plus recurring costs
+## Scenario: Half start-up costs (aka, some equipment/replacements needed) plus recurring costs
+## State: Open barrier fence (snakes cannot enter but can exit)
 ## Root Mean Square Error (RMSE) - square root of the mean of the square of all error, lower value indicates more accuracy
 
 
-## PANEL ONE. LOW DENSITY (60), SMALL SNAKES
-lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL ONE. LOW DENSITY (60), SMALL SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
+lowdenssmall$TotalCost <- (lowdenssmall$TotalCost-(lowdenssmall$Cost.x/2))/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = lowdenssmall$TotalCost, y = lowdenssmall$RMSE)
+#Subset to names of Sim on frontier
+pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 60 & Size == c("small")  & Barrier == c("Open") & Sim %in% pflowsmall[[1]]) %>%
+  arrange((TotalCost-(Cost.x/2))/1000) %>%
+  mutate(Num = 1:length(pflowsmall[[1]]))
+
+pareto60HALFsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  ylab("Root Mean Square Error") +
+  theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Low density (60) and majority small snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 73, ymin = 140, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VIS30full", size = 2.5, hjust = 0)
+pareto60HALFsmallopen
+
+
+## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
+normdenssmall$TotalCost <- (normdenssmall$TotalCost-(normdenssmall$Cost.x/2))/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = normdenssmall$TotalCost, y = normdenssmall$RMSE)
+#Subset to names of simulations on the frontier
+pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 120 & Size == c("small") & Barrier == c("Open") & Sim %in% pfnormsmall[[1]]) %>%
+  arrange((TotalCost-(Cost.x/2))/1000) %>%
+  mutate(Num = 1:length(pfnormsmall[[1]]))
+
+pareto120HALFsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Normal density (120) and majority small snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 73, ymin = 160, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VIS30full", size = 2.5, hjust = 0)
+pareto120HALFsmallopen
+
+
+## PANEL THREE. LOW DENSITY (60), LARGE SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
+lowdenslarge$TotalCost <- (lowdenslarge$TotalCost-(lowdenslarge$Cost.x/2))/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = lowdenslarge$TotalCost, y = lowdenslarge$RMSE)
+#Subset to names of Sim on frontier
+pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 60 & Size == c("large") & Barrier == c("Open") & Sim %in% pflowlarge[[1]]) %>%
+  arrange((TotalCost-(Cost.x/2))/1000) %>%
+  mutate(Num = 1:length(pflowlarge[[1]]))
+
+pareto60HALFlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
+  theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Low density (60) and majority large snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 73, ymin = 160, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VIS30full", size = 2.5, hjust = 0)
+pareto60HALFlargeopen
+
+
+## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to half start up and divide by 1000 to put in terms of thousands of USD
+normdenslarge$TotalCost <- (normdenslarge$TotalCost-(normdenslarge$Cost.x/2))/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = normdenslarge$TotalCost, y = normdenslarge$RMSE)
+#Subset to names of Sim on frontier
+pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 120 & Size == c("large") & Barrier == c("Open") & Sim %in% pfnormlarge[[1]]) %>%
+  arrange((TotalCost-(Cost.x/2))/1000) %>%
+  mutate(Num = 1:length(pfnormlarge[[1]]))
+
+pareto120HALFlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  xlab("Cost in Thousands of USD") +
+  theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Normal density (120) and majority large snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 73, ymin = 180, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+pareto120HALFlargeopen
+
+
+#### WRITE PLOTS TO MULTI-PANEL PNG FIGURE.----
+
+## Numeric labels and arrows of individual Pareto frontier points done manually outside R to prevent overlap
+
+png(file="Simulations/Figures/NormalLowDensityParetoHalfStartUpSmallLargeOPEN.png",width=12,height=9,units="in",res=600)
+((pareto60HALFsmallopen + pareto120HALFsmallopen) / (pareto60HALFlargeopen + pareto120HALFlargeopen))
+dev.off()
+
+
+
+#### APPENDIX - NO STARTUP, CLOSED (TWO-WAY) BARRIER.----
+
+## Scenario: No start-up costs (aka, all equipment already purchased) plus recurring costs
+## State: Closed barrier fence (snakes cannot enter or exit)
+## Root Mean Square Error (RMSE) - square root of the mean of the square of all error, lower value indicates more accuracy
+
+
+## PANEL ONE. LOW DENSITY (60), SMALL SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
 lowdenssmall$TotalCost <- (lowdenssmall$TotalCost-lowdenssmall$Cost.x)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = lowdenssmall$TotalCost, y = lowdenssmall$RMSE)
 #Subset to names of Sim on frontier
-pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small"))[numSim[!is.na(numSim)],c("Sim")]
+pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 60 & Size == c("small") & Sim %in% pflowsmall[[1]]) %>%
+  filter(Truth == 60 & Size == c("small") & Barrier == c("Closed") & Sim %in% pflowsmall[[1]]) %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60NOsmall <- ggplot(subset(fullcost, Truth == 60 & Size == c("small")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto60NOsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
@@ -340,34 +510,34 @@ pareto60NOsmall <- ggplot(subset(fullcost, Truth == 60 & Size == c("small")), ae
   xlim(10,75) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 54, xmax = 74, ymin = 140, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. closedTRAP14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. closedVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedTRAP30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVISTRAP14halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. closedVISTRAP30halfhalf", size = 2.5, hjust = 0)
-pareto60NOsmall
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+pareto60NOsmallclosed
 
 
-## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES
-normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
 normdenssmall$TotalCost <- (normdenssmall$TotalCost-normdenssmall$Cost.x)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = normdenssmall$TotalCost, y = normdenssmall$RMSE)
 #Subset to names of Sim on frontier
-pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small"))[numSim[!is.na(numSim)],c("Sim")]
+pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 120 & Size == c("small") & Sim %in% pfnormsmall[[1]]) %>%
+  filter(Truth == 120 & Size == c("small") & Barrier == c("Closed") & Sim %in% pfnormsmall[[1]]) %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120NOsmall <- ggplot(subset(fullcost, Truth == 120 & Size == c("small")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto120NOsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
   scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
@@ -377,37 +547,36 @@ pareto120NOsmall <- ggplot(subset(fullcost, Truth == 120 & Size == c("small")), 
   ylim(0,(max(fullcost$RMSE)+5)) +
   xlim(10,75) +
   ## Pareto efficient actions identified above
-  annotate("rect", xmin = 54, xmax = 74, ymin = 100, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. onewayTRAP14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. onewayVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedTRAP30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVISTRAP14halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. closedTRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. closedVISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 110, label = "10. closedVIS30full", size = 2.5, hjust = 0)
-pareto120NOsmall
+  annotate("rect", xmin = 54, xmax = 74, ymin = 120, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS12014full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+pareto120NOsmallclosed
 
 
-## PANEL THREE. LOW DENSITY (60), LARGE SNAKES
-lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL THREE. LOW DENSITY (60), LARGE SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
 lowdenslarge$TotalCost <- (lowdenslarge$TotalCost-lowdenslarge$Cost.x)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = lowdenslarge$TotalCost, y = lowdenslarge$RMSE)
 #Subset to names of Sim on frontier
-pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large"))[numSim[!is.na(numSim)],c("Sim")]
+pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 60 & Size == c("large") & Sim %in% pflowlarge[[1]]) %>%
+  filter(Truth == 60 & Size == c("large") & Barrier == c("Closed") & Sim %in% pflowlarge[[1]]) %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60NOlarge <- ggplot(subset(fullcost, Truth == 60 & Size == c("large")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto60NOlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
@@ -419,34 +588,34 @@ pareto60NOlarge <- ggplot(subset(fullcost, Truth == 60 & Size == c("large")), ae
   xlim(10,75) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 54, xmax = 74, ymin = 140, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. closedTRAP14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. closedVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedVISTRAP14halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedTRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. closedVISTRAP30halfhalf", size = 2.5, hjust = 0)
-pareto60NOlarge
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+pareto60NOlargeclosed
 
 
-## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES
-normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
 normdenslarge$TotalCost <- (normdenslarge$TotalCost-normdenslarge$Cost.x)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = normdenslarge$TotalCost, y = normdenslarge$RMSE)
 #Subset to names of Sim on frontier
-pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large"))[numSim[!is.na(numSim)],c("Sim")]
+pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 120 & Size == c("large") & Sim %in% pfnormlarge[[1]]) %>%
+  filter(Truth == 120 & Size == c("large") & Barrier == c("Closed") & Sim %in% pfnormlarge[[1]]) %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120NOlarge <- ggplot(subset(fullcost, Truth == 120 & Size == c("large")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto120NOlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
@@ -458,19 +627,19 @@ pareto120NOlarge <- ggplot(subset(fullcost, Truth == 120 & Size == c("large")), 
   xlim(10,75) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 54, xmax = 74, ymin = 80, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 55, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 55, y = 290, label = "1. closedTRAP14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 270, label = "2. onewayVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 250, label = "3. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 230, label = "4. closedTRAP30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. closedVISTRAP14halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. closedTRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 110, label = "10. closedVISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 90, label = "11. closedVIS30full", size = 2.5, hjust = 0)
-pareto120NOlarge
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 110, label = "10. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 90, label = "11. VIS30full", size = 2.5, hjust = 0)
+pareto120NOlargeclosed
 
 
 #### WRITE PLOTS TO MULTI-PANEL PNG FIGURE.----
@@ -478,34 +647,213 @@ pareto120NOlarge
 ## Numeric labels and arrows of individual Pareto frontier points done manually outside R to prevent overlap
 ## Use previous legend from manuscript figure and manually add to this as well
 
-png(file="Simulations/Figures/FigureParetoNoCost.png",width=12,height=9,units="in",res=600)
-((pareto60NOsmall + pareto120NOsmall) / (pareto60NOlarge + pareto120NOlarge))
+png(file="Simulations/Figures/FigureParetoNoCostCLOSED.png",width=12,height=9,units="in",res=600)
+((pareto60NOsmallclosed + pareto120NOsmallclosed) / (pareto60NOlargeclosed + pareto120NOlargeclosed))
 dev.off()
 
 
 
-#### APPENDIX - FULL STARTUP.----
+#### APPENDIX - NO STARTUP, OPEN (ONE-WAY) BARRIER.----
 
-## Scenario: Full start-up costs (aka, all equipment needed) plus recurring costs
+## Scenario: No start-up costs (aka, all equipment already purchased) plus recurring costs
+## State: Open barrier fence (snakes cannot enter but can exit)
 ## Root Mean Square Error (RMSE) - square root of the mean of the square of all error, lower value indicates more accuracy
 
 
-## PANEL ONE. LOW DENSITY (60), SMALL SNAKES
-lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL ONE. LOW DENSITY (60), SMALL SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
+lowdenssmall$TotalCost <- (lowdenssmall$TotalCost-lowdenssmall$Cost.x)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = lowdenssmall$TotalCost, y = lowdenssmall$RMSE)
+#Subset to names of Sim on frontier
+pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 60 & Size == c("small") & Barrier == c("Open") & Sim %in% pflowsmall[[1]]) %>%
+  arrange((TotalCost-Cost.x)/1000) %>%
+  mutate(Num = 1:length(pflowsmall[[1]]))
+
+pareto60NOsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  ylab("Root Mean Square Error") +
+  theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Low density (60) and majority small snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(10,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 74, ymin = 100, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 110, label = "10. VIS30full", size = 2.5, hjust = 0)
+pareto60NOsmallopen
+
+
+## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
+normdenssmall$TotalCost <- (normdenssmall$TotalCost-normdenssmall$Cost.x)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = normdenssmall$TotalCost, y = normdenssmall$RMSE)
+#Subset to names of Sim on frontier
+pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 120 & Size == c("small") & Barrier == c("Open") & Sim %in% pfnormsmall[[1]]) %>%
+  arrange((TotalCost-Cost.x)/1000) %>%
+  mutate(Num = 1:length(pfnormsmall[[1]]))
+
+pareto120NOsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Normal density (120) and majority small snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(10,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 74, ymin = 120, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+pareto120NOsmallopen
+
+
+## PANEL THREE. LOW DENSITY (60), LARGE SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
+lowdenslarge$TotalCost <- (lowdenslarge$TotalCost-lowdenslarge$Cost.x)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = lowdenslarge$TotalCost, y = lowdenslarge$RMSE)
+#Subset to names of Sim on frontier
+pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 60 & Size == c("large") & Barrier == c("Open") & Sim %in% pflowlarge[[1]]) %>%
+  arrange((TotalCost-Cost.x)/1000) %>%
+  mutate(Num = 1:length(pflowlarge[[1]]))
+
+pareto60NOlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
+  theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Low density (60) and majority large snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(10,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 74, ymin = 120, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+pareto60NOlargeopen
+
+
+## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to no start up and divide by 1000 to put in terms of thousands of USD
+normdenslarge$TotalCost <- (normdenslarge$TotalCost-normdenslarge$Cost.x)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = normdenslarge$TotalCost, y = normdenslarge$RMSE)
+#Subset to names of Sim on frontier
+pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 120 & Size == c("large") & Barrier == c("Open") & Sim %in% pfnormlarge[[1]]) %>%
+  arrange((TotalCost-Cost.x)/1000) %>%
+  mutate(Num = 1:length(pfnormlarge[[1]]))
+
+pareto120NOlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+  xlab("Cost in Thousands of USD") +
+  theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Normal density (120) and majority large snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(10,75) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 54, xmax = 74, ymin = 120, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 55, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 55, y = 290, label = "1. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 270, label = "2. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 230, label = "4. TRAP30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. TRAP14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 170, label = "7. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 150, label = "8. TRAP30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+pareto120NOlargeopen
+
+
+#### WRITE PLOTS TO MULTI-PANEL PNG FIGURE.----
+
+## Numeric labels and arrows of individual Pareto frontier points done manually outside R to prevent overlap
+## Use previous legend from manuscript figure and manually add to this as well
+
+png(file="Simulations/Figures/FigureParetoNoCostOPEN.png",width=12,height=9,units="in",res=600)
+((pareto60NOsmallopen + pareto120NOsmallopen) / (pareto60NOlargeopen + pareto120NOlargeopen))
+dev.off()
+
+
+
+#### APPENDIX - FULL STARTUP, CLOSED (TWO-WAY) BARRIER.----
+
+## Scenario: Full start-up costs (aka, all equipment needed) plus recurring costs
+## State: Closed barrier fence (snakes cannot enter or exit)
+## Root Mean Square Error (RMSE) - square root of the mean of the square of all error, lower value indicates more accuracy
+
+
+## PANEL ONE. LOW DENSITY (60), SMALL SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
 lowdenssmall$TotalCost <- (lowdenssmall$TotalCost)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = lowdenssmall$TotalCost, y = lowdenssmall$RMSE)
 #Subset to names of Sim on frontier
-pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small"))[numSim[!is.na(numSim)],c("Sim")]
+pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 60 & Size == c("small") & Sim %in% pflowsmall[[1]]) %>%
+  filter(Truth == 60 & Size == c("small") & Barrier == c("Closed") & Sim %in% pflowsmall[[1]]) %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60FULLsmall <- ggplot(subset(fullcost, Truth == 60 & Size == c("small")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto60FULLsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
@@ -517,33 +865,33 @@ pareto60FULLsmall <- ggplot(subset(fullcost, Truth == 60 & Size == c("small")), 
   xlim(15,85) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 64, xmax = 85, ymin = 160, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 65, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 65, y = 290, label = "1. closedVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 250, label = "3. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 230, label = "4. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 210, label = "5. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. closedVIS30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 170, label = "7. closedVISTRAP30halfhalf", size = 2.5, hjust = 0)
-pareto60FULLsmall
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+pareto60FULLsmallclosed
 
 
-## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES
-normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
 normdenssmall$TotalCost <- (normdenssmall$TotalCost)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = normdenssmall$TotalCost, y = normdenssmall$RMSE)
 #Subset to names of Sim on frontier
-pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small"))[numSim[!is.na(numSim)],c("Sim")]
+pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 120 & Size == c("small") & Sim %in% pfnormsmall[[1]]) %>%
+  filter(Truth == 120 & Size == c("small") & Barrier == c("Closed") & Sim %in% pfnormsmall[[1]]) %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120FULLsmall <- ggplot(subset(fullcost, Truth == 120 & Size == c("small")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto120FULLsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")) , aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
   scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
@@ -553,32 +901,33 @@ pareto120FULLsmall <- ggplot(subset(fullcost, Truth == 120 & Size == c("small"))
   ylim(0,(max(fullcost$RMSE)+5)) +
   xlim(15,85) +
   ## Pareto efficient actions identified above
-  annotate("rect", xmin = 64, xmax = 85, ymin = 200, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 65, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 65, y = 290, label = "1. onewayVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 250, label = "3. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 230, label = "4. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 210, label = "5. closedVIS30full", size = 2.5, hjust = 0)
-pareto120FULLsmall
+  annotate("rect", xmin = 64, xmax = 85, ymin = 180, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. TRAP14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+pareto120FULLsmallclosed
 
 
-## PANEL THREE. LOW DENSITY (60), LARGE SNAKES
-lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL THREE. LOW DENSITY (60), LARGE SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
 lowdenslarge$TotalCost <- (lowdenslarge$TotalCost)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = lowdenslarge$TotalCost, y = lowdenslarge$RMSE)
 #Subset to names of Sim on frontier
-pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large"))[numSim[!is.na(numSim)],c("Sim")]
+pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 60 & Size == c("large") & Sim %in% pflowlarge[[1]]) %>%
+  filter(Truth == 60 & Size == c("large") & Barrier == c("Closed") & Sim %in% pflowlarge[[1]]) %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60FULLlarge <- ggplot(subset(fullcost, Truth == 60 & Size == c("large")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto60FULLlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
@@ -590,32 +939,32 @@ pareto60FULLlarge <- ggplot(subset(fullcost, Truth == 60 & Size == c("large")), 
   xlim(15,85) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 64, xmax = 85, ymin = 180, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 65, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 65, y = 290, label = "1. closedVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 250, label = "3. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 230, label = "4. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 210, label = "5. closedVIS30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. closedVISTRAP30halfhalf", size = 2.5, hjust = 0)
-pareto60FULLlarge
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 210, label = "5. VIS30full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+pareto60FULLlargeclosed
 
 
-## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES
-normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES, CLOSED (I.E., TWO-WAY) BARRIER
+normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed"))[,c("TotalCost","Cost.x","RMSE","Sim")]
 #Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
 normdenslarge$TotalCost <- (normdenslarge$TotalCost)/1000
 #Get the row number of all Pareto efficient actions
 numSim <- getPareto(x = normdenslarge$TotalCost, y = normdenslarge$RMSE)
 #Subset to names of Sim on frontier
-pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large"))[numSim[!is.na(numSim)],c("Sim")]
+pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed"))[numSim[!is.na(numSim)],c("Sim")]
 
 ## Flag points in dataframe on frontier in order to label
 highlight_df <- fullcost %>%
-  filter(Truth == 120 & Size == c("large") & Sim %in% pfnormlarge[[1]]) %>%
+  filter(Truth == 120 & Size == c("large") & Barrier == c("Closed") & Sim %in% pfnormlarge[[1]]) %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120FULLlarge <- ggplot(subset(fullcost, Truth == 120 & Size == c("large")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+pareto120FULLlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
   geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
@@ -627,14 +976,14 @@ pareto120FULLlarge <- ggplot(subset(fullcost, Truth == 120 & Size == c("large"))
   xlim(15,85) +
   ## Pareto efficient actions identified above
   annotate("rect", xmin = 64, xmax = 85, ymin = 180, ymax = 320, alpha = 0.2) +
-  annotate("text", x = 65, y = 310, label = "Pareto efficient actions", size = 3.5, hjust = 0) +
-  annotate("text", x = 65, y = 290, label = "1. onewayVIS14half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 270, label = "2. closedVISTRAP14thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 250, label = "3. closedVIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 230, label = "4. closedVIS30half", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 210, label = "5. closedVISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. closedVIS30full", size = 2.5, hjust = 0)
-pareto120FULLlarge
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+pareto120FULLlargeclosed
 
 
 #### WRITE PLOTS TO MULTI-PANEL PNG FIGURE.----
@@ -642,6 +991,166 @@ pareto120FULLlarge
 ## Numeric labels and arrows of individual Pareto frontier points done manually outside R to prevent overlap
 ## Use previous legend from manuscript figure and manually add to this as well
 
-png(file="Simulations/Figures/FigureParetoFullCost.png",width=12,height=9,units="in",res=600)
-((pareto60FULLsmall + pareto120FULLsmall) / (pareto60FULLlarge + pareto120FULLlarge))
+png(file="Simulations/Figures/FigureParetoFullCostCLOSED.png",width=12,height=9,units="in",res=600)
+((pareto60FULLsmallclosed + pareto120FULLsmallclosed) / (pareto60FULLlargeclosed + pareto120FULLlargeclosed))
+dev.off()
+
+
+
+#### APPENDIX - FULL STARTUP, OPEN (ONE-WAY) BARRIER.----
+
+## Scenario: Full start-up costs (aka, all equipment needed) plus recurring costs
+## State: Open barrier fence (snakes cannot enter but can exit)
+## Root Mean Square Error (RMSE) - square root of the mean of the square of all error, lower value indicates more accuracy
+
+
+## PANEL ONE. LOW DENSITY (60), SMALL SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+lowdenssmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
+lowdenssmall$TotalCost <- (lowdenssmall$TotalCost)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = lowdenssmall$TotalCost, y = lowdenssmall$RMSE)
+#Subset to names of Sim on frontier
+pflowsmall <- subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 60 & Size == c("small") & Barrier == c("Open") & Sim %in% pflowsmall[[1]]) %>%
+  arrange((TotalCost)/1000) %>%
+  mutate(Num = 1:length(pflowsmall[[1]]))
+
+pareto60FULLsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+  ylab("Root Mean Square Error") +
+  theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Low density (60) and majority small snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,85) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 64, xmax = 85, ymin = 180, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+pareto60FULLsmallopen
+
+
+## PANEL TWO. NORMAL DENSITY (120), SMALL SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+normdenssmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
+normdenssmall$TotalCost <- (normdenssmall$TotalCost)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = normdenssmall$TotalCost, y = normdenssmall$RMSE)
+#Subset to names of Sim on frontier
+pfnormsmall <- subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 120 & Size == c("small") & Barrier == c("Open") & Sim %in% pfnormsmall[[1]]) %>%
+  arrange((TotalCost)/1000) %>%
+  mutate(Num = 1:length(pfnormsmall[[1]]))
+
+pareto120FULLsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")) , aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+  theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Normal density (120) and majority small snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,85) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 64, xmax = 85, ymin = 220, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VIS30full", size = 2.5, hjust = 0)
+pareto120FULLsmallopen
+
+
+## PANEL THREE. LOW DENSITY (60), LARGE SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+lowdenslarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
+lowdenslarge$TotalCost <- (lowdenslarge$TotalCost)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = lowdenslarge$TotalCost, y = lowdenslarge$RMSE)
+#Subset to names of Sim on frontier
+pflowlarge <- subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 60 & Size == c("large") & Barrier == c("Open") & Sim %in% pflowlarge[[1]]) %>%
+  arrange((TotalCost)/1000) %>%
+  mutate(Num = 1:length(pflowlarge[[1]]))
+
+pareto60FULLlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+  xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
+  theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Low density (60) and majority large snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,85) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 64, xmax = 85, ymin = 200, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 210, label = "5. VIS30full", size = 2.5, hjust = 0)
+pareto60FULLlargeopen
+
+
+## PANEL FOUR. NORMAL DENSITY (120), LARGE SNAKES, OPEN (I.E., ONE-WAY) BARRIER
+normdenslarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open"))[,c("TotalCost","Cost.x","RMSE","Sim")]
+#Correct total cost to full start up and divide by 1000 to put in terms of thousands of USD
+normdenslarge$TotalCost <- (normdenslarge$TotalCost)/1000
+#Get the row number of all Pareto efficient actions
+numSim <- getPareto(x = normdenslarge$TotalCost, y = normdenslarge$RMSE)
+#Subset to names of Sim on frontier
+pfnormlarge <- subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open"))[numSim[!is.na(numSim)],c("Sim")]
+
+## Flag points in dataframe on frontier in order to label
+highlight_df <- fullcost %>%
+  filter(Truth == 120 & Size == c("large") & Barrier == c("Open") & Sim %in% pfnormlarge[[1]]) %>%
+  arrange((TotalCost)/1000) %>%
+  mutate(Num = 1:length(pfnormlarge[[1]]))
+
+pareto120FULLlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+  xlab("Cost in Thousands of USD") +
+  theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_shape_manual(values = c(21, 22, 24, 25)) +
+  scale_size_manual(values=c(3,5)) +
+  ggtitle("Normal density (120) and majority large snakes") +
+  ylim(0,(max(fullcost$RMSE)+5)) +
+  xlim(15,85) +
+  ## Pareto efficient actions identified above
+  annotate("rect", xmin = 64, xmax = 85, ymin = 220, ymax = 320, alpha = 0.2) +
+  annotate("text", x = 65, y = 310, label = "Pareto-efficient actions", size = 3.5, hjust = 0) +
+  annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
+  annotate("text", x = 65, y = 230, label = "4. VIS30full", size = 2.5, hjust = 0)
+pareto120FULLlargeopen
+
+
+#### WRITE PLOTS TO MULTI-PANEL PNG FIGURE.----
+
+## Numeric labels and arrows of individual Pareto frontier points done manually outside R to prevent overlap
+## Use previous legend from manuscript figure and manually add to this as well
+
+png(file="Simulations/Figures/FigureParetoFullCostOPEN.png",width=12,height=9,units="in",res=600)
+((pareto60FULLsmallopen + pareto120FULLsmallopen) / (pareto60FULLlargeopen + pareto120FULLlargeopen))
 dev.off()
