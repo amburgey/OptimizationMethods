@@ -101,6 +101,8 @@ readr_2.0.0
 
 patchwork_1.1.1
 
+ggrepel_0.9.1
+
 ## Details of Article
 Details of this work can be found in the published journal article on this topic:
 
