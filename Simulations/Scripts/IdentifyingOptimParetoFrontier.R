@@ -4,7 +4,7 @@
 
 rm(list=ls())
 
-library(ggplot2);library(tidyverse);library(dplyr);library(patchwork)
+library(ggplot2);library(tidyverse);library(dplyr);library(patchwork);library(ggrepel)
 
 
 #### COSTS OF SCENARIOS.----
@@ -143,11 +143,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60HALFsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60HALFsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority small snakes") +
@@ -162,7 +162,8 @@ pareto60HALFsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("smal
   annotate("text", x = 55, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 210, label = "5. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60HALFsmallclosed
 
 
@@ -181,10 +182,10 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120HALFsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120HALFsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -201,7 +202,8 @@ pareto120HALFsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("sm
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120HALFsmallclosed
 
 
@@ -220,11 +222,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60HALFlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60HALFlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority large snakes") +
@@ -238,7 +240,8 @@ pareto60HALFlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("larg
   annotate("text", x = 55, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60HALFlargeclosed
 
 
@@ -257,11 +260,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120HALFlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120HALFlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority large snakes") +
@@ -278,7 +281,8 @@ pareto120HALFlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("la
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120HALFlargeclosed
 
 ## Create plot for legend to better tweak/combine pieces manually outside of R
@@ -330,11 +334,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60HALFsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60HALFsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority small snakes") +
@@ -350,7 +354,8 @@ pareto60HALFsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small"
   annotate("text", x = 55, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 150, label = "8. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60HALFsmallopen
 
 
@@ -369,10 +374,10 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120HALFsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120HALFsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -387,7 +392,8 @@ pareto120HALFsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("smal
   annotate("text", x = 55, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 170, label = "7. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120HALFsmallopen
 
 
@@ -406,11 +412,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60HALFlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60HALFlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority large snakes") +
@@ -425,7 +431,8 @@ pareto60HALFlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large"
   annotate("text", x = 55, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 170, label = "7. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 170, label = "7. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60HALFlargeopen
 
 
@@ -444,11 +451,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-(Cost.x/2))/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120HALFlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120HALFlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority large snakes") +
@@ -462,7 +469,8 @@ pareto120HALFlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("larg
   annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 210, label = "5. TRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-(Cost.x/2))/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120HALFlargeopen
 
 
@@ -498,11 +506,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60NOsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60NOsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority small snakes") +
@@ -518,7 +526,8 @@ pareto60NOsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small"
   annotate("text", x = 55, y = 210, label = "5. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60NOsmallclosed
 
 
@@ -537,10 +546,10 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120NOsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120NOsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -557,7 +566,8 @@ pareto120NOsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("smal
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120NOsmallclosed
 
 
@@ -576,11 +586,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60NOlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60NOlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority large snakes") +
@@ -596,7 +606,8 @@ pareto60NOlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large"
   annotate("text", x = 55, y = 210, label = "5. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60NOlargeclosed
 
 
@@ -615,11 +626,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120NOlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120NOlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority large snakes") +
@@ -638,7 +649,8 @@ pareto120NOlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("larg
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 130, label = "9. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 110, label = "10. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 90, label = "11. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 90, label = "11. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120NOlargeclosed
 
 
@@ -675,11 +687,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60NOsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60NOsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority small snakes") +
@@ -697,7 +709,8 @@ pareto60NOsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") 
   annotate("text", x = 55, y = 170, label = "7. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 130, label = "9. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 110, label = "10. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 110, label = "10. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60NOsmallopen
 
 
@@ -716,10 +729,10 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120NOsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120NOsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -736,7 +749,8 @@ pareto120NOsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small"
   annotate("text", x = 55, y = 190, label = "6. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120NOsmallopen
 
 
@@ -755,11 +769,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60NOlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto60NOlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority large snakes") +
@@ -776,7 +790,8 @@ pareto60NOlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") 
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60NOlargeopen
 
 
@@ -795,11 +810,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost-Cost.x)/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120NOlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.8)) +
+pareto120NOlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost-Cost.x)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.8), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority large snakes") +
@@ -816,7 +831,8 @@ pareto120NOlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large"
   annotate("text", x = 55, y = 190, label = "6. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. TRAP30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 55, y = 130, label = "9. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost-Cost.x)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120NOlargeopen
 
 
@@ -853,11 +869,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60FULLsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto60FULLsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority small snakes") +
@@ -872,7 +888,8 @@ pareto60FULLsmallclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("smal
   annotate("text", x = 65, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 170, label = "7. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60FULLsmallclosed
 
 
@@ -891,10 +908,10 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120FULLsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")) , aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto120FULLsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Closed")) , aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -908,7 +925,8 @@ pareto120FULLsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("sm
   annotate("text", x = 65, y = 250, label = "3. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 230, label = "4. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120FULLsmallclosed
 
 
@@ -927,11 +945,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60FULLlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto60FULLlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority large snakes") +
@@ -945,7 +963,8 @@ pareto60FULLlargeclosed <- ggplot(subset(fullcost, Truth == 60 & Size == c("larg
   annotate("text", x = 65, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 210, label = "5. VIS30full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 190, label = "6. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60FULLlargeclosed
 
 
@@ -964,11 +983,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120FULLlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto120FULLlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Closed")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority large snakes") +
@@ -982,7 +1001,8 @@ pareto120FULLlargeclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("la
   annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120FULLlargeclosed
 
 
@@ -1019,11 +1039,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pflowsmall[[1]]))
 
-pareto60FULLsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto60FULLsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title.y = element_text(size = 12), axis.text.y = element_text(size = 10), axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority small snakes") +
@@ -1037,7 +1057,8 @@ pareto60FULLsmallopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("small"
   annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 230, label = "4. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 210, label = "5. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 190, label = "6. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60FULLsmallopen
 
 
@@ -1056,10 +1077,10 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pfnormsmall[[1]]))
 
-pareto120FULLsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")) , aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto120FULLsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("small") & Barrier == c("Open")) , aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   theme(legend.position = "none", axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority small snakes") +
@@ -1071,7 +1092,8 @@ pareto120FULLsmallopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("smal
   annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 230, label = "4. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 230, label = "4. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120FULLsmallopen
 
 
@@ -1090,11 +1112,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pflowlarge[[1]]))
 
-pareto60FULLlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto60FULLlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") + ylab("Root Mean Square Error") +
   theme(legend.position = "none", axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Low density (60) and majority large snakes") +
@@ -1107,7 +1129,8 @@ pareto60FULLlargeopen <- ggplot(subset(fullcost, Truth == 60 & Size == c("large"
   annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 250, label = "3. VIS30half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 230, label = "4. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 210, label = "5. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 210, label = "5. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto60FULLlargeopen
 
 
@@ -1126,11 +1149,11 @@ highlight_df <- fullcost %>%
   arrange((TotalCost)/1000) %>%
   mutate(Num = 1:length(pfnormlarge[[1]]))
 
-pareto120FULLlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space, size = as.factor(Days))) +
-  geom_point(alpha = 0.7, position = position_dodge(width = 0.6)) +
+pareto120FULLlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("large") & Barrier == c("Open")), aes(x = (TotalCost)/1000, y = RMSE, fill = TypeALL, shape = Space)) +
+  geom_point(alpha = 0.7, position = position_dodge(width = 0.6), aes(size = as.factor(Days))) +
   xlab("Cost in Thousands of USD") +
   theme(legend.position = "none", axis.title.x = element_text(size = 12), axis.text.x = element_text(size = 10), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  scale_fill_manual(values = c("#567022","#B77A29","#0066cc","#C9F277","#FDEC9E","#00ccff"), breaks = c("closedTRAP","closedVIS","closedVISTRAP","onewayTRAP","onewayVIS","onewayVISTRAP")) +
+  scale_fill_manual(values = c("#C9F277","#FDEC9E","#00ccff"), breaks = c("onewayTRAP","onewayVIS","onewayVISTRAP")) +
   scale_shape_manual(values = c(21, 22, 24, 25)) +
   scale_size_manual(values=c(3,5)) +
   ggtitle("Normal density (120) and majority large snakes") +
@@ -1142,7 +1165,8 @@ pareto120FULLlargeopen <- ggplot(subset(fullcost, Truth == 120 & Size == c("larg
   annotate("text", x = 65, y = 290, label = "1. VIS14half", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 65, y = 250, label = "3. VIS14full", size = 2.5, hjust = 0) +
-  annotate("text", x = 65, y = 230, label = "4. VIS30full", size = 2.5, hjust = 0)
+  annotate("text", x = 65, y = 230, label = "4. VIS30full", size = 2.5, hjust = 0) +
+  geom_text_repel(data = highlight_df, aes(x = (TotalCost)/1000, y = RMSE, label = Num), box.padding = 0.75, hjust = 0.5, vjust = 0.5, segment.size = 0.25)
 pareto120FULLlargeopen
 
 
