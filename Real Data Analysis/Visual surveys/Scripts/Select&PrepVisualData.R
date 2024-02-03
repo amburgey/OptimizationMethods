@@ -26,11 +26,11 @@ subsurv[subsurv$SITE == "NWFN" & subsurv$TRANSECT == "OPR", "TRANSECT"] <- "0PR"
 ## Rename typo
 subsurv[subsurv$SITE == "NWFN" & subsurv$TRANSECT == "NEW", "TRANSECT"] <- "NWE"
 ## Denote surveys currently lacking transect info
-subsurv$TRANSECT[subsurv$TRANSECT==""] <- "-9999"
+subsurv$TRANSECT[subsurv$TRANSECT==""] <- "9999"
 ## Remove survey that looks like incidental (same beginning and end time) but no capture recorded
-subsurv <- subsurv[!(subsurv$SITE == "NWFN" & subsurv$TRANSID == "30992" & subsurv$EFFORTID == "6078" & subsurv$TRANSECT == "-9999"),]
-## Remove survey where no transect info is available (-9999)
-subsurv <- subsurv[!(subsurv$SITE == "NWFN" & subsurv$TRANSID == "35242" & subsurv$EFFORTID == "7289" & subsurv$TRANSECT == "-9999"),]
+subsurv <- subsurv[!(subsurv$SITE == "NWFN" & subsurv$TRANSID == "30992" & subsurv$EFFORTID == "6078" & subsurv$TRANSECT == "9999"),]
+## Remove survey where no transect info is available (9999)
+subsurv <- subsurv[!(subsurv$SITE == "NWFN" & subsurv$TRANSID == "35242" & subsurv$EFFORTID == "7289" & subsurv$TRANSECT == "9999"),]
 ## Decide whether to include surveys on NWFN perimeter fence (except 0PR as that seems like an error or training survey) and edge transects (NEE, SWE). Incidentals (INCID, NSP, NSV, PR) are removed by time check lower down. Random transects (e.g., 0) are also removed.
 subsurv <- subsurv[!(subsurv$SITE=="NWFN" & (subsurv$TRANSECT=="NWE" | subsurv$TRANSECT=="0" | subsurv$TRANSECT=="0PR")),]
 ## Rename 1PR and 2PR to just PR > 1 means a perimeter search at the beginning of the evening, 2 means at the end
@@ -64,7 +64,7 @@ subcap[subcap$SITE == "NWFN" & subcap$CAPID == "4012","LOCATION"] <- "13"
 ## NWFN record matches a survey of SWE and another recorded listed as AA7 (but likely should be SWE)
 subcap[subcap$EFFORTID == "14901" & subcap$TRANSID == "76172" & subcap$TRANSECT == "UNKN","TRANSECT"] <- "SWE"
 subcap[subcap$EFFORTID == "14901" & subcap$TRANSID == "76172" & subcap$TRANSECT == "AA","TRANSECT"] <- "SWE"
-## Remove NWFN capture with missing (blank) transect info (listed as -9999 from subsurv)
+## Remove NWFN capture with missing (blank) transect info (listed as 9999 from subsurv)
 subcap <- subcap[!(subcap$TRANSID=="35242" & subcap$EFFORTID=="7289" & subcap$TRANSECT==""),]
 ## All NWFN others with transect UNKN are actually 2PR (removed from surveys but in case we're using need to rename)
 check <- cbind(c("4034","4721","4342","4412","4474","4765","4566","4647","4648","4659","4296","4405","4385","4497","4090","4153","4422","4523","4567","4634","4158","4058","4670","4770","4123","4143","4189","4361","4387","4003","4462","4748","4763","4646","4086","4138","4026","4008","4546","4634","4562","242"), c("381","4238","2110","2515","2839","4488","3365","3830","3837","3889","1851","2476","2357","2967","697","1041","2573","3103","3374","3745","1069","513","3956","4520","873","982","1252","2224","2368","216","2768","4392","4478","3820","671","955","338","242","3244","3745","3341","4008"))
