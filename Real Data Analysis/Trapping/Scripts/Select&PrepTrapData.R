@@ -51,7 +51,7 @@ subcap <- subcap[!(subcap$SITE == "NWFN" & subcap$TRANSID == "56296" & subcap$EF
 ## Survey marked as occurring on RIM (transect) with location blank
 subcap <- subcap[!(subcap$SITE == "NWFN" & subcap$TRANSID == "51100" & subcap$EFFORTID == "9638"),]
 ## Capture listed on unknown transect and blank location, but comments say it looks like a poorly written X10 (and surveys did happen on X that evening)
-subcap[subcap$EFFORTID == "5618" & subcap$TRANSID == "5136" & subcap$TRANSECT == "UNKN" & subcap$LOCATION == "",c("TRANSECT","LOCATION")] <- c("X","10") 
+subcap[subcap$EFFORTID == "5618" & subcap$TRANSID == "5136" & subcap$TRANSECT == "UNKN" & is.na(subcap$LOCATION),c("TRANSECT","LOCATION")] <- c("X","10") 
 
 ## Transect + location = Point
 subcap$Point <- paste(subcap$TRANSECT, subcap$LOCATION, sep = "")
