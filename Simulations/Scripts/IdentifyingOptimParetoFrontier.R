@@ -562,7 +562,7 @@ pareto120NOsmallclosed <- ggplot(subset(fullcost, Truth == 120 & Size == c("smal
   annotate("text", x = 55, y = 270, label = "2. VISTRAP14thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 250, label = "3. TRAP30half", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 230, label = "4. VISTRAP14halfhalf", size = 2.5, hjust = 0) +
-  annotate("text", x = 55, y = 210, label = "5. VIS12014full", size = 2.5, hjust = 0) +
+  annotate("text", x = 55, y = 210, label = "5. VIS14full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 190, label = "6. VISTRAP30thirdthird", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 170, label = "7. TRAP30full", size = 2.5, hjust = 0) +
   annotate("text", x = 55, y = 150, label = "8. VISTRAP30halfhalf", size = 2.5, hjust = 0) +
